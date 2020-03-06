@@ -68,6 +68,4 @@
                                       (add-between vs sep)))))))
 
 (define (string-join seq sep)
-  (string-trim (fold .. (map (curryr .. sep)
-                             seq))
-               sep))
+  (fold .. (add-between seq sep) ""))
