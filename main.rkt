@@ -27,7 +27,9 @@
   (check-equal? (let-values ([(a b)
                               (generator-splitf-at (->generator (list 1 3 5 2 4)) odd?)])
                   (->list (map ->list (list a b))))
-                (list '(1 3 5) '(2 4))))
+                (list '(1 3 5) '(2 4)))
+  (check-equal? (->list (add-between (stream 'a 'b 'c) 'and)) '(a and b and c))
+  (check-equal? (string-join (stream "hi" "there") "\n") "hi\nthere"))
 
 (module+ main
   ;; (Optional) main submodule. Put code here if you need it to be executed when

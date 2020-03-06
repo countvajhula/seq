@@ -11,7 +11,9 @@
          dropf
          splitf-at
          generator-cons
-         generator-splitf-at)
+         generator-splitf-at
+         add-between
+         string-join)
 
 (define (every cnt seq)
   (if (empty? seq)
@@ -53,3 +55,19 @@
 
 (define (generator-splitf-at gen pred)
   (splitf-at (->stream gen) pred))
+
+(define (add-between seq sep)
+  (if (empty? seq)
+      (stream)
+      (let ([v (first seq)]
+            [vs (rest seq)])
+        (if (empty? vs)
+            (stream v)
+            (stream-cons v
+                         (stream-cons sep
+                                      (add-between vs sep)))))))
+
+(define (string-join seq sep)
+  (string-trim (fold .. (map (curryr .. sep)
+                             seq))
+               sep))
