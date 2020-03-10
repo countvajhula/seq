@@ -1,6 +1,7 @@
-#lang racket
+#lang racket/base
 
-(require racket/stream
+(require racket/contract
+         racket/stream
          racket/match
          racket/generator
          (except-in data/collection
@@ -14,7 +15,11 @@
          generator-cons
          generator-splitf-at
          add-between
-         string-join)
+         string-join
+         (contract-out
+          [: (collection? any/c . -> . collection?)]))
+
+(define : conj)
 
 (define (every cnt seq)
   (if (empty? seq)
