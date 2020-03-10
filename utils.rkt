@@ -2,6 +2,7 @@
 
 (require racket/stream
          racket/match
+         racket/generator
          (except-in data/collection
                     foldl)
          relation)
@@ -48,10 +49,13 @@
   ;; TODO: make this more efficient
   (values (takef seq pred) (dropf seq pred)))
 
-(define (generator-cons v gen)
-  (let* ([old-stream (->stream gen)]
-         [new-stream (conj old-stream v)])
-    (->generator new-stream)))
+(define (generator-cons v gen [stop (void)])
+  (generator ()
+    (yield v)
+    (let loop ([val (gen)])
+      (unless (= val stop)
+        (yield val)
+        (loop (gen))))))
 
 (define (generator-splitf-at gen pred)
   (splitf-at (->stream gen) pred))
