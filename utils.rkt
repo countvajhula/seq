@@ -4,8 +4,10 @@
          racket/stream
          racket/match
          racket/generator
+         racket/function
          (except-in data/collection
-                    foldl)
+                    foldl
+                    foldl/steps)
          relation)
 
 (provide every
@@ -53,6 +55,13 @@
 (define (splitf-at seq pred)
   ;; TODO: make this more efficient
   (values (takef seq pred) (dropf seq pred)))
+
+(define (slide seq
+               [window-size 1])
+  ;; TODO: improve; support move-by
+  (let ([seqs (for/list ([i (in-range window-size)])
+                (drop i seq))])
+    (apply map list seqs)))
 
 (define (generator-cons v gen [stop (void)])
   (generator ()
