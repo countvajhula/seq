@@ -1,8 +1,7 @@
 #lang info
 (define collection "collection-utils")
 (define deps '("base"
-               "collections-lib"
-               "relation"))
+               "collections-lib"))
 (define build-deps '("scribble-lib"
                      "scribble-abbrevs"
                      "racket-doc"
