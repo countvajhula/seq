@@ -74,6 +74,17 @@
         (yield val)
         (loop (gen))))))
 
+(struct generator-collection (gen)
+  #:transparent
+  #:methods gen:collection
+  [(define (conj st v)
+     (let ([gen (generator-collection-gen st)])
+       (generator-collection (generator-cons v gen))))]
+  #:property prop:procedure
+  (λ (self . args)
+    (let ([gen (generator-collection-gen self)])
+      (apply gen args))))
+
 (define (generator-splitf-at gen pred)
   (splitf-at (->stream gen) pred))
 
