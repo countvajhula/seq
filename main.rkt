@@ -29,7 +29,10 @@
                   (->list (map ->list (list a b))))
                 (list '(1 3 5) '(2 4)))
   (check-equal? (->list (add-between (stream 'a 'b 'c) 'and)) '(a and b and c))
-  (check-equal? (string-join (stream "hi" "there") "\n") "hi\nthere"))
+  (check-equal? (string-join (stream "hi" "there") "\n") "hi\nthere")
+  (check-equal? (->list (in-producer (->generator (list 1 2 3 4 (void) 5 6))
+                                     (void)))
+                '(1 2 3 4)))
 
 (module+ main
   ;; (Optional) main submodule. Put code here if you need it to be executed when
