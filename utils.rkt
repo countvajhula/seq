@@ -9,6 +9,7 @@
                     foldl
                     foldl/steps
                     append)
+         functional-utils
          relation)
 
 (provide every
@@ -20,7 +21,6 @@
          in-producer
          add-between
          string-join
-         unthunk
          (contract-out
           [: (collection? any/c . -> . collection?)]))
 
@@ -77,13 +77,9 @@
 (define (generator-splitf-at gen pred)
   (splitf-at (->stream gen) pred))
 
-(define (unthunk f)
-  (λ args
-    (f)))
-
 (define (in-producer gen stop)
   (takef (build-sequence (unthunk gen))
-         (negate (curry = stop))))
+         (!! (curry = stop))))
 
 (define (add-between seq sep)
   (if (empty? seq)
