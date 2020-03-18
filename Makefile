@@ -4,7 +4,9 @@ PACKAGE-NAME=collection-utils
 DEPS-FLAGS=--check-pkg-deps --unused-pkg-deps
 
 help:
-	@echo "build - Compile libraries, build docs, and check dependencies"
+	@echo "build - Compile libraries"
+	@echo "build-docs - Build docs"
+	@echo "build-all - Compile libraries, build docs, and check dependencies"
 	@echo "clean - remove all build artifacts"
 	@echo "install - install package along with dependencies"
 	@echo "remove - remove package"
@@ -21,8 +23,19 @@ remove:
 	raco pkg remove $(PACKAGE-NAME)
 
 # Primarily for day-to-day dev.
-# Note: Also builds docs (if any) and checks deps.
+# Build libraries from source.
 build:
+	raco setup --no-docs --tidy --pkgs $(PACKAGE-NAME)
+
+# Primarily for day-to-day dev.
+# Build docs (if any).
+build-docs:
+	raco setup --no-launcher --no-foreign-libs --no-info-domain --no-pkg-deps \
+	--no-install --no-post-install --tidy --pkgs $(PACKAGE-NAME)
+
+# Primarily for day-to-day dev.
+# Build libraries from source, build docs (if any), and check dependencies.
+build-all:
 	raco setup --tidy $(DEPS-FLAGS) --pkgs $(PACKAGE-NAME)
 
 # Note: Each collection's info.rkt can say what to clean, for example
