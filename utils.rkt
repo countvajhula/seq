@@ -17,6 +17,7 @@
          dropf
          splitf-at
          generator-cons
+         generator-append
          generator-splitf-at
          in-producer
          add-between
@@ -66,6 +67,17 @@
                 (drop i seq))])
     (apply map list seqs)))
 
+(struct generator-collection (gen)
+  #:transparent
+  #:methods gen:collection
+  [(define (conj st v)
+     (let ([gen (generator-collection-gen st)])
+       (generator-collection (generator-cons v gen))))]
+  #:property prop:procedure
+  (λ (self . args)
+    (let ([gen (generator-collection-gen self)])
+      (apply gen args))))
+
 (define (generator-cons v gen)
   (generator ()
     (yield v)
@@ -77,17 +89,6 @@
                  (gen))
           (begin (yield cur)
                  (loop next (gen)))))))
-
-(struct generator-collection (gen)
-  #:transparent
-  #:methods gen:collection
-  [(define (conj st v)
-     (let ([gen (generator-collection-gen st)])
-       (generator-collection (generator-cons v gen))))]
-  #:property prop:procedure
-  (λ (self . args)
-    (let ([gen (generator-collection-gen self)])
-      (apply gen args))))
 
 (define (generator-append a b)
   (generator ()

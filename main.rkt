@@ -20,6 +20,8 @@
   (check-equal? (->list (takef (stream 2 4 1 3 5) even?)) '(2 4))
   (check-equal? (->list (dropf (stream 2 4 1 3 5) even?)) '(1 3 5))
   (check-equal? (->list (generator-cons 4 (->generator (list 1 2 3)))) '(4 1 2 3))
+  (check-equal? (->list (generator-append (->generator (list 1 2 3)) (->generator (list 4 5 6)))) '(1 2 3 4 5 6))
+  (check-equal? (->list (generator-append (->generator (list 1)) (->generator (list 4)))) '(1 4))
   (check-equal? (let-values ([(a b)
                               (splitf-at (list 1 3 5 2 4) odd?)])
                   (->list (map ->list (list a b))))
