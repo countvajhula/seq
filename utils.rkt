@@ -66,13 +66,17 @@
                 (drop i seq))])
     (apply map list seqs)))
 
-(define (generator-cons v gen [stop (void)])
+(define (generator-cons v gen)
   (generator ()
     (yield v)
-    (let loop ([val (gen)])
-      (unless (= val stop)
-        (yield val)
-        (loop (gen))))))
+    (let loop ([cur (gen)]
+               [next (gen)])
+      (if (= (generator-state gen)
+             'done)
+          (begin (yield cur)
+                 (gen))
+          (begin (yield cur)
+                 (loop next (gen)))))))
 
 (struct generator-collection (gen)
   #:transparent
