@@ -89,6 +89,25 @@
     (let ([gen (generator-collection-gen self)])
       (apply gen args))))
 
+(define (generator-append a b)
+  (generator ()
+    (let loop ([cur (a)]
+               [next (a)])
+      (if (= (generator-state a)
+             'done)
+          (begin (yield cur)
+                 (a))
+          (begin (yield cur)
+                 (loop next (a)))))
+    (let loop ([cur (b)]
+               [next (b)])
+      (if (= (generator-state b)
+             'done)
+          (begin (yield cur)
+                 (b))
+          (begin (yield cur)
+                 (loop next (b)))))))
+
 (define (generator-splitf-at gen pred)
   (splitf-at (->stream gen) pred))
 
