@@ -12,6 +12,7 @@
                     foldl/steps
                     append)
          functional-utils
+         core-utils
          relation)
 
 (provide every
@@ -125,8 +126,11 @@
                  (loop next (b)))))))
 
 (define (in-producer gen [stop undefined] . args)
-  (takef (build-sequence (apply unthunk gen args))
-         (!! (curry = stop))))
+  (let ([pred (if (undefined? stop)
+                  (const #t)
+                  (!! (curry = stop)))])
+    (takef (build-sequence (apply unthunk gen args))
+           pred)))
 
 (define (generator-splitf-at gen pred)
   (splitf-at (in-producer gen (void))

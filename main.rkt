@@ -3,6 +3,10 @@
 (module+ test
   (require rackunit)
   (require racket/stream)
+  (require (except-in data/collection
+                      foldl
+                      foldl/steps
+                      append))
   (require relation))
 
 ;; Code here
@@ -37,6 +41,8 @@
   (check-equal? (->list (in-producer (->generator (list 1 2 3 4 (void) 5 6))
                                      (void)))
                 '(1 2 3 4))
+  (check-equal? (->list (take 7 (in-producer (->generator (list 1 2 3 4 (void) 5 6)))))
+                (list 1 2 3 4 (void) 5 6))
   (check-equal? (->list (generator-map add1 (->generator (list 1 2 3))))
                 '(2 3 4))
   (check-equal? (->list (generator-filter odd? (->generator (list 1 2 3 4 5 6))))
