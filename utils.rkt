@@ -80,16 +80,19 @@
                 (drop i seq))])
     (apply map list seqs)))
 
-(define (starts-with? str prefix)
+(define (starts-with? #:key [key #f] str prefix)
   (if (empty? prefix)
       #t
-      (and (= (first str)
+      (and (= #:key key
+              (first str)
               (first prefix))
-           (starts-with? (rest str)
+           (starts-with? #:key key
+                         (rest str)
                          (rest prefix)))))
 
-(define (ends-with? str suffix)
-  (starts-with? (reverse str)
+(define (ends-with? #:key [key #f] str suffix)
+  (starts-with? #:key key
+                (reverse str)
                 (reverse suffix)))
 
 (struct generator-collection (gen)
