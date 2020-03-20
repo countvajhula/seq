@@ -11,6 +11,9 @@
                     foldl
                     foldl/steps
                     append)
+         (only-in algebraic/prelude
+                  &&
+                  ||)
          functional-utils
          core-utils
          relation)
@@ -22,6 +25,7 @@
          splitf-at
          starts-with?
          ends-with?
+         trim
          generator-collection
          generator-collection-gen
          generator-collection?
@@ -99,6 +103,45 @@
   (starts-with? #:key key
                 (reverse str)
                 (reverse suffix)))
+
+(define (trim-left seq
+                   #:sep [sep #f]
+                   #:repeat [repeat #t])
+  (let ([v (first seq)]
+        [check? (if sep
+                    (curry = sep)
+                    (&& char?
+                        char-whitespace?))])
+    (if (check? v)
+        (if repeat
+            (trim-left (rest seq)
+                       #:sep sep
+                       #:repeat repeat)
+            (rest seq))
+        seq)))
+
+(define (trim-right seq
+                    #:sep [sep #f]
+                    #:repeat [repeat #t])
+  (reverse (trim-left (reverse seq)
+                      #:sep sep
+                      #:repeat repeat)))
+
+(define (trim seq
+              #:left? [left? #t]
+              #:right? [right? #t]
+              #:sep [sep #f]
+              #:repeat [repeat #t])
+  (let ([seq (if left?
+                 (trim-left seq
+                            #:sep sep
+                            #:repeat repeat)
+                 seq)])
+    (if right?
+        (trim-right seq
+                    #:sep sep
+                    #:repeat repeat)
+        seq)))
 
 (struct generator-collection (gen)
   #:transparent
