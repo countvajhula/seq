@@ -19,6 +19,8 @@
          takef
          dropf
          splitf-at
+         starts-with?
+         ends-with?
          generator-collection
          generator-collection-gen
          generator-collection?
@@ -77,6 +79,18 @@
   (let ([seqs (for/list ([i (in-range window-size)])
                 (drop i seq))])
     (apply map list seqs)))
+
+(define (starts-with? str prefix)
+  (if (empty? prefix)
+      #t
+      (and (= (first str)
+              (first prefix))
+           (starts-with? (rest str)
+                         (rest prefix)))))
+
+(define (ends-with? str suffix)
+  (starts-with? (reverse str)
+                (reverse suffix)))
 
 (struct generator-collection (gen)
   #:transparent
