@@ -6,6 +6,7 @@
          racket/generator
          racket/function
          racket/generic
+         racket/undefined
          (except-in data/collection
                     foldl
                     foldl/steps
@@ -124,8 +125,8 @@
 (define (generator-splitf-at gen pred)
   (splitf-at (->stream gen) pred))
 
-(define (in-producer gen stop)
-  (takef (build-sequence (unthunk gen))
+(define (in-producer gen [stop undefined] . args)
+  (takef (build-sequence (apply unthunk gen args))
          (!! (curry = stop))))
 
 (define (add-between seq sep)
