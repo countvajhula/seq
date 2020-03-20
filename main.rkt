@@ -37,6 +37,8 @@
   (check-equal? (->list (in-producer (->generator (list 1 2 3 4 (void) 5 6))
                                      (void)))
                 '(1 2 3 4))
+  (check-equal? (->list (generator-map add1 (->generator (list 1 2 3))))
+                '(2 3 4))
   (check-equal? (->list (generator-filter odd? (->generator (list 1 2 3 4 5 6))))
                 '(1 3 5))
   (check-equal? (->list (generator-filter even? (->generator (list 1 2 3 4 5 6))))

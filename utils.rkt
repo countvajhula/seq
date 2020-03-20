@@ -27,6 +27,7 @@
          generator-cons
          generator-append
          generator-splitf-at
+         generator-map
          generator-filter
          in-producer
          add-between
@@ -130,6 +131,19 @@
 (define (generator-splitf-at gen pred)
   (splitf-at (in-producer gen (void))
              pred))
+
+(define (generator-map pred gen)
+  (generator ()
+    (let loop ([cur (gen)]
+               [next (gen)])
+      (if (= (generator-state gen)
+             'done)
+          (begin (yield (pred cur))
+                 (let ([result (gen)])
+                   (unless (void? result)
+                     (pred result))))
+          (begin (yield (pred cur))
+                 (loop next (gen)))))))
 
 (define (generator-filter pred gen)
   (generator ()
