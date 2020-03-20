@@ -18,6 +18,7 @@
 (provide every
          takef
          dropf
+         split-at
          splitf-at
          starts-with?
          ends-with?
@@ -68,6 +69,10 @@
         (if (pred v)
             (dropf vs pred)
             seq))))
+
+(define (split-at seq pos)
+  ;; TODO: make this more efficient
+  (values (take pos seq) (drop pos seq)))
 
 (define (splitf-at seq pred)
   ;; TODO: make this more efficient
