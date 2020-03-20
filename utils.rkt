@@ -29,7 +29,7 @@
          generator-splitf-at
          in-producer
          add-between
-         string-join
+         weave
          (contract-out
           [: (collection? any/c . -> . collection?)]))
 
@@ -141,5 +141,5 @@
                          (stream-cons sep
                                       (add-between vs sep)))))))
 
-(define (string-join seq sep)
-  (fold .. (add-between seq sep) ""))
+(define (weave seq sep)
+  (fold .. (add-between seq sep)))
