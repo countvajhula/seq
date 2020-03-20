@@ -105,41 +105,37 @@
                 (reverse suffix)))
 
 (define (trim-left seq
-                   #:sep [sep #f]
+                   pred
                    #:repeat [repeat #t])
-  (let ([v (first seq)]
-        [check? (if sep
-                    (curry = sep)
-                    (&& char?
-                        char-whitespace?))])
-    (if (check? v)
+  (let ([v (first seq)])
+    (if (pred v)
         (if repeat
             (trim-left (rest seq)
-                       #:sep sep
+                       pred
                        #:repeat repeat)
             (rest seq))
         seq)))
 
 (define (trim-right seq
-                    #:sep [sep #f]
+                    pred
                     #:repeat [repeat #t])
   (reverse (trim-left (reverse seq)
-                      #:sep sep
+                      pred
                       #:repeat repeat)))
 
 (define (trim seq
+              pred
               #:left? [left? #t]
               #:right? [right? #t]
-              #:sep [sep #f]
               #:repeat [repeat #t])
   (let ([seq (if left?
                  (trim-left seq
-                            #:sep sep
+                            pred
                             #:repeat repeat)
                  seq)])
     (if right?
         (trim-right seq
-                    #:sep sep
+                    pred
                     #:repeat repeat)
         seq)))
 

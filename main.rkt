@@ -3,6 +3,7 @@
 (module+ test
   (require rackunit)
   (require racket/stream)
+  (require racket/function)
   (require (except-in data/collection
                       foldl
                       foldl/steps
@@ -36,10 +37,11 @@
   (check-equal? (starts-with? (list 1 2 3 4 5) (list 1 2)) #t)
   (check-equal? (starts-with? (list 1 2 3 4 5) (list 2 1)) #f)
   (check-equal? (ends-with? (list 1 2 3 4 5) (list 5)) #t)
-  (check-equal? (trim (list 1 2 3 4 5) #:sep 5) (list 1 2 3 4))
-  (check-equal? (->string (trim "   hello  ")) "hello")
-  (check-equal? (->string (trim "   hello  " #:sep #\space #:repeat #t)) "hello")
-  (check-equal? (->string (trim "  hello  " #:sep #\space #:repeat #f)) " hello ")
+  (check-equal? (trim (list 1 2 3 4 5) (curry = 5)) (list 1 2 3 4))
+  (check-equal? (trim (list 5 5 1 2 3 4 5 5 5) (curry = 5)) (list 1 2 3 4))
+  (check-equal? (->string (trim "   \thello\n  " char-whitespace?)) "hello")
+  (check-equal? (->string (trim "   \thello\n  " char-whitespace? #:repeat #t)) "hello")
+  (check-equal? (->string (trim "  \thello\n  " char-whitespace? #:repeat #f)) " \thello\n ")
   (check-equal? (->list (generator-cons 4 (->generator (list 1 2 3)))) '(4 1 2 3))
   (check-equal? (->list (generator-append (->generator (list 1 2 3)) (->generator (list 4 5 6)))) '(1 2 3 4 5 6))
   (check-equal? (->list (generator-append (->generator (list 1)) (->generator (list 4)))) '(1 4))
