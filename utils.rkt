@@ -27,6 +27,7 @@
          generator-cons
          generator-append
          generator-splitf-at
+         generator-filter
          in-producer
          add-between
          weave
@@ -129,6 +130,22 @@
 (define (generator-splitf-at gen pred)
   (splitf-at (in-producer gen (void))
              pred))
+
+(define (generator-filter pred gen)
+  (generator ()
+    (let loop ([cur (gen)]
+               [next (gen)])
+      (if (= (generator-state gen)
+             'done)
+          (begin (when (pred cur)
+                   (yield cur))
+                 (let ([result (gen)])
+                   (unless (void? result)
+                     (when (pred result)
+                       result))))
+          (begin (when (pred cur)
+                   (yield cur))
+                 (loop next (gen)))))))
 
 (define (add-between seq sep)
   (if (empty? seq)

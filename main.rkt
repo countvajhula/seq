@@ -36,7 +36,11 @@
   (check-equal? ((weave (list add1 sub1) add1) 5) 6)
   (check-equal? (->list (in-producer (->generator (list 1 2 3 4 (void) 5 6))
                                      (void)))
-                '(1 2 3 4)))
+                '(1 2 3 4))
+  (check-equal? (->list (generator-filter odd? (->generator (list 1 2 3 4 5 6))))
+                '(1 3 5))
+  (check-equal? (->list (generator-filter even? (->generator (list 1 2 3 4 5 6))))
+                '(2 4 6)))
 
 (module+ main
   ;; (Optional) main submodule. Put code here if you need it to be executed when
