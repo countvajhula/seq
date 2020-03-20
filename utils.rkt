@@ -5,6 +5,7 @@
          racket/match
          racket/generator
          racket/function
+         racket/generic
          (except-in data/collection
                     foldl
                     foldl/steps
@@ -16,6 +17,12 @@
          takef
          dropf
          splitf-at
+         generator-collection
+         generator-collection-gen
+         generator-collection?
+         gen:producer
+         producer-state
+         producer?
          generator-cons
          generator-append
          generator-splitf-at
@@ -77,6 +84,11 @@
   (λ (self . args)
     (let ([gen (generator-collection-gen self)])
       (apply gen args))))
+
+(define-generics producer
+  (producer-state producer)
+  #:fast-defaults ([generator?
+                    (define producer-state generator-state)]))
 
 (define (generator-cons v gen)
   (generator ()
