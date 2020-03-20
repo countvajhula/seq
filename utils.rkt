@@ -122,12 +122,13 @@
           (begin (yield cur)
                  (loop next (b)))))))
 
-(define (generator-splitf-at gen pred)
-  (splitf-at (->stream gen) pred))
-
 (define (in-producer gen [stop undefined] . args)
   (takef (build-sequence (apply unthunk gen args))
          (!! (curry = stop))))
+
+(define (generator-splitf-at gen pred)
+  (splitf-at (in-producer gen (void))
+             pred))
 
 (define (add-between seq sep)
   (if (empty? seq)
