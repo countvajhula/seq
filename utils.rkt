@@ -136,37 +136,38 @@
 
 (define (trim-left seq
                    pred
-                   #:repeat [repeat #t])
+                   #:how-many [how-many #f])
   (let ([v (first seq)])
-    (if (pred v)
-        (if repeat
+    (if (or (not how-many)
+            (> how-many 0))
+        (if (pred v)
             (trim-left (rest seq)
                        pred
-                       #:repeat repeat)
-            (rest seq))
+                       #:how-many (and how-many (sub1 how-many)))
+            seq)
         seq)))
 
 (define (trim-right seq
                     pred
-                    #:repeat [repeat #t])
+                    #:how-many [how-many #f])
   (reverse (trim-left (reverse seq)
                       pred
-                      #:repeat repeat)))
+                      #:how-many how-many)))
 
 (define (trim seq
               pred
               #:left? [left? #t]
               #:right? [right? #t]
-              #:repeat [repeat #t])
+              #:how-many [how-many #f])
   (let ([seq (if left?
                  (trim-left seq
                             pred
-                            #:repeat repeat)
+                            #:how-many how-many)
                  seq)])
     (if right?
         (trim-right seq
                     pred
-                    #:repeat repeat)
+                    #:how-many how-many)
         seq)))
 
 (struct generator-collection (gen)
