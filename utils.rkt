@@ -26,6 +26,7 @@
          starts-with?
          ends-with?
          find
+         replace
          contains?
          trim
          generator-collection
@@ -130,6 +131,29 @@
                       (rest seq)
                       subseq
                       (add1 idx)))))))
+
+(define (replace #:key [key #f]
+                 #:how-many [how-many #f]
+                 seq
+                 orig-subseq
+                 new-subseq)
+  (if (or (not how-many)
+          (> how-many 0))
+      (let ([idx (find #:key key
+                       seq
+                       orig-subseq)])
+        (if idx
+            (.. (take idx seq)
+                new-subseq
+                (replace #:key key
+                         (drop (+ idx
+                                  (length orig-subseq))
+                               seq)
+                         orig-subseq
+                         new-subseq
+                         #:how-many (and how-many (sub1 how-many))))
+            seq))
+      seq))
 
 (define (contains? #:key [key #f] seq subseq)
   (->boolean (find #:key key seq subseq)))
