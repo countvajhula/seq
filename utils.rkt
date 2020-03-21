@@ -25,6 +25,7 @@
          splitf-at
          starts-with?
          ends-with?
+         contains?
          trim
          generator-collection
          generator-collection-gen
@@ -124,6 +125,27 @@
   (reverse (trim-left (reverse seq)
                       pred
                       #:repeat repeat)))
+
+(define (contains? #:key [key #f] seq subseq)
+  (if (empty? subseq)
+      #t
+      (if (empty? seq)
+          #f
+          (let ([v (first seq)]
+                [w (first subseq)])
+            (if (= #:key key v w)
+                (let ([remaining-seq (rest seq)]
+                      [remaining-subseq (rest subseq)])
+                  (if (starts-with? #:key key
+                                    remaining-seq
+                                    remaining-subseq)
+                      #t
+                      (contains? #:key key
+                                 (rest seq)
+                                 subseq)))
+                (contains? #:key key
+                           (rest seq)
+                           subseq))))))
 
 (define (trim seq
               pred
