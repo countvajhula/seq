@@ -25,6 +25,7 @@
          splitf-at
          starts-with?
          ends-with?
+         find
          contains?
          trim
          generator-collection
@@ -107,6 +108,32 @@
                 (reverse str)
                 (reverse suffix)))
 
+(define (find #:key [key #f] seq subseq [idx 0])
+  (if (empty? subseq)
+      0
+      (if (empty? seq)
+          #f
+          (let ([v (first seq)]
+                [w (first subseq)])
+            (if (= #:key key v w)
+                (let ([remaining-seq (rest seq)]
+                      [remaining-subseq (rest subseq)])
+                  (if (starts-with? #:key key
+                                    remaining-seq
+                                    remaining-subseq)
+                      idx
+                      (find #:key key
+                            (rest seq)
+                            subseq
+                            (add1 idx))))
+                (find #:key key
+                      (rest seq)
+                      subseq
+                      (add1 idx)))))))
+
+(define (contains? #:key [key #f] seq subseq)
+  (->boolean (find #:key key seq subseq)))
+
 (define (trim-left seq
                    pred
                    #:repeat [repeat #t])
@@ -125,27 +152,6 @@
   (reverse (trim-left (reverse seq)
                       pred
                       #:repeat repeat)))
-
-(define (contains? #:key [key #f] seq subseq)
-  (if (empty? subseq)
-      #t
-      (if (empty? seq)
-          #f
-          (let ([v (first seq)]
-                [w (first subseq)])
-            (if (= #:key key v w)
-                (let ([remaining-seq (rest seq)]
-                      [remaining-subseq (rest subseq)])
-                  (if (starts-with? #:key key
-                                    remaining-seq
-                                    remaining-subseq)
-                      #t
-                      (contains? #:key key
-                                 (rest seq)
-                                 subseq)))
-                (contains? #:key key
-                           (rest seq)
-                           subseq))))))
 
 (define (trim seq
               pred
