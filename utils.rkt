@@ -89,15 +89,17 @@
                 (drop i seq))])
     (apply map list seqs)))
 
-(define (starts-with? #:key [key #f] str prefix)
+(define (starts-with? #:key [key #f] seq prefix)
   (if (empty? prefix)
       #t
-      (and (= #:key key
-              (first str)
-              (first prefix))
-           (starts-with? #:key key
-                         (rest str)
-                         (rest prefix)))))
+      (if (empty? seq)
+          #f
+          (and (= #:key key
+                  (first seq)
+                  (first prefix))
+               (starts-with? #:key key
+                             (rest seq)
+                             (rest prefix))))))
 
 (define (ends-with? #:key [key #f] str suffix)
   (starts-with? #:key key
