@@ -193,5 +193,7 @@
                          (stream-cons sep
                                       (add-between vs sep)))))))
 
-(define (weave seq sep)
-  (fold .. (add-between seq sep)))
+(define (weave seq [sep undefined])
+  (fold .. (if (undefined? sep)
+               seq
+               (add-between seq sep))))
