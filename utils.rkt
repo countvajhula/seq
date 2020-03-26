@@ -23,6 +23,8 @@
          dropf
          split-at
          splitf-at
+         deduplicate
+         slide
          starts-with?
          ends-with?
          find
@@ -72,6 +74,11 @@
 (define (splitf-at seq pred)
   ;; TODO: make this more efficient
   (values (takef seq pred) (dropf seq pred)))
+
+(define (deduplicate seq #:key [key #f])
+  (apply generic-set
+         #:key key
+         seq))
 
 (define (slide seq
                [window-size 1])

@@ -3,6 +3,7 @@
 (module+ test
   (require rackunit)
   (require racket/stream)
+  (require racket/set)
   (require racket/function)
   (require (except-in data/collection
                       foldl
@@ -24,6 +25,9 @@
   (check-equal? (->list (every 3 (list 1 2 3 4 5 6 7 8))) '(1 4 7))
   (check-equal? (->list (takef (stream 2 4 1 3 5) even?)) '(2 4))
   (check-equal? (->list (dropf (stream 2 4 1 3 5) even?)) '(1 3 5))
+  (check-equal? (->set (deduplicate (list "hello" "Hello"))) (set "hello" "Hello"))
+  (check-equal? (->set (deduplicate #:key string-upcase (list "hello" "Hello"))) (set "hello"))
+  (check-equal? (->list (deduplicate (list 1 2 "hi" "hi" 2 3 "hello" 4 "hello" "bye"))) (list 1 2 "hi" 3 "hello" 4 "bye"))
   (check-equal? (starts-with? "hello there" "hello") #t)
   (check-equal? (starts-with? "hello there" "h") #t)
   (check-equal? (starts-with? "hello there" "ello") #f)
