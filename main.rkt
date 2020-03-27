@@ -93,7 +93,17 @@
   (check-equal? (->list (add-between (stream 'a 'b 'c) 'and)) '(a and b and c))
   (check-equal? (weave (stream "hi" "there") "\n") "hi\nthere")
   (check-equal? (weave (stream (list 1 2) (list 3 4)) (list 9)) (list 1 2 9 3 4))
-  (check-equal? ((weave (list add1 sub1) add1) 5) 6))
+  (check-equal? ((weave (list add1 sub1) add1) 5) 6)
+  (check-equal? (->list (remove (list 2) 2)) '())
+  (check-equal? (->list (remove (list 2 1) 2)) (list 1))
+  (check-equal? (->list (remove (list 1 2) 2)) (list 1))
+  (check-equal? (->list (remove (list 1 2 2 1) 2)) (list 1 1))
+  (check-equal? (->list (remove (stream 1 2 2 1) 2)) (list 1 1))
+  (check-equal? (->list (remove #:how-many 1 (list 1 2 2 1) 2)) (list 1 2 1))
+  (check-equal? (->list (remove #:how-many 2 (list 1 2 2 1 2) 2)) (list 1 1 2))
+  (check-equal? (->list (remove #:key even? (list 1 2 4 3 6) 2)) (list 1 3))
+  (check-equal? (->list (remove #:key even? #:how-many 2 (list 1 2 4 3 6) 2)) (list 1 3 6))
+  (check-equal? (->list (remove #:key string-upcase (list "apple" "banana" "cherry") "BANANA")) (list "apple" "cherry")))
 
 (module+ main
   ;; (Optional) main submodule. Put code here if you need it to be executed when
