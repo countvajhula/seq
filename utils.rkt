@@ -7,6 +7,7 @@
          racket/function
          racket/generic
          racket/undefined
+         racket/set
          (except-in data/collection
                     foldl
                     foldl/steps
@@ -205,18 +206,22 @@
                 #:how-many [how-many #f]
                 seq
                 elem)
-  (if how-many
-      (if (> how-many 0)
-          (let ([result (remove-first seq
-                                      elem
-                                      (curry = #:key key))])
-            (remove #:key key
-                    #:how-many (sub1 how-many)
-                    result elem))
-          seq)
-      (remove-all seq
-                  elem
-                  (curry = #:key key))))
+  (if ((|| set?
+           gset?)
+       seq)
+      (set-remove seq elem)
+      (if how-many
+          (if (> how-many 0)
+              (let ([result (remove-first seq
+                                          elem
+                                          (curry = #:key key))])
+                (remove #:key key
+                        #:how-many (sub1 how-many)
+                        result elem))
+              seq)
+          (remove-all seq
+                      elem
+                      (curry = #:key key)))))
 
 (define (add-between seq sep)
   (if (empty? seq)

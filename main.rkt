@@ -112,7 +112,8 @@
   (check-equal? (->list (remove #:how-many 2 (list 1 2 2 1 2) 2)) (list 1 1 2))
   (check-equal? (->list (remove #:key even? (list 1 2 4 3 6) 2)) (list 1 3))
   (check-equal? (->list (remove #:key even? #:how-many 2 (list 1 2 4 3 6) 2)) (list 1 3 6))
-  (check-equal? (->list (remove #:key string-upcase (list "apple" "banana" "cherry") "BANANA")) (list "apple" "cherry")))
+  (check-equal? (remove (set "apple" "banana" "cherry") "banana") (set "apple" "cherry"))
+  (check-equal? (remove (generic-set #:key string-upcase "apple" "banana" "cherry") "BANANA") (generic-set #:key string-upcase "apple" "cherry")))
 
 (module+ main
   ;; (Optional) main submodule. Put code here if you need it to be executed when
