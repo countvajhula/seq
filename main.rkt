@@ -113,7 +113,22 @@
   (check-equal? (->list (remove #:key even? (list 1 2 4 3 6) 2)) (list 1 3))
   (check-equal? (->list (remove #:key even? #:how-many 2 (list 1 2 4 3 6) 2)) (list 1 3 6))
   (check-equal? (remove (set "apple" "banana" "cherry") "banana") (set "apple" "cherry"))
-  (check-equal? (remove (generic-set #:key string-upcase "apple" "banana" "cherry") "BANANA") (generic-set #:key string-upcase "apple" "cherry")))
+  (check-equal? (remove (generic-set #:key string-upcase "apple" "banana" "cherry") "BANANA") (generic-set #:key string-upcase "apple" "cherry"))
+
+  (check-equal? (->list (remove-when odd? (list 2))) (list 2))
+  (check-equal? (->list (remove-when even? (list 2))) '())
+  (check-equal? (->list (remove-when even? (list 2 1))) (list 1))
+  (check-equal? (->list (remove-when even? (list 1 2))) (list 1))
+  (check-equal? (->list (remove-when even? (list 1 2 2 1))) (list 1 1))
+  (check-equal? (->list (remove-when even? (stream 1 2 2 1))) (list 1 1))
+  (check-equal? (->list (remove-when even? #:how-many 1 (list 1 2 2 1))) (list 1 2 1))
+  (check-equal? (->list (remove-when even? #:how-many 2 (list 1 2 2 1 2))) (list 1 1 2))
+  (check-equal? (->list (remove-when even? (list 1 2 4 3 6))) (list 1 3))
+  (check-equal? (->list (remove-when even? #:how-many 2 (list 1 2 4 3 6))) (list 1 3 6))
+  (check-exn exn:fail:contract?
+             (thunk (remove-when (curry = "banana") (set "apple" "banana" "cherry"))) (set "apple" "cherry"))
+  (check-exn exn:fail:contract?
+             (thunk (remove-when (curry = "BANANA") (generic-set #:key string-upcase "apple" "banana" "cherry")))))
 
 (module+ main
   ;; (Optional) main submodule. Put code here if you need it to be executed when
