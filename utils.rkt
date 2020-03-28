@@ -10,7 +10,10 @@
          (except-in data/collection
                     foldl
                     foldl/steps
-                    append)
+                    append
+                    index-of)
+         (only-in data/collection
+                  (index-of d:index-of))
          (only-in algebraic/prelude
                   &&
                   ||)
@@ -31,6 +34,7 @@
          replace
          contains?
          trim
+         index-of
          remove
          add-between
          weave
@@ -189,6 +193,13 @@
                     pred
                     #:how-many how-many)
         seq)))
+
+(define (index-of #:key [key #f]
+                  seq
+                  elem)
+  (d:index-of seq
+              elem
+              (curry = #:key key)))
 
 (define (remove #:key [key #f]
                 #:how-many [how-many #f]

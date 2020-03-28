@@ -8,7 +8,8 @@
   (require (except-in data/collection
                       foldl
                       foldl/steps
-                      append))
+                      append
+                      index-of))
   (require relation))
 
 ;; Code here
@@ -94,6 +95,14 @@
   (check-equal? (weave (stream "hi" "there") "\n") "hi\nthere")
   (check-equal? (weave (stream (list 1 2) (list 3 4)) (list 9)) (list 1 2 9 3 4))
   (check-equal? ((weave (list add1 sub1) add1) 5) 6)
+  (check-equal? (index-of (list) 2) #f)
+  (check-equal? (index-of (list 2) 2) 0)
+  (check-equal? (index-of (list 1 2) 2) 1)
+  (check-equal? (index-of (list 1 2) 3) #f)
+  (check-equal? (index-of (list 1 2 2 1) 2) 1)
+  (check-equal? (index-of (stream 1 2 2 1) 2) 1)
+  (check-equal? (index-of #:key even? (list 1 4 2 3 6) 2) 1)
+  (check-equal? (index-of #:key string-upcase (list "apple" "banana" "cherry") "BANANA") 1)
   (check-equal? (->list (remove (list 2) 2)) '())
   (check-equal? (->list (remove (list 2 1) 2)) (list 1))
   (check-equal? (->list (remove (list 1 2) 2)) (list 1))
