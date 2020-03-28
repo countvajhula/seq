@@ -24,8 +24,8 @@
   ;; required by another module.
 
   (check-equal? (->list (every 3 (list 1 2 3 4 5 6 7 8))) '(1 4 7))
-  (check-equal? (->list (takef (stream 2 4 1 3 5) even?)) '(2 4))
-  (check-equal? (->list (dropf (stream 2 4 1 3 5) even?)) '(1 3 5))
+  (check-equal? (->list (take-while (stream 2 4 1 3 5) even?)) '(2 4))
+  (check-equal? (->list (drop-while (stream 2 4 1 3 5) even?)) '(1 3 5))
   (check-equal? (->set (deduplicate (list "hello" "Hello"))) (set "hello" "Hello"))
   (check-equal? (->set (deduplicate #:key string-upcase (list "hello" "Hello"))) (set "hello"))
   (check-equal? (->list (deduplicate (list 1 2 "hi" "hi" 2 3 "hello" 4 "hello" "bye"))) (list 1 2 "hi" 3 "hello" 4 "bye"))
@@ -88,7 +88,7 @@
                   (->list (map ->string (list a b))))
                 (list "hello" "there"))
   (check-equal? (let-values ([(a b)
-                              (splitf-at (list 1 3 5 2 4) odd?)])
+                              (split-where (list 1 3 5 2 4) odd?)])
                   (->list (map ->list (list a b))))
                 (list '(1 3 5) '(2 4)))
   (check-equal? (->list (add-between (stream 'a 'b 'c) 'and)) '(a and b and c))

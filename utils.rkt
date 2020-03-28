@@ -22,10 +22,10 @@
          relation)
 
 (provide every
-         takef
-         dropf
+         take-while
+         drop-while
          split-at
-         splitf-at
+         split-where
          deduplicate
          slide
          starts-with?
@@ -54,31 +54,31 @@
                     (drop cnt seq))])
         (stream-cons head (every cnt tail)))))
 
-(define (takef seq pred)
+(define (take-while seq pred)
   (if (empty? seq)
       (stream)
       (let ([v (first seq)]
             [vs (rest seq)])
         (if (pred v)
-            (stream-cons v (takef vs pred))
+            (stream-cons v (take-while vs pred))
             null))))
 
-(define (dropf seq pred)
+(define (drop-while seq pred)
   (if (empty? seq)
       (stream)
       (let ([v (first seq)]
             [vs (rest seq)])
         (if (pred v)
-            (dropf vs pred)
+            (drop-while vs pred)
             seq))))
 
 (define (split-at seq pos)
   ;; TODO: make this more efficient
   (values (take pos seq) (drop pos seq)))
 
-(define (splitf-at seq pred)
+(define (split-where seq pred)
   ;; TODO: make this more efficient
-  (values (takef seq pred) (dropf seq pred)))
+  (values (take-while seq pred) (drop-while seq pred)))
 
 (define (deduplicate seq #:key [key #f])
   (apply generic-set
