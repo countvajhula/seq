@@ -24,7 +24,9 @@
 
 (provide every
          take-while
+         take-until
          drop-while
+         drop-until
          split-at
          split-where
          deduplicate
@@ -56,31 +58,37 @@
                     (drop cnt seq))])
         (stream-cons head (every cnt tail)))))
 
-(define (take-while seq pred)
+(define (take-while pred seq)
   (if (empty? seq)
       (stream)
       (let ([v (first seq)]
             [vs (rest seq)])
         (if (pred v)
-            (stream-cons v (take-while vs pred))
+            (stream-cons v (take-while pred vs))
             null))))
 
-(define (drop-while seq pred)
+(define (drop-while pred seq)
   (if (empty? seq)
       (stream)
       (let ([v (first seq)]
             [vs (rest seq)])
         (if (pred v)
-            (drop-while vs pred)
+            (drop-while pred vs)
             seq))))
 
-(define (split-at seq pos)
+(define (take-until pred seq)
+  (take-while (!! pred) seq))
+
+(define (drop-until pred seq)
+  (drop-while (!! pred) seq))
+
+(define (split-at pos seq)
   ;; TODO: make this more efficient
   (values (take pos seq) (drop pos seq)))
 
-(define (split-where seq pred)
+(define (split-where pred seq)
   ;; TODO: make this more efficient
-  (values (take-while seq pred) (drop-while seq pred)))
+  (values (take-until pred seq) (drop-until pred seq)))
 
 (define (deduplicate seq #:key [key #f])
   (apply generic-set
@@ -94,7 +102,7 @@
                 (drop i seq))])
     (apply map list seqs)))
 
-(define (starts-with? #:key [key #f] seq prefix)
+(define (starts-with? #:key [key #f] prefix seq)
   (if (empty? prefix)
       #t
       (if (empty? seq)
@@ -103,13 +111,13 @@
                   (first seq)
                   (first prefix))
                (starts-with? #:key key
-                             (rest seq)
-                             (rest prefix))))))
+                             (rest prefix)
+                             (rest seq))))))
 
-(define (ends-with? #:key [key #f] str suffix)
+(define (ends-with? #:key [key #f] suffix seq)
   (starts-with? #:key key
-                (reverse str)
-                (reverse suffix)))
+                (reverse suffix)
+                (reverse seq)))
 
 (define (find #:key [key #f] seq subseq [idx 0])
   (if (empty? subseq)
@@ -122,8 +130,8 @@
                 (let ([remaining-seq (rest seq)]
                       [remaining-subseq (rest subseq)])
                   (if (starts-with? #:key key
-                                    remaining-seq
-                                    remaining-subseq)
+                                    remaining-subseq
+                                    remaining-seq)
                       idx
                       (find #:key key
                             (rest seq)
