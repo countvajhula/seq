@@ -75,12 +75,24 @@
                           boolean?)]
           [trim-if (->* ((-> any/c boolean?)
                          sequence?)
-                        (#:left? boolean?
-                         #:right? boolean?
+                        (#:side (one-of/c 'left
+                                          'right
+                                          'both)
                          #:how-many (or/c (and/c integer?
                                                  (>=/c 0))
                                           #f))
                         sequence?)]
+          [trim (->* (any/c
+                      sequence?)
+                     (#:key (or/c (-> comparable? comparable?)
+                                  #f)
+                      #:side (one-of/c 'left
+                                       'right
+                                       'both)
+                      #:how-many (or/c (and/c integer?
+                                              (>=/c 0))
+                                       #f))
+                     sequence?)]
           [index-of (->* (sequence? any/c)
                          (#:key (or/c (-> comparable? comparable?)
                                       #f))
@@ -235,15 +247,17 @@
 (define (trim-left-if pred
                       seq
                       #:how-many [how-many #f])
-  (let ([v (first seq)])
-    (if (or (not how-many)
-            (> how-many 0))
-        (if (pred v)
-            (trim-left-if pred
-                          (rest seq)
-                          #:how-many (and how-many (sub1 how-many)))
-            seq)
-        seq)))
+  (if (empty? seq)
+      seq
+      (let ([v (first seq)])
+        (if (or (not how-many)
+                (> how-many 0))
+            (if (pred v)
+                (trim-left-if pred
+                              (rest seq)
+                              #:how-many (and how-many (sub1 how-many)))
+                seq)
+            seq))))
 
 (define (trim-right-if pred
                        seq
@@ -254,19 +268,31 @@
 
 (define (trim-if pred
                  seq
-                 #:left? [left? #t]
-                 #:right? [right? #t]
+                 #:side [side 'both]
                  #:how-many [how-many #f])
-  (let ([seq (if left?
+  (let ([seq (if (member? side '(left both))
                  (trim-left-if pred
                                seq
                                #:how-many how-many)
                  seq)])
-    (if right?
+    (if (member side '(right both))
         (trim-right-if pred
                        seq
                        #:how-many how-many)
         seq)))
+
+(define (trim elem
+              seq
+              #:key [key #f]
+              #:side [side 'both]
+              #:how-many [how-many #f])
+  (let ([elem (if (string? seq)
+                  (->char elem)
+                  elem)])
+    (trim-if (curry = #:key key elem)
+             seq
+             #:side side
+             #:how-many how-many)))
 
 (define (index-of #:key [key #f]
                   seq
