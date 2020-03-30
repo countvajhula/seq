@@ -23,26 +23,90 @@
          relation)
 
 (provide every
-         take-while
-         take-until
-         drop-while
-         drop-until
-         split-at
-         split-where
-         deduplicate
-         slide
-         starts-with?
-         ends-with?
-         find
-         replace
-         contains?
-         trim
-         index-of
-         remove
-         remove-when
-         add-between
-         weave
          (contract-out
+          [take-while (-> (-> any/c boolean?)
+                          sequence?
+                          sequence?)]
+          [take-until (-> (-> any/c boolean?)
+                          sequence?
+                          sequence?)]
+          [drop-while (-> (-> any/c boolean?)
+                          sequence?
+                          sequence?)]
+          [drop-until (-> (-> any/c boolean?)
+                          sequence?
+                          sequence?)]
+          [split-at (-> exact-positive-integer?
+                        sequence?
+                        (values sequence? sequence?))]
+          [split-where (-> (-> any/c boolean?)
+                           sequence?
+                           (values sequence? sequence?))]
+          [deduplicate (->* (sequence?)
+                            (#:key (or/c (-> comparable? comparable?)
+                                         #f))
+                            generic-set?)]
+          [slide (->* (sequence?)
+                      (exact-positive-integer?)
+                      (sequenceof list?))]
+          [starts-with? (->* (sequence? sequence?)
+                             (#:key (or/c (-> comparable? comparable?)
+                                          #f))
+                             boolean?)]
+          [ends-with? (->* (sequence? sequence?)
+                           (#:key (or/c (-> comparable? comparable?)
+                                        #f))
+                           boolean?)]
+          [find (->* (sequence? sequence?)
+                     (exact-nonnegative-integer?
+                      #:key (or/c (-> comparable? comparable?)
+                                  #f))
+                     (or/c exact-nonnegative-integer?
+                           #f))]
+          [replace (->* (sequence? sequence? sequence?)
+                        (#:key (or/c (-> comparable? comparable?)
+                                     #f)
+                         #:how-many (and/c integer?
+                                           (>=/c 0)))
+                        sequence?)]
+          [contains? (->* (sequence? sequence?)
+                          (#:key (or/c (-> comparable? comparable?)
+                                       #f))
+                          boolean?)]
+          [trim (->* (sequence?
+                      (-> any/c boolean?))
+                     (#:left? boolean?
+                      #:right? boolean?
+                      #:how-many (or/c (and/c integer?
+                                              (>=/c 0))
+                                       #f))
+                     sequence?)]
+          [index-of (->* (sequence? any/c)
+                         (#:key (or/c (-> comparable? comparable?)
+                                      #f))
+                         (or/c (and/c integer?
+                                      (>=/c 0))
+                               #f))]
+          [remove (->* (sequence? any/c)
+                       (#:key (or/c (-> comparable? comparable?)
+                                    #f)
+                        #:how-many (or/c (and/c integer?
+                                                (>=/c 0))
+                                         #f))
+                       sequence?)]
+          [remove-when (->* ((-> any/c boolean?)
+                             sequence?)
+                            (#:how-many (or/c (and/c integer?
+                                                     (>=/c 0))
+                                              #f))
+                            sequence?)]
+          [add-between (-> sequence?
+                           any/c
+                           sequence?)]
+          [weave (->* (sequence?)
+                      (any/c)
+                      (or/c sequence?
+                            procedure?))] ; procedure doesn't implement sequence
           [: (collection? any/c . -> . collection?)]))
 
 (define : conj)
