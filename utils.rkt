@@ -73,14 +73,14 @@
                           (#:key (or/c (-> comparable? comparable?)
                                        #f))
                           boolean?)]
-          [trim (->* (sequence?
-                      (-> any/c boolean?))
-                     (#:left? boolean?
-                      #:right? boolean?
-                      #:how-many (or/c (and/c integer?
-                                              (>=/c 0))
-                                       #f))
-                     sequence?)]
+          [trim-if (->* ((-> any/c boolean?)
+                         sequence?)
+                        (#:left? boolean?
+                         #:right? boolean?
+                         #:how-many (or/c (and/c integer?
+                                                 (>=/c 0))
+                                          #f))
+                        sequence?)]
           [index-of (->* (sequence? any/c)
                          (#:key (or/c (-> comparable? comparable?)
                                       #f))
@@ -232,40 +232,40 @@
 (define (contains? #:key [key #f] seq subseq)
   (->boolean (find #:key key seq subseq)))
 
-(define (trim-left seq
-                   pred
-                   #:how-many [how-many #f])
+(define (trim-left-if pred
+                      seq
+                      #:how-many [how-many #f])
   (let ([v (first seq)])
     (if (or (not how-many)
             (> how-many 0))
         (if (pred v)
-            (trim-left (rest seq)
-                       pred
-                       #:how-many (and how-many (sub1 how-many)))
+            (trim-left-if pred
+                          (rest seq)
+                          #:how-many (and how-many (sub1 how-many)))
             seq)
         seq)))
 
-(define (trim-right seq
-                    pred
-                    #:how-many [how-many #f])
-  (reverse (trim-left (reverse seq)
-                      pred
-                      #:how-many how-many)))
+(define (trim-right-if pred
+                       seq
+                       #:how-many [how-many #f])
+  (reverse (trim-left-if pred
+                         (reverse seq)
+                         #:how-many how-many)))
 
-(define (trim seq
-              pred
-              #:left? [left? #t]
-              #:right? [right? #t]
-              #:how-many [how-many #f])
+(define (trim-if pred
+                 seq
+                 #:left? [left? #t]
+                 #:right? [right? #t]
+                 #:how-many [how-many #f])
   (let ([seq (if left?
-                 (trim-left seq
-                            pred
-                            #:how-many how-many)
+                 (trim-left-if pred
+                               seq
+                               #:how-many how-many)
                  seq)])
     (if right?
-        (trim-right seq
-                    pred
-                    #:how-many how-many)
+        (trim-right-if pred
+                       seq
+                       #:how-many how-many)
         seq)))
 
 (define (index-of #:key [key #f]
