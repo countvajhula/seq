@@ -185,9 +185,12 @@
                #:trim? [trim? #t]
                elem
                seq)
-  (split-when #:trim? trim?
-              (curry = #:key key elem)
-              seq))
+  (let ([elem (if (string? seq)
+                  (->char elem)
+                  elem)])
+    (split-when #:trim? trim?
+                (curry = #:key key elem)
+                seq)))
 
 (define (split-at pos seq)
   (values (take pos seq) (drop pos seq)))

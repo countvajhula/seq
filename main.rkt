@@ -119,6 +119,7 @@
   (check-equal? (->list (map ->list (split #:trim? #t 5 (list 5 5 5 1 2 5 5 2 3 5 6 5 7 8 5 5 5)))) '((1 2) () (2 3) (6) (7 8)))
   (check-equal? (->list (map ->list (split 5 (list 1 2 5 2 3 5 6 5)))) '((1 2) (2 3) (6)))
   (check-equal? (->list (map ->list (split #:trim? #f 5 (list 1 2 5 2 3 5 6 5)))) '((1 2) (2 3) (6) ()))
+  (check-equal? (->list (map ->string (split "\n" "hello\n there"))) (list "hello" " there") "split string handles string separator as char")
   (check-equal? (let-values ([(a b)
                               (split-at 2 (list 1 3 5 2 4))])
                   (->list (map ->list (list a b))))
