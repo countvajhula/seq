@@ -36,6 +36,15 @@
           [drop-until (-> (-> any/c boolean?)
                           sequence?
                           sequence?)]
+          [split-when (->* ((-> any/c boolean?) sequence?)
+                           (#:trim? boolean?)
+                           (sequenceof sequence?))]
+          [split (->* (any/c
+                       sequence?)
+                      (#:key (or/c (-> comparable? comparable?)
+                                   #f)
+                       #:trim? boolean?)
+                      (sequenceof sequence?))]
           [split-at (-> exact-positive-integer?
                         sequence?
                         (values sequence? sequence?))]
@@ -158,12 +167,32 @@
 (define (drop-until pred seq)
   (drop-while (!! pred) seq))
 
+(define (split-when #:trim? [trim? #t]
+                    pred
+                    seq)
+  (let loop ([seq (if trim?
+                      (trim-if pred seq)
+                      seq)])
+    (if (empty? seq)
+        (stream (list))
+        (let-values ([(chunk remaining) (split-where pred seq)])
+          (if (empty? remaining)
+              (stream-cons chunk empty-stream)
+              (stream-cons chunk
+                           (loop (rest remaining))))))))
+
+(define (split #:key [key #f]
+               #:trim? [trim? #t]
+               elem
+               seq)
+  (split-when #:trim? trim?
+              (curry = #:key key elem)
+              seq))
+
 (define (split-at pos seq)
-  ;; TODO: make this more efficient
   (values (take pos seq) (drop pos seq)))
 
 (define (split-where pred seq)
-  ;; TODO: make this more efficient
   (values (take-until pred seq) (drop-until pred seq)))
 
 (define (deduplicate seq #:key [key #f])
