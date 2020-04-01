@@ -167,19 +167,26 @@
 (define (drop-until pred seq)
   (drop-while (!! pred) seq))
 
+(define (~split-when pred seq)
+  (if (empty? seq)
+      (stream (list))
+      (let-values ([(chunk remaining) (split-where pred seq)])
+        (if (empty? remaining)
+            (stream-cons chunk empty-stream)
+            (stream-cons chunk
+                         (~split-when pred
+                                      (rest remaining)))))))
+
 (define (split-when #:trim? [trim? #t]
                     pred
                     seq)
-  (let loop ([seq (if trim?
-                      (trim-if pred seq)
-                      seq)])
-    (if (empty? seq)
-        (stream (list))
-        (let-values ([(chunk remaining) (split-where pred seq)])
-          (if (empty? remaining)
-              (stream-cons chunk empty-stream)
-              (stream-cons chunk
-                           (loop (rest remaining))))))))
+  (let ([result (~split-when pred
+                             (if trim?
+                                 (trim-if pred seq)
+                                 seq))])
+    (if (string? seq)
+        (map ->string result)
+        result)))
 
 (define (split #:key [key #f]
                #:trim? [trim? #t]
@@ -193,10 +200,18 @@
                 seq)))
 
 (define (split-at pos seq)
-  (values (take pos seq) (drop pos seq)))
+  (let ([left (take pos seq)]
+        [right (drop pos seq)])
+    (if (string? seq)
+        (values (->string left) (->string right))
+        (values left right))))
 
 (define (split-where pred seq)
-  (values (take-until pred seq) (drop-until pred seq)))
+  (let ([left (take-until pred seq)]
+        [right (drop-until pred seq)])
+    (if (string? seq)
+        (values (->string left) (->string right))
+        (values left right))))
 
 (define (deduplicate seq #:key [key #f])
   (apply generic-set
@@ -250,28 +265,42 @@
                       subseq
                       (add1 idx)))))))
 
+(define (~replace #:key [key #f]
+                  #:how-many [how-many #f]
+                  seq
+                  orig-subseq
+                  new-subseq)
+  (if (or (not how-many)
+          (> how-many 0))
+      (let ([idx (find #:key key
+                       orig-subseq
+                       seq)])
+        (if idx
+            (.. (take idx seq)
+                new-subseq
+                (~replace #:key key
+                          (drop (+ idx
+                                   (length orig-subseq))
+                                seq)
+                          orig-subseq
+                          new-subseq
+                          #:how-many (and how-many (sub1 how-many))))
+            seq))
+      seq))
+
 (define (replace #:key [key #f]
                  #:how-many [how-many #f]
                  seq
                  orig-subseq
                  new-subseq)
-  (if (or (not how-many)
-          (> how-many 0))
-      (let ([idx (find #:key key
-                       seq
-                       orig-subseq)])
-        (if idx
-            (.. (take idx seq)
-                new-subseq
-                (replace #:key key
-                         (drop (+ idx
-                                  (length orig-subseq))
-                               seq)
-                         orig-subseq
-                         new-subseq
-                         #:how-many (and how-many (sub1 how-many))))
-            seq))
-      seq))
+  (let ([result (~replace #:key key
+                          #:how-many how-many
+                          seq
+                          orig-subseq
+                          new-subseq)])
+    (if (string? seq)
+        (->string result)
+        result)))
 
 (define (contains? #:key [key #f] seq subseq)
   (->boolean (find #:key key seq subseq)))
@@ -298,10 +327,10 @@
                          (reverse seq)
                          #:how-many how-many)))
 
-(define (trim-if pred
-                 seq
-                 #:side [side 'both]
-                 #:how-many [how-many #f])
+(define (~trim-if pred
+                  seq
+                  #:side [side 'both]
+                  #:how-many [how-many #f])
   (let ([seq (if (member? side '(left both))
                  (trim-left-if pred
                                seq
@@ -312,6 +341,18 @@
                        seq
                        #:how-many how-many)
         seq)))
+
+(define (trim-if pred
+                 seq
+                 #:side [side 'both]
+                 #:how-many [how-many #f])
+  (let ([result (~trim-if pred
+                          seq
+                          #:side side
+                          #:how-many how-many)])
+    (if (string? seq)
+        (->string result)
+        result)))
 
 (define (trim elem
               seq
@@ -333,33 +374,10 @@
               elem
               (curry = #:key key)))
 
-(define (remove #:key [key #f]
-                #:how-many [how-many #f]
-                seq
-                elem)
-  (if ((|| set?
-           gset?)
-       seq)
-      (set-remove seq elem)
-      (if how-many
-          (if (> how-many 0)
-              (let ([result (remove-first seq
-                                          elem
-                                          (curry = #:key key))])
-                (remove #:key key
-                        #:how-many (sub1 how-many)
-                        result elem))
-              seq)
-          (remove-all seq
-                      elem
-                      (curry = #:key key)))))
-
-(define (remove-when #:how-many [how-many #f]
-                     pred
-                     seq)
-  (if ((|| set?
-           gset?)
-       seq)
+(define (~remove-when #:how-many [how-many #f]
+                      pred
+                      seq)
+  (if ((|| set? gset?) seq)
       (raise-argument-error 'remove-when
                             "sequence? that is not a pure set"
                             seq)
@@ -370,15 +388,38 @@
                   (let ([v (first seq)]
                         [vs (rest seq)])
                     (if (pred v)
-                        (remove-when #:how-many (sub1 how-many)
-                                     pred
-                                     (rest seq))
+                        (~remove-when #:how-many (sub1 how-many)
+                                      pred
+                                      (rest seq))
                         (stream-cons v
-                                     (remove-when #:how-many how-many
-                                                  pred
-                                                  (rest seq)))))
+                                     (~remove-when #:how-many how-many
+                                                   pred
+                                                   (rest seq)))))
                   seq)
               (filter (!! pred) seq)))))
+
+(define (remove-when #:how-many [how-many #f]
+                      pred
+                      seq)
+  (let ([result (~remove-when #:how-many how-many
+                              pred
+                              seq)])
+    (if (string? seq)
+        (->string result)
+        result)))
+
+(define (remove #:key [key #f]
+                #:how-many [how-many #f]
+                elem
+                seq)
+  (if ((|| set? gset?) seq)
+      (set-remove seq elem)
+      (let ([elem (if (string? seq)
+                  (->char elem)
+                  elem)])
+        (remove-when #:how-many how-many
+                     (curry = #:key key elem)
+                     seq))))
 
 (define (add-between seq sep)
   (if (empty? seq)
