@@ -55,9 +55,9 @@
                             (#:key (or/c (-> comparable? comparable?)
                                          #f))
                             generic-set?)]
-          [slide (->* (sequence?)
-                      (exact-positive-integer?)
-                      (sequenceof list?))]
+          [slide (-> exact-positive-integer?
+                     sequence?
+                     (sequenceof list?))]
           [starts-with? (->* (sequence? sequence?)
                              (#:key (or/c (-> comparable? comparable?)
                                           #f))
@@ -102,13 +102,13 @@
                                               (>=/c 0))
                                        #f))
                      sequence?)]
-          [index-of (->* (sequence? any/c)
+          [index-of (->* (any/c sequence?)
                          (#:key (or/c (-> comparable? comparable?)
                                       #f))
                          (or/c (and/c integer?
                                       (>=/c 0))
                                #f))]
-          [remove (->* (sequence? any/c)
+          [remove (->* (any/c sequence?)
                        (#:key (or/c (-> comparable? comparable?)
                                     #f)
                         #:how-many (or/c (and/c integer?
@@ -121,8 +121,8 @@
                                                      (>=/c 0))
                                               #f))
                             sequence?)]
-          [add-between (-> sequence?
-                           any/c
+          [add-between (-> any/c
+                           sequence?
                            sequence?)]
           [weave (->* (sequence?)
                       (any/c)
@@ -218,8 +218,7 @@
          #:key key
          seq))
 
-(define (slide seq
-               [window-size 1])
+(define (slide window-size seq)
   ;; TODO: improve; support move-by
   (let ([seqs (for/list ([i (in-range window-size)])
                 (drop i seq))])
@@ -242,7 +241,7 @@
                 (reverse suffix)
                 (reverse seq)))
 
-(define (find #:key [key #f] seq subseq [idx 0])
+(define (find #:key [key #f] subseq seq [idx 0])
   (if (empty? subseq)
       0
       (if (empty? seq)
@@ -257,19 +256,19 @@
                                     remaining-seq)
                       idx
                       (find #:key key
-                            (rest seq)
                             subseq
+                            (rest seq)
                             (add1 idx))))
                 (find #:key key
-                      (rest seq)
                       subseq
+                      (rest seq)
                       (add1 idx)))))))
 
 (define (~replace #:key [key #f]
                   #:how-many [how-many #f]
-                  seq
                   orig-subseq
-                  new-subseq)
+                  new-subseq
+                  seq)
   (if (or (not how-many)
           (> how-many 0))
       (let ([idx (find #:key key
@@ -279,31 +278,31 @@
             (.. (take idx seq)
                 new-subseq
                 (~replace #:key key
+                          orig-subseq
+                          new-subseq
                           (drop (+ idx
                                    (length orig-subseq))
                                 seq)
-                          orig-subseq
-                          new-subseq
                           #:how-many (and how-many (sub1 how-many))))
             seq))
       seq))
 
 (define (replace #:key [key #f]
                  #:how-many [how-many #f]
-                 seq
                  orig-subseq
-                 new-subseq)
+                 new-subseq
+                 seq)
   (let ([result (~replace #:key key
                           #:how-many how-many
-                          seq
                           orig-subseq
-                          new-subseq)])
+                          new-subseq
+                          seq)])
     (if (string? seq)
         (->string result)
         result)))
 
-(define (contains? #:key [key #f] seq subseq)
-  (->boolean (find #:key key seq subseq)))
+(define (contains? #:key [key #f] subseq seq)
+  (->boolean (find #:key key subseq seq)))
 
 (define (trim-left-if pred
                       seq
@@ -424,7 +423,7 @@
                      (curry = #:key key elem)
                      seq))))
 
-(define (add-between seq sep)
+(define (add-between sep seq)
   (if (empty? seq)
       (stream)
       (let ([v (first seq)]
@@ -433,9 +432,9 @@
             (stream v)
             (stream-cons v
                          (stream-cons sep
-                                      (add-between vs sep)))))))
+                                      (add-between sep vs)))))))
 
 (define (weave seq [sep undefined])
   (fold .. (if (undefined? sep)
                seq
-               (add-between seq sep))))
+               (add-between sep seq))))
