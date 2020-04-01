@@ -368,11 +368,14 @@
              #:how-many how-many)))
 
 (define (index-of #:key [key #f]
-                  seq
-                  elem)
-  (d:index-of seq
-              elem
-              (curry = #:key key)))
+                  elem
+                  seq)
+  (let ([elem (if (string? seq)
+                  (->char elem)
+                  elem)])
+    (d:index-of seq
+                elem
+                (curry = #:key key))))
 
 (define (~remove-when #:how-many [how-many #f]
                       pred
