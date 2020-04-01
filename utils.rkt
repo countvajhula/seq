@@ -54,7 +54,7 @@
           [deduplicate (->* (sequence?)
                             (#:key (or/c (-> comparable? comparable?)
                                          #f))
-                            generic-set?)]
+                            list?)]
           [slide (-> exact-positive-integer?
                      sequence?
                      (sequenceof list?))]
@@ -214,9 +214,10 @@
         (values left right))))
 
 (define (deduplicate seq #:key [key #f])
-  (apply generic-set
-         #:key key
-         seq))
+  (->list
+   (apply generic-set
+          #:key key
+          seq)))
 
 (define (slide window-size seq)
   ;; TODO: improve; support move-by
