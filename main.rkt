@@ -10,7 +10,8 @@
                       foldl/steps
                       append
                       index-of))
-  (require relation))
+  (require relation)
+  (require functional-utils))
 
 ;; Code here
 
@@ -239,7 +240,8 @@
                   (list))
     (check-equal? (->list (tree-traverse leaf-tree #:order 'level #:converse? #t))
                   (list 1))
-
+    (check-equal? (->list (tree-traverse (make-tree (unthunk (->generator (take 3 (repeat (list 1 2))) '())) 5)))
+                  (list 5 1 1 1 2 2 2))
     (check-equal? (->list (tree-traverse (tree-map add1 t)))
                   (list 2 3 4 5 6 7 8 9 10 11 12 13 14 15))
     (check-equal? (->list (tree-traverse (tree-map add1 empty-tree)))

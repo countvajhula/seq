@@ -129,6 +129,9 @@
                       (any/c)
                       (or/c sequence?
                             procedure?))] ; procedure doesn't implement sequence
+          [make-tree (-> (-> any/c sequence?)
+                         any/c
+                         sequence?)]
           [tree-traverse (->* (sequence?)
                               (#:order (one-of/c 'pre
                                                  'post
@@ -464,6 +467,11 @@
   (fold .. (if (undefined? sep)
                seq
                (add-between sep seq))))
+
+(define (make-tree f node)
+  (stream-cons node
+               (map (curry make-tree f)
+                    (f node))))
 
 (define (tree-map f tree)
   (if (empty? tree)
