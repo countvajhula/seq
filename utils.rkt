@@ -14,7 +14,8 @@
                     append
                     index-of)
          (only-in data/collection
-                  (index-of d:index-of))
+                  (index-of d:index-of)
+                  (append d:append))
          (only-in algebraic/prelude
                   &&
                   ||)
@@ -128,6 +129,13 @@
                       (any/c)
                       (or/c sequence?
                             procedure?))] ; procedure doesn't implement sequence
+          [tree-traverse (->* (sequence?)
+                              (#:order (one-of/c 'pre
+                                                 'post
+                                                 'in
+                                                 'level)
+                               #:converse? boolean?)
+                              sequence?)]
           [: (collection? any/c . -> . collection?)]))
 
 (define : conj)
@@ -402,8 +410,8 @@
               (filter (!! pred) seq)))))
 
 (define (remove-when #:how-many [how-many #f]
-                      pred
-                      seq)
+                     pred
+                     seq)
   (let ([result (~remove-when #:how-many how-many
                               pred
                               seq)])
@@ -418,8 +426,8 @@
   (if ((|| set? gset?) seq)
       (set-remove seq elem)
       (let ([elem (if (string? seq)
-                  (->char elem)
-                  elem)])
+                      (->char elem)
+                      elem)])
         (remove-when #:how-many how-many
                      (curry = #:key key elem)
                      seq))))
@@ -439,3 +447,74 @@
   (fold .. (if (undefined? sep)
                seq
                (add-between sep seq))))
+
+(define (tree-traverse-preorder tree
+                                #:converse? [converse? #f])
+  (if (empty? tree)
+      (stream)
+      (stream-cons (first tree)
+                   (apply d:append
+                          (map (curry tree-traverse-preorder
+                                      #:converse? converse?)
+                               (if converse?
+                                   (reverse (rest tree))
+                                   (rest tree)))))))
+
+(define (tree-traverse-postorder tree
+                                 #:converse? [converse? #f])
+  (if (empty? tree)
+      (stream)
+      (d:append (apply d:append
+                       (map (curry tree-traverse-postorder
+                                   #:converse? converse?)
+                            (if converse?
+                                (reverse (rest tree))
+                                (rest tree))))
+                (stream (first tree)))))
+
+(define (tree-traverse-inorder tree
+                               #:converse? [converse? #f])
+  (if (empty? tree)
+      (stream)
+      (if (empty? (rest tree))
+          (stream (first tree))
+          (let ([children (if converse?
+                              (reverse (rest tree))
+                              (rest tree))])
+            (apply d:append
+                   (tree-traverse-inorder (first children)
+                                          #:converse? converse?)
+                   (stream (first tree))
+                   (map (curry tree-traverse-inorder
+                               #:converse? converse?)
+                        (rest children)))))))
+
+(define (tree-traverse-levelorder tree
+                                  #:converse? [converse? #f])
+  (let loop ([queue (list tree)])
+    (if (empty? queue)
+        (stream)
+        (let ([current (first queue)])
+          (stream-cons (first current)
+                       (loop (d:append (rest queue)
+                                       (if converse?
+                                           (reverse (rest current))
+                                           (rest current)))))))))
+
+(define (tree-traverse tree
+                       #:order [order 'pre]
+                       #:converse? [converse? #f])
+  (cond [(= order 'pre)
+         (tree-traverse-preorder tree
+                                 #:converse? converse?)]
+        [(= order 'post)
+         (tree-traverse-postorder tree
+                                  #:converse? converse?)]
+        [(= order 'in)
+         (tree-traverse-inorder tree
+                                #:converse? converse?)]
+        [(= order 'level)
+         (tree-traverse-levelorder tree
+                                   #:converse? converse?)]
+        [else
+         (error "Invalid traversal order!")]))

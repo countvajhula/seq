@@ -161,7 +161,6 @@
   (check-equal? (remove "BANANA" (generic-set #:key string-upcase "apple" "banana" "cherry")) (generic-set #:key string-upcase "apple" "cherry"))
   (check-equal? (remove "a" "aaahai athaerea") "hi there")
   (check-equal? (remove #\a "aaahai athaerea") "hi there")
-
   (check-equal? (->list (remove-when odd? (list 2))) (list 2))
   (check-equal? (->list (remove-when even? (list 2))) '())
   (check-equal? (->list (remove-when even? (list 2 1))) (list 1))
@@ -175,7 +174,37 @@
   (check-exn exn:fail:contract?
              (thunk (remove-when (curry = "banana") (set "apple" "banana" "cherry"))) (set "apple" "cherry"))
   (check-exn exn:fail:contract?
-             (thunk (remove-when (curry = "BANANA") (generic-set #:key string-upcase "apple" "banana" "cherry")))))
+             (thunk (remove-when (curry = "BANANA") (generic-set #:key string-upcase "apple" "banana" "cherry"))))
+  (let ([t (list 1
+                 (list 2
+                       (list 3)
+                       (list 4))
+                 (list 5
+                       (list 6)
+                       (list 7))
+                 (list 8
+                       (list 9
+                             (list 10)
+                             (list 11))
+                       (list 12
+                             (list 13)
+                             (list 14))))])
+    (check-equal? (->list (tree-traverse t #:order 'pre))
+                  (list 1 2 3 4 5 6 7 8 9 10 11 12 13 14))
+    (check-equal? (->list (tree-traverse t #:order 'pre #:converse? #t))
+                  (list 1 8 12 14 13 9 11 10 5 7 6 2 4 3))
+    (check-equal? (->list (tree-traverse t #:order 'post))
+                  (list 3 4 2 6 7 5 10 11 9 13 14 12 8 1))
+    (check-equal? (->list (tree-traverse t #:order 'post #:converse? #t))
+                  (list 14 13 12 11 10 9 8 7 6 5 4 3 2 1))
+    (check-equal? (->list (tree-traverse t #:order 'in))
+                  (list 3 2 4 1 6 5 7 10 9 11 8 13 12 14))
+    (check-equal? (->list (tree-traverse t #:order 'in #:converse? #t))
+                  (list 14 12 13 8 11 9 10 1 7 5 6 4 2 3))
+    (check-equal? (->list (tree-traverse t #:order 'level))
+                  (list 1 2 5 8 3 4 6 7 9 12 10 11 13 14))
+    (check-equal? (->list (tree-traverse t #:order 'level #:converse? #t))
+                  (list 1 8 5 2 12 9 7 6 4 3 14 13 11 10))))
 
 (module+ main
   ;; (Optional) main submodule. Put code here if you need it to be executed when
