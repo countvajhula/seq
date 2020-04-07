@@ -108,7 +108,7 @@
   (check-equal? (->list (split-when (curry = #\space) "")) (list ""))
   (check-equal? (->list (map ->list (split-when (curry = 1) (list 2 1 2)))) '((2) (2)))
   (check-equal? (->list (map ->list (split-when (curry = 1) (list 2)))) '((2)))
-  (check-equal? (->list (map ->list (split-when (curry = 1) (list)))) '(()))
+  (check-equal? (->list (split-when (curry = 1) (list))) (list ID))
   (check-equal? (->list (map ->list (split 5 (list 1 2 5 2 3 5 6 5 7 8)))) '((1 2) (2 3) (6) (7 8)))
   (check-equal? (->list (map ->list (split 5 (list)))) '(()))
   (check-equal? (->list (map ->list (split 5 (list 1)))) '((1)))

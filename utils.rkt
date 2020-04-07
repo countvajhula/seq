@@ -197,7 +197,7 @@
 
 (define (~split-when pred seq)
   (if (empty? seq)
-      (stream (list))
+      (stream ID)
       (let-values ([(chunk remaining) (split-where pred seq)])
         (if (empty? remaining)
             (stream-cons chunk empty-stream)
