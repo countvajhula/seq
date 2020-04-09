@@ -478,6 +478,11 @@
         (stream-cons (apply op vs)
                      (apply zip op (map rest seqs))))))
 
+(define (unzip seq [op identity])
+  (for/list ([l (first seq)]
+             [i (naturals)])
+    (op (map (curryr nth i) seq))))
+
 (define (make-tree f node)
   (stream-cons node
                (map (curry make-tree f)
