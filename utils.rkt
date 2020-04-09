@@ -132,6 +132,8 @@
           [zip (->* (procedure? sequence?)
                     #:rest (listof sequence?)
                     sequence?)]
+          [unzip (->* (procedure? sequence?)
+                      sequence?)]
           [make-tree (-> (-> any/c sequence?)
                          any/c
                          sequence?)]
@@ -478,10 +480,8 @@
         (stream-cons (apply op vs)
                      (apply zip op (map rest seqs))))))
 
-(define (unzip seq [op identity])
-  (for/list ([l (first seq)]
-             [i (naturals)])
-    (op (map (curryr nth i) seq))))
+;; zip is its own inverse
+(define unzip (curry apply zip))
 
 (define (make-tree f node)
   (stream-cons node
