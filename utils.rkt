@@ -129,9 +129,9 @@
                       (any/c)
                       (or/c sequence?
                             procedure?))] ; procedure doesn't implement sequence
-          [merge (->* (procedure? sequence?)
-                      #:rest (listof sequence?)
-                      sequence?)]
+          [zip (->* (procedure? sequence?)
+                    #:rest (listof sequence?)
+                    sequence?)]
           [make-tree (-> (-> any/c sequence?)
                          any/c
                          sequence?)]
@@ -471,8 +471,12 @@
                seq
                (add-between sep seq))))
 
-(define (merge op . seqs)
-  (apply map op seqs))
+(define (zip op . seqs)
+  (if (any? (map empty? seqs))
+      (stream)
+      (let ([vs (map first seqs)])
+        (stream-cons (apply op vs)
+                     (apply zip op (map rest seqs))))))
 
 (define (make-tree f node)
   (stream-cons node
