@@ -129,6 +129,9 @@
                       (any/c)
                       (or/c sequence?
                             procedure?))] ; procedure doesn't implement sequence
+          [merge (->* (procedure? sequence?)
+                      #:rest (listof sequence?)
+                      sequence?)]
           [make-tree (-> (-> any/c sequence?)
                          any/c
                          sequence?)]
@@ -468,6 +471,9 @@
                seq
                (add-between sep seq))))
 
+(define (merge op . seqs)
+  (apply map op seqs))
+
 (define (make-tree f node)
   (stream-cons node
                (map (curry make-tree f)
@@ -501,7 +507,7 @@
          (tree-traverse tree
                         #:order order
                         #:converse? converse?)
-         base
+         #:into base
          #:order argument-order
          #:with-steps? with-steps?))
 
