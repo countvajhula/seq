@@ -124,6 +124,13 @@
                      (any/c)
                      (or/c sequence?
                            procedure?))] ; procedure doesn't implement sequence
+          [wrap-each (-> any/c
+                         any/c
+                         sequence?
+                         sequence?)]
+          [weave (-> any/c any/c sequence?
+                     (or/c sequence?
+                           procedure?))] ; procedure doesn't implement sequence
           [zip (->* (procedure? sequence?)
                     #:rest (listof sequence?)
                     sequence?)]
