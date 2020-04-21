@@ -4,7 +4,6 @@
          racket/stream
          racket/match
          racket/generator
-         racket/function
          racket/generic
          racket/undefined
          racket/set
@@ -16,15 +15,11 @@
          (only-in data/collection
                   (index-of d:index-of)
                   (append d:append))
-         (only-in algebraic/prelude
-                  &&
-                  ||)
-         functional-utils
          core-utils
          relation)
 
-(provide every
-         (contract-out
+(provide (contract-out
+          [every (-> exact-positive-integer? sequence? sequence?)]
           [take-while (-> (-> any/c boolean?)
                           sequence?
                           sequence?)]
@@ -125,10 +120,10 @@
           [add-between (-> any/c
                            sequence?
                            sequence?)]
-          [weave (->* (sequence?)
-                      (any/c)
-                      (or/c sequence?
-                            procedure?))] ; procedure doesn't implement sequence
+          [join (->* (sequence?)
+                     (any/c)
+                     (or/c sequence?
+                           procedure?))] ; procedure doesn't implement sequence
           [zip (->* (procedure? sequence?)
                     #:rest (listof sequence?)
                     sequence?)]
@@ -468,10 +463,24 @@
                          (stream-cons sep
                                       (add-between sep vs)))))))
 
-(define (weave seq [sep undefined])
+(define (wrap-each before after seq)
+  (if (empty? seq)
+      (stream)
+      (let ([v (first seq)]
+            [vs (rest seq)])
+        (let ([wrapped-v (stream before v after)])
+          (if (empty? vs)
+              wrapped-v
+              (stream-append wrapped-v
+                             (wrap-each before after vs)))))))
+
+(define (join seq [sep undefined])
   (fold .. (if (undefined? sep)
                seq
                (add-between sep seq))))
+
+(define (weave to from seq)
+  (fold .. (wrap-each to from seq)))
 
 (define (zip op . seqs)
   (if (any? (map empty? seqs))

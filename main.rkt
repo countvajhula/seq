@@ -1,17 +1,17 @@
 #lang racket/base
 
 (module+ test
-  (require rackunit)
-  (require racket/stream)
-  (require racket/set)
-  (require racket/function)
-  (require (except-in data/collection
+  (require rackunit
+           racket/stream
+           racket/set
+           (only-in racket/function
+                    thunk)
+           (except-in data/collection
                       foldl
                       foldl/steps
                       append
-                      index-of))
-  (require relation)
-  (require functional-utils))
+                      index-of)
+           relation))
 
 ;; Code here
 
@@ -138,9 +138,9 @@
                   (->list (map ->list (list a b))))
                 (list '(1 3 5) '(2 4)))
   (check-equal? (->list (add-between 'and (stream 'a 'b 'c))) '(a and b and c))
-  (check-equal? (weave (stream "hi" "there") "\n") "hi\nthere")
-  (check-equal? (weave (stream (list 1 2) (list 3 4)) (list 9)) (list 1 2 9 3 4))
-  (check-equal? ((weave (list add1 sub1) add1) 5) 6)
+  (check-equal? (join (stream "hi" "there") "\n") "hi\nthere")
+  (check-equal? (join (stream (list 1 2) (list 3 4)) (list 9)) (list 1 2 9 3 4))
+  (check-equal? ((join (list add1 sub1) add1) 5) 6)
   (check-equal? (->list (zip list (list 1 2 3) (list 1 2 3))) '((1 1) (2 2) (3 3)))
   (check-equal? (->list (zip list (list 1 2 3) (list 1 2 3) (list 1 2 3))) '((1 1 1) (2 2 2) (3 3 3)))
   (check-equal? (->list (zip list (list 1 2 3))) '((1) (2) (3)))
