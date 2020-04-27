@@ -54,10 +54,18 @@
           [slide (-> exact-positive-integer?
                      sequence?
                      (sequenceof list?))]
+          [prefix-of? (->* (sequence? sequence?)
+                             (#:key (or/c (-> comparable? comparable?)
+                                          #f))
+                             boolean?)]
           [starts-with? (->* (sequence? sequence?)
                              (#:key (or/c (-> comparable? comparable?)
                                           #f))
                              boolean?)]
+          [suffix-of? (->* (sequence? sequence?)
+                           (#:key (or/c (-> comparable? comparable?)
+                                        #f))
+                           boolean?)]
           [ends-with? (->* (sequence? sequence?)
                            (#:key (or/c (-> comparable? comparable?)
                                         #f))
@@ -74,6 +82,10 @@
                          #:how-many (and/c integer?
                                            (>=/c 0)))
                         sequence?)]
+          [infix-of? (->* (sequence? sequence?)
+                          (#:key (or/c (-> comparable? comparable?)
+                                       #f))
+                          boolean?)]
           [contains? (->* (sequence? sequence?)
                           (#:key (or/c (-> comparable? comparable?)
                                        #f))
@@ -235,7 +247,7 @@
                 (drop i seq))])
     (apply map list seqs)))
 
-(define (starts-with? #:key [key #f] prefix seq)
+(define (prefix-of? #:key [key #f] prefix seq)
   (if (empty? prefix)
       #t
       (if (empty? seq)
@@ -243,14 +255,18 @@
           (and (= #:key key
                   (first seq)
                   (first prefix))
-               (starts-with? #:key key
+               (prefix-of? #:key key
                              (rest prefix)
                              (rest seq))))))
 
-(define (ends-with? #:key [key #f] suffix seq)
-  (starts-with? #:key key
+(define starts-with? prefix-of?)
+
+(define (suffix-of? #:key [key #f] suffix seq)
+  (prefix-of? #:key key
                 (reverse suffix)
                 (reverse seq)))
+
+(define ends-with? suffix-of?)
 
 (define (find #:key [key #f] subseq seq [idx 0])
   (if (empty? subseq)
@@ -262,7 +278,7 @@
             (if (= #:key key v w)
                 (let ([remaining-seq (rest seq)]
                       [remaining-subseq (rest subseq)])
-                  (if (starts-with? #:key key
+                  (if (prefix-of? #:key key
                                     remaining-subseq
                                     remaining-seq)
                       idx
@@ -312,8 +328,10 @@
         (->string result)
         result)))
 
-(define (contains? #:key [key #f] subseq seq)
+(define (infix-of? #:key [key #f] subseq seq)
   (->boolean (find #:key key subseq seq)))
+
+(define contains? infix-of?)
 
 (define (trim-left-if pred
                       seq
