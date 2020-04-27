@@ -189,20 +189,20 @@
   (check-equal? (remove "BANANA" (generic-set #:key string-upcase "apple" "banana" "cherry")) (generic-set #:key string-upcase "apple" "cherry"))
   (check-equal? (remove "a" "aaahai athaerea") "hi there")
   (check-equal? (remove #\a "aaahai athaerea") "hi there")
-  (check-equal? (->list (remove-when odd? (list 2))) (list 2))
-  (check-equal? (->list (remove-when even? (list 2))) '())
-  (check-equal? (->list (remove-when even? (list 2 1))) (list 1))
-  (check-equal? (->list (remove-when even? (list 1 2))) (list 1))
-  (check-equal? (->list (remove-when even? (list 1 2 2 1))) (list 1 1))
-  (check-equal? (->list (remove-when even? (stream 1 2 2 1))) (list 1 1))
-  (check-equal? (->list (remove-when even? #:how-many 1 (list 1 2 2 1))) (list 1 2 1))
-  (check-equal? (->list (remove-when even? #:how-many 2 (list 1 2 2 1 2))) (list 1 1 2))
-  (check-equal? (->list (remove-when even? (list 1 2 4 3 6))) (list 1 3))
-  (check-equal? (->list (remove-when even? #:how-many 2 (list 1 2 4 3 6))) (list 1 3 6))
+  (check-equal? (->list (drop-when odd? (list 2))) (list 2))
+  (check-equal? (->list (drop-when even? (list 2))) '())
+  (check-equal? (->list (drop-when even? (list 2 1))) (list 1))
+  (check-equal? (->list (drop-when even? (list 1 2))) (list 1))
+  (check-equal? (->list (drop-when even? (list 1 2 2 1))) (list 1 1))
+  (check-equal? (->list (drop-when even? (stream 1 2 2 1))) (list 1 1))
+  (check-equal? (->list (drop-when even? #:how-many 1 (list 1 2 2 1))) (list 1 2 1))
+  (check-equal? (->list (drop-when even? #:how-many 2 (list 1 2 2 1 2))) (list 1 1 2))
+  (check-equal? (->list (drop-when even? (list 1 2 4 3 6))) (list 1 3))
+  (check-equal? (->list (drop-when even? #:how-many 2 (list 1 2 4 3 6))) (list 1 3 6))
   (check-exn exn:fail:contract?
-             (thunk (remove-when (curry = "banana") (set "apple" "banana" "cherry"))) (set "apple" "cherry"))
+             (thunk (drop-when (curry = "banana") (set "apple" "banana" "cherry"))) (set "apple" "cherry"))
   (check-exn exn:fail:contract?
-             (thunk (remove-when (curry = "BANANA") (generic-set #:key string-upcase "apple" "banana" "cherry")))))
+             (thunk (drop-when (curry = "BANANA") (generic-set #:key string-upcase "apple" "banana" "cherry")))))
 
 (module+ main
   ;; (Optional) main submodule. Put code here if you need it to be executed when
