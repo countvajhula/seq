@@ -131,11 +131,13 @@
           [weave (-> any/c any/c sequence?
                      (or/c sequence?
                            procedure?))] ; procedure doesn't implement sequence
-          [zip (->* (procedure? sequence?)
-                    #:rest (listof sequence?)
-                    sequence?)]
-          [unzip (->* (procedure? sequence?)
-                      sequence?)]
+          [zip-with (->* (procedure? sequence?)
+                         #:rest (listof sequence?)
+                         sequence?)]
+          [zip (-> sequence? sequence? ... sequence?)]
+          [unzip-with (->* (procedure? sequence?)
+                           sequence?)]
+          [unzip (-> sequence? sequence?)]
           [: (collection? any/c . -> . collection?)]))
 
 (define : conj)
@@ -462,12 +464,17 @@
 (define (weave to from seq)
   (fold .. (wrap-each to from seq)))
 
-(define (zip op . seqs)
+(define (zip-with op . seqs)
   (if (any? (map empty? seqs))
       (stream)
       (let ([vs (map first seqs)])
         (stream-cons (apply op vs)
-                     (apply zip op (map rest seqs))))))
+                     (apply zip-with op (map rest seqs))))))
+
+(define (zip . seqs)
+  (apply zip-with list seqs))
 
 ;; zip is its own inverse
+(define unzip-with (curry apply zip-with))
+
 (define unzip (curry apply zip))
