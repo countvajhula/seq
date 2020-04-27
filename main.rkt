@@ -38,6 +38,7 @@
   (check-equal? (deduplicate (list "hello" "Hello")) (list "hello" "Hello"))
   (check-equal? (deduplicate #:key string-upcase (list "hello" "Hello")) (list "hello"))
   (check-equal? (deduplicate (list 1 2 "hi" "hi" 2 3 "hello" 4 "hello" "bye")) (list 1 2 "hi" 3 "hello" 4 "bye"))
+  (check-equal? (->list (interleave (list 1 2 3) (list 'a 'b 'c) (list 'A 'B))) '(1 a A 2 b B 3 c))
   (check-equal? (starts-with? "hello" "hello there") #t)
   (check-equal? (starts-with? "h" "hello there") #t)
   (check-equal? (starts-with? "ello" "hello there") #f)

@@ -150,6 +150,7 @@
           [unzip-with (->* (procedure? sequence?)
                            sequence?)]
           [unzip (-> sequence? sequence?)]
+          [interleave (-> sequence? sequence? ... sequence?)]
           [: (collection? any/c . -> . collection?)]))
 
 (define : conj)
@@ -240,6 +241,17 @@
    (apply generic-set
           #:key key
           seq)))
+
+(define (interleave . seqs)
+  (if (empty? seqs)
+      (stream)
+      (let loop ([remaining-seqs seqs])
+        (if (empty? remaining-seqs)
+            (apply interleave (map rest seqs))
+            (if (empty? (first remaining-seqs))
+                (stream)
+                (stream-cons (first (first remaining-seqs))
+                             (loop (rest remaining-seqs))))))))
 
 (define (slide window-size seq)
   ;; TODO: improve; support move-by
