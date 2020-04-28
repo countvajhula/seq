@@ -51,9 +51,12 @@
                             (#:key (or/c (-> comparable? comparable?)
                                          #f))
                             list?)]
+          [cascade (-> exact-positive-integer?
+                       sequence?
+                       (sequenceof sequence?))]
           [slide (-> exact-positive-integer?
                      sequence?
-                     (sequenceof list?))]
+                     (sequenceof sequence?))]
           [prefix-of? (->* (sequence? sequence?)
                              (#:key (or/c (-> comparable? comparable?)
                                           #f))
@@ -253,11 +256,25 @@
                 (stream-cons (first (first remaining-seqs))
                              (loop (rest remaining-seqs))))))))
 
+(define (cascade step-size seq)
+  (if (empty? seq)
+      (stream)
+      (stream-cons seq
+                   (with-handlers ([exn:fail:contract? (λ (exn)
+                                                         (stream))])
+                     (cascade step-size
+                              (drop step-size seq))))))
+
 (define (slide window-size seq)
-  ;; TODO: improve; support move-by
-  (let ([seqs (for/list ([i (in-range window-size)])
-                (drop i seq))])
-    (apply map list seqs)))
+  (let loop ([seq (cascade 1 seq)])
+    (if (empty? seq)
+        (stream)
+        (let ([window (with-handlers ([exn:fail:contract? (λ (exn)
+                                                            (stream))])
+                        (take window-size (first seq)))])
+          (if (empty? window)
+              (stream)
+              (stream-cons window (loop (rest seq))))))))
 
 (define (prefix-of? #:key [key #f] prefix seq)
   (if (empty? prefix)
