@@ -1,6 +1,7 @@
 #lang racket/base
 
-(require racket/contract
+(require (prefix-in b: racket/base)
+         racket/contract
          racket/stream
          racket/match
          racket/generator
@@ -20,6 +21,16 @@
 
 (provide (contract-out
           [every (-> exact-positive-integer? sequence? sequence?)]
+          [exists (->i ([pred (seqs)
+                              (and/c (procedure-arity-includes/c (b:length seqs))
+                                     (unconstrained-domain-> boolean?))])
+                       #:rest [seqs (listof (sequenceof any/c))]
+                       [result boolean?])]
+          [for-all (->i ([pred (seqs)
+                               (and/c (procedure-arity-includes/c (b:length seqs))
+                                      (unconstrained-domain-> boolean?))])
+                        #:rest [seqs (listof (sequenceof any/c))]
+                        [result boolean?])]
           [take-while (-> (-> any/c boolean?)
                           sequence?
                           sequence?)]
@@ -163,11 +174,23 @@
       empty-stream
       (let ([head (first seq)]
             [tail (with-handlers
-                    ([exn:fail?
+                    ([exn:fail:contract?
                       (λ (exn)
                         empty-stream)])
                     (drop cnt seq))])
         (stream-cons head (every cnt tail)))))
+
+(define (exists pred . seqs)
+  (if (andmap empty? seqs)
+      #f
+      (or (apply pred (map first seqs))
+          (apply exists pred (map rest seqs)))))
+
+(define (for-all pred . seqs)
+  (if (andmap empty? seqs)
+      #t
+      (and (apply pred (map first seqs))
+           (apply for-all pred (map rest seqs)))))
 
 (define (take-while pred seq)
   (if (empty? seq)
