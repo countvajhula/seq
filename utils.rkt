@@ -124,6 +124,10 @@
                                               (>=/c 0))
                                        #f))
                      sequence?)]
+          [trim-length (-> exact-nonnegative-integer?
+                           exact-nonnegative-integer?
+                           sequence?
+                           sequence?)]
           [index-of (->* (any/c sequence?)
                          (#:key (or/c (-> comparable? comparable?)
                                       #f))
@@ -446,6 +450,20 @@
              seq
              #:side side
              #:how-many how-many)))
+
+(define (trim-length left right seq)
+  (let ([len (length seq)])
+    (if (> (+ left right)
+           len)
+        (raise-arguments-error 'trim-length
+                               "Trimmed lengths exceed total length!"
+                               "left" left
+                               "right" right
+                               "sequence length" len)
+        (take (- len
+                 (+ left
+                    right))
+              (drop left seq)))))
 
 (define (index-of #:key [key #f]
                   elem
