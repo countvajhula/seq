@@ -16,7 +16,6 @@
          (only-in data/collection
                   (index-of d:index-of)
                   (append d:append))
-         core-utils
          relation)
 
 (provide (contract-out

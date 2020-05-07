@@ -1,5 +1,5 @@
 # Adapted from: http://www.greghendershott.com/2017/04/racket-makefiles.html
-PACKAGE-NAME=collection-utils
+PACKAGE-NAME=collection-util
 
 DEPS-FLAGS=--check-pkg-deps --unused-pkg-deps
 
