@@ -1,261 +1,568 @@
 #lang racket/base
 
-(module+ test
-  (require rackunit
-           racket/stream
-           racket/set
-           (only-in racket/function
-                    thunk)
-           (except-in data/collection
-                      foldl
-                      foldl/steps
-                      append
-                      index-of)
-           relation))
+(require (prefix-in b: racket/base)
+         racket/contract
+         racket/stream
+         racket/match
+         racket/generator
+         racket/generic
+         racket/undefined
+         racket/set
+         (except-in data/collection
+                    foldl
+                    foldl/steps
+                    append
+                    index-of)
+         (only-in data/collection
+                  (index-of d:index-of)
+                  (append d:append))
+         relation)
 
-;; Code here
+(provide (contract-out
+          [every (-> exact-positive-integer? sequence? sequence?)]
+          [exists (->i ([pred (seqs)
+                              (and/c (procedure-arity-includes/c (b:length seqs))
+                                     (unconstrained-domain-> boolean?))])
+                       #:rest [seqs (listof (sequenceof any/c))]
+                       [result any/c])]
+          [for-all (->i ([pred (seqs)
+                               (and/c (procedure-arity-includes/c (b:length seqs))
+                                      (unconstrained-domain-> boolean?))])
+                        #:rest [seqs (listof (sequenceof any/c))]
+                        [result any/c])]
+          [zip-with (->* (procedure? sequence?)
+                         #:rest (listof sequence?)
+                         sequence?)]
+          [choose (->* (procedure? sequence?)
+                        #:rest (listof sequence?)
+                        sequence?)]
+          [zip (-> sequence? sequence? ... sequence?)]
+          [unzip-with (->* (procedure? sequence?)
+                           sequence?)]
+          [unzip (-> sequence? sequence?)]
+          [take-while (-> (-> any/c boolean?)
+                          sequence?
+                          sequence?)]
+          [take-until (-> (-> any/c boolean?)
+                          sequence?
+                          sequence?)]
+          [drop-while (-> (-> any/c boolean?)
+                          sequence?
+                          sequence?)]
+          [drop-until (-> (-> any/c boolean?)
+                          sequence?
+                          sequence?)]
+          [split-when (->* ((-> any/c boolean?) sequence?)
+                           (#:trim? boolean?)
+                           (sequenceof sequence?))]
+          [split (->* (any/c
+                       sequence?)
+                      (#:key (or/c (-> comparable? comparable?)
+                                   #f)
+                       #:trim? boolean?)
+                      (sequenceof sequence?))]
+          [split-at (-> exact-positive-integer?
+                        sequence?
+                        (values sequence? sequence?))]
+          [split-where (-> (-> any/c boolean?)
+                           sequence?
+                           (values sequence? sequence?))]
+          [deduplicate (->* (sequence?)
+                            (#:key (or/c (-> comparable? comparable?)
+                                         #f))
+                            list?)]
+          [cascade (-> exact-positive-integer?
+                       sequence?
+                       (sequenceof sequence?))]
+          [slide (-> exact-positive-integer?
+                     sequence?
+                     (sequenceof sequence?))]
+          [prefix-of? (->* (sequence? sequence?)
+                             (#:key (or/c (-> comparable? comparable?)
+                                          #f))
+                             boolean?)]
+          [starts-with? (->* (sequence? sequence?)
+                             (#:key (or/c (-> comparable? comparable?)
+                                          #f))
+                             boolean?)]
+          [suffix-of? (->* (sequence? sequence?)
+                           (#:key (or/c (-> comparable? comparable?)
+                                        #f))
+                           boolean?)]
+          [ends-with? (->* (sequence? sequence?)
+                           (#:key (or/c (-> comparable? comparable?)
+                                        #f))
+                           boolean?)]
+          [find (->* (sequence? sequence?)
+                     (exact-nonnegative-integer?
+                      #:key (or/c (-> comparable? comparable?)
+                                  #f))
+                     (or/c exact-nonnegative-integer?
+                           #f))]
+          [replace (->* (sequence? sequence? sequence?)
+                        (#:key (or/c (-> comparable? comparable?)
+                                     #f)
+                         #:how-many (and/c integer?
+                                           (>=/c 0)))
+                        sequence?)]
+          [infix-of? (->* (sequence? sequence?)
+                          (#:key (or/c (-> comparable? comparable?)
+                                       #f))
+                          boolean?)]
+          [contains? (->* (sequence? sequence?)
+                          (#:key (or/c (-> comparable? comparable?)
+                                       #f))
+                          boolean?)]
+          [trim-if (->* ((-> any/c boolean?)
+                         sequence?)
+                        (#:side (one-of/c 'left
+                                          'right
+                                          'both)
+                         #:how-many (or/c (and/c integer?
+                                                 (>=/c 0))
+                                          #f))
+                        sequence?)]
+          [trim (->* (any/c
+                      sequence?)
+                     (#:key (or/c (-> comparable? comparable?)
+                                  #f)
+                      #:side (one-of/c 'left
+                                       'right
+                                       'both)
+                      #:how-many (or/c (and/c integer?
+                                              (>=/c 0))
+                                       #f))
+                     sequence?)]
+          [trim-length (-> exact-nonnegative-integer?
+                           exact-nonnegative-integer?
+                           sequence?
+                           sequence?)]
+          [index-of (->* (any/c sequence?)
+                         (#:key (or/c (-> comparable? comparable?)
+                                      #f))
+                         (or/c (and/c integer?
+                                      (>=/c 0))
+                               #f))]
+          [remove (->* (any/c sequence?)
+                       (#:key (or/c (-> comparable? comparable?)
+                                    #f)
+                        #:how-many (or/c (and/c integer?
+                                                (>=/c 0))
+                                         #f))
+                       sequence?)]
+          [drop-when (->* ((-> any/c boolean?)
+                           sequence?)
+                          (#:how-many (or/c (and/c integer?
+                                                   (>=/c 0))
+                                            #f))
+                          sequence?)]
+          [add-between (-> any/c
+                           sequence?
+                           sequence?)]
+          [join (->* (sequence?)
+                     (any/c)
+                     (or/c sequence?
+                           procedure?))] ; procedure doesn't implement sequence
+          [wrap-each (-> any/c
+                         any/c
+                         sequence?
+                         sequence?)]
+          [weave (-> any/c any/c sequence?
+                     (or/c sequence?
+                           procedure?))] ; procedure doesn't implement sequence
+          [interleave (-> sequence? sequence? ... sequence?)]
+          [: (collection? any/c . -> . collection?)]))
 
-(require "utils.rkt")
+(define : conj)
 
-(provide (all-from-out "utils.rkt"))
+(define (every cnt seq)
+  (if (empty? seq)
+      empty-stream
+      (let ([head (first seq)]
+            [tail (with-handlers
+                    ([exn:fail:contract?
+                      (λ (exn)
+                        empty-stream)])
+                    (drop cnt seq))])
+        (stream-cons head (every cnt tail)))))
 
-(module+ test
-  ;; Any code in this `test` submodule runs when this file is run using DrRacket
-  ;; or with `raco test`. The code here does not run when this file is
-  ;; required by another module.
+(define (zip-with op . seqs)
+  (if (exists empty? seqs)
+      empty-stream
+      (let ([vs (map first seqs)])
+        (stream-cons (apply op vs)
+                     (apply zip-with op (map rest seqs))))))
 
-  (check-equal? (->list (every 3 (list 1 2 3 4 5 6 7 8))) '(1 4 7))
-  (check-equal? (->list (every 3 (list 1 2 3))) '(1))
-  (check-equal? (->list (every 3 (list))) '())
-  (check-false (exists positive? (list -1)))
-  (check-true (exists positive? (list 1)))
-  (check-true (exists positive? (list -1 1 -2)))
-  (check-false (exists positive? (list -1 -1 -2)))
-  (check-false (exists positive? (list)))
-  (check-false (exists < (list 2 3 4) (list 1 2 3)))
-  (check-true (exists < (list 2 2 2) (list 1 2 3)))
-  (check-false (for-all positive? (list -1)))
-  (check-true (for-all positive? (list 1)))
-  (check-false (for-all positive? (list -1 1 -2)))
-  (check-true (for-all positive? (list 1 1 2)))
-  (check-false (for-all positive? (list 1 -1 2)))
-  (check-true (for-all positive? (list)))
-  (check-false (for-all < (list 2 3 4) (list 1 2 3)))
-  (check-false (for-all < (list 2 2 2) (list 1 2 3)))
-  (check-true (for-all < (list 1 2 3) (list 2 3 4)))
-  (check-equal? (->list (take-while even? (stream 2 4 1 3 5))) '(2 4))
-  (check-equal? (->list (take-while even? (stream 1 3 5))) '())
-  (check-equal? (->list (take-while odd? (stream 1 3 5))) '(1 3 5))
-  (check-equal? (->list (take-until odd? (stream 2 4 1 3 5))) '(2 4))
-  (check-equal? (->list (drop-while even? (stream 2 4 1 3 5))) '(1 3 5))
-  (check-equal? (->list (drop-while even? (stream 1 3 5))) '(1 3 5))
-  (check-equal? (->list (drop-while odd? (stream 1 3 5))) '())
-  (check-equal? (->list (drop-until odd? (stream 2 4 1 3 5))) '(1 3 5))
-  (check-equal? (->list (drop-until odd? (stream 2 4))) '())
-  (check-equal? (->list (drop-until even? (stream 2 4))) '(2 4))
-  (check-equal? (deduplicate (list "hello" "Hello")) (list "hello" "Hello"))
-  (check-equal? (deduplicate #:key string-upcase (list "hello" "Hello")) (list "hello"))
-  (check-equal? (deduplicate (list 1 2 "hi" "hi" 2 3 "hello" 4 "hello" "bye")) (list 1 2 "hi" 3 "hello" 4 "bye"))
-  (check-equal? (->list (interleave (list 1 2 3) (list 'a 'b 'c) (list 'A 'B 'C))) '(1 a A 2 b B 3 c C))
-  (check-equal? (->list (interleave (list 1 2 3) (list 'a 'b 'c) (list 'A 'B))) '(1 a A 2 b B 3 c))
-  (check-equal? (->list (interleave (list 1) (list 'a) (list 'A))) '(1 a A))
-  (check-equal? (->list (interleave (list 1) (list) (list 'A))) '(1))
-  (check-equal? (->list (interleave (list) (list 'a) (list 'A))) '())
-  (check-equal? (->list (interleave (list) (list) (list))) '())
-  (check-equal? (->list (interleave (list))) '())
-  (check-equal? (->list (cascade 1 (list 1 2 3))) '((1 2 3) (2 3) (3)))
-  (check-equal? (->list (cascade 2 (list 1 2 3 4 5))) '((1 2 3 4 5) (3 4 5) (5)))
-  (check-equal? (->list (cascade 1 (list))) '())
-  (check-equal? (->list (cascade 1 (list 1))) '((1)))
-  (check-equal? (->list (cascade 3 (list 1 2))) '((1 2)))
-  (check-equal? (->list (map ->list (slide 3 (list 1 2 3 4 5)))) '((1 2 3) (2 3 4) (3 4 5)))
-  (check-equal? (->list (map ->list (slide 3 (list 1 2)))) '())
-  (check-equal? (->list (map ->list (slide 3 (list 1)))) '())
-  (check-equal? (->list (map ->list (slide 3 (list)))) '())
-  (check-equal? (starts-with? "hello" "hello there") #t)
-  (check-equal? (starts-with? "h" "hello there") #t)
-  (check-equal? (starts-with? "ello" "hello there") #f)
-  (check-equal? (starts-with? "Hello" "hello there") #f)
-  (check-equal? (starts-with? "Hello" "") #f)
-  (check-equal? (starts-with? "" "Hello") #t)
-  (check-equal? (starts-with? (list 1 2) (list 1 2 3 4 5)) #t)
-  (check-equal? (starts-with? (list 2 1) (list 1 2 3 4 5)) #f)
-  (check-equal? (starts-with? #:key (.. string-upcase ->string) "Hello" "hello there") #t)
-  (check-equal? (ends-with? "there" "hello there") #t)
-  (check-equal? (ends-with? "ere" "hello there") #t)
-  (check-equal? (ends-with? "ther" "hello there") #f)
-  (check-equal? (ends-with? "THERE" "hello there") #f)
-  (check-equal? (ends-with? "Hello" "") #f)
-  (check-equal? (ends-with? "" "Hello") #t)
-  (check-equal? (ends-with? (list 5) (list 1 2 3 4 5)) #t)
-  (check-equal? (ends-with? #:key (.. string-upcase ->string) "THERE" "hello there") #t)
-  (check-equal? (find "ello" "hello there") 1)
-  (check-equal? (find " " "hello there") 5)
-  (check-equal? (find "elo" "hello there") #f)
-  (check-equal? (find "Ello" "hello there") #f)
-  (check-equal? (find "Hello" "") #f)
-  (check-equal? (find "" "Hello") 0)
-  (check-equal? (find (list 1 2) (list 1 2 3 4 5)) 0)
-  (check-equal? (find (list 2 1) (list 1 2 3 4 5)) #f)
-  (check-equal? (find #:key (.. string-upcase ->string) "Ello" "hello there") 1)
-  (check-equal? (replace "ello" "blah" "hello there") "hblah there")
-  (check-equal? (replace " " ", " "hello there") "hello, there")
-  (check-equal? (replace "elo" "boop" "hello there") "hello there")
-  (check-equal? (replace "Ello" "blah" "hello there") "hello there")
-  (check-equal? (replace "Hello" "Hi" "") "")
-  ;; (check-equal? (->string (replace "Hello" "" "Hi")) "HiHello") ; contractually exclude this
-  (check-equal? (->list (replace (list 1 2) (list 9 10) (list 1 2 3 4 5))) (list 9 10 3 4 5))
-  (check-equal? (replace (list 2 1) (list 9 10) (list 1 2 3 4 5)) (list 1 2 3 4 5))
-  (check-equal? (replace #:key (.. string-upcase ->string) "Ello" "blah" "hello there") "hblah there")
-  (check-equal? (contains? "ello" "hello there") #t)
-  (check-equal? (contains? " " "hello there") #t)
-  (check-equal? (contains? "elo" "hello there") #f)
-  (check-equal? (contains? "Ello" "hello there") #f)
-  (check-equal? (contains? "Hello" "") #f)
-  (check-equal? (contains? "" "Hello") #t)
-  (check-equal? (contains? (list 1 2) (list 1 2 3 4 5)) #t)
-  (check-equal? (contains? (list 2 1) (list 1 2 3 4 5)) #f)
-  (check-equal? (contains? #:key (.. string-upcase ->string) "Ello" "hello there") #t)
-  (check-equal? (trim-if negative? (list)) (list))
-  (check-equal? (trim-if negative? (list 1 2 3)) (list 1 2 3))
-  (check-equal? (trim-if negative? (list -1 -2 1 2 3 -3)) (list 1 2 3))
-  (check-equal? (trim-if negative? #:side 'left (list -1 -2 1 2 3 -3)) (list 1 2 3 -3))
-  (check-equal? (trim-if negative? #:side 'right (list -1 -2 1 2 3 -3)) (list -1 -2 1 2 3))
-  (check-equal? (trim-if (curry = 5) (list 1 2 3 4 5)) (list 1 2 3 4))
-  (check-equal? (trim-if (curry = 5) (list 5 5 1 2 3 4 5 5 5)) (list 1 2 3 4))
-  (check-equal? (trim-if char-whitespace? "   \thello\n  ") "hello")
-  (check-equal? (trim-if char-whitespace? "   \thello\n  " #:how-many #f) "hello")
-  (check-equal? (trim-if char-whitespace? "  \thello\n  " #:how-many 1) " \thello\n ")
-  (check-equal? (trim-if char-whitespace? "   \thello\n   " #:how-many 2) " \thello\n ")
-  (check-equal? (trim 0 (list)) (list))
-  (check-equal? (trim 0 (list 1 2 3)) (list 1 2 3))
-  (check-equal? (trim 0 (list 0 1 2 3 0 0)) (list 1 2 3))
-  (check-equal? (trim 0 #:side 'left (list 0 1 2 3 0 0)) (list 1 2 3 0 0))
-  (check-equal? (trim 0 #:side 'right (list 0 1 2 3 0 0)) (list 0 1 2 3))
-  (check-equal? (trim #\space "   \thello\n  ") "\thello\n")
-  (check-equal? (trim " " "   \thello\n  ") "\thello\n")
-  (check-equal? (trim "h" "hellohhh") "ello")
-  (check-equal? (trim #\h "hellohhh") "ello")
-  (check-equal? (->list (trim-length 1 1 '(1 2 3))) '(2))
-  (check-equal? (->list (trim-length 1 2 '(1 2 3 4 5))) '(2 3))
-  (check-equal? (->list (trim-length 2 1 '(1 2 3 4 5))) '(3 4))
-  (check-equal? (->list (trim-length 1 1 '(1 2))) '())
-  (check-equal? (->list (trim-length 0 0 '())) '())
-  (check-exn exn:fail:contract?
-             (thunk (trim-length 2 2 '(1 2 3))))
-  (check-equal? (->list (split-when (curry = #\space) "hello there")) (list "hello" "there"))
-  (check-equal? (->list (split-when (curry = #\space) "hello there old friend")) (list "hello" "there" "old" "friend"))
-  (check-equal? (->list (split-when (curry = #\space) " ")) (list ""))
-  (check-equal? (->list (split-when #:trim? #f (curry = #\space) " ")) (list "" ""))
-  (check-equal? (->list (split-when (curry = #\space) "")) (list ""))
-  (check-equal? (->list (map ->list (split-when (curry = 1) (list 2 1 2)))) '((2) (2)))
-  (check-equal? (->list (map ->list (split-when (curry = 1) (list 2)))) '((2)))
-  (check-equal? (->list (split-when (curry = 1) (list))) (list ID))
-  (check-equal? (->list (map ->list (split 5 (list 1 2 5 2 3 5 6 5 7 8)))) '((1 2) (2 3) (6) (7 8)))
-  (check-equal? (->list (map ->list (split 5 (list)))) '(()))
-  (check-equal? (->list (map ->list (split 5 (list 1)))) '((1)))
-  (check-equal? (->list (map ->list (split 5 (list 5)))) '(()))
-  (check-equal? (->list (map ->list (split #:trim? #f 5 (list 5)))) '(() ()))
-  (check-equal? (->list (map ->list (split 5 (list 1 2 3)))) '((1 2 3)))
-  (check-equal? (->list (map ->list (split #:trim? #t 5 (list 5 5 5 1 2 5 2 3 5 6 5 7 8 5 5 5)))) '((1 2) (2 3) (6) (7 8)))
-  (check-equal? (->list (map ->list (split #:trim? #f 5 (list 5 5 5 1 2 5 2 3 5 6 5 7 8 5 5 5)))) '(() () () (1 2) (2 3) (6) (7 8) () () ()))
-  (check-equal? (->list (map ->list (split #:trim? #t 5 (list 5 5 5 1 2 5 5 2 3 5 6 5 7 8 5 5 5)))) '((1 2) () (2 3) (6) (7 8)))
-  (check-equal? (->list (map ->list (split 5 (list 1 2 5 2 3 5 6 5)))) '((1 2) (2 3) (6)))
-  (check-equal? (->list (map ->list (split #:trim? #f 5 (list 1 2 5 2 3 5 6 5)))) '((1 2) (2 3) (6) ()))
-  (check-equal? (->list (split "\n" "hello\n there")) (list "hello" " there") "split string handles string separator as char")
-  (check-equal? (let-values ([(a b)
-                              (split-at 2 (list 1 3 5 2 4))])
-                  (->list (map ->list (list a b))))
-                (list '(1 3) '(5 2 4)))
-  (check-equal? (let-values ([(a b)
-                              (split-at 5 "hellothere")])
-                  (list a b))
-                (list "hello" "there"))
-  (check-equal? (let-values ([(a b)
-                              (split-where odd? (list 1 3 5 2 4))])
-                  (->list (map ->list (list a b))))
-                (list '() '(1 3 5 2 4)))
-  (check-equal? (let-values ([(a b)
-                              (split-where even? (list 1 3 5 2 4))])
-                  (->list (map ->list (list a b))))
-                (list '(1 3 5) '(2 4)))
-  (check-equal? (->list (add-between 'and (stream 'a 'b 'c))) '(a and b and c))
-  (check-equal? (->list (wrap-each '< '> (stream 'a 'b 'c))) '(< a > < b > < c >))
-  (check-equal? (join (stream "hi" "there") "\n") "hi\nthere")
-  (check-equal? (join (stream (list 1 2) (list 3 4)) (list 9)) (list 1 2 9 3 4))
-  (check-equal? ((join (list add1 sub1) add1) 5) 6)
-  (check-equal? ((weave ->string ->number (list add1 (power 2 add1) (power 3 add1))) "7") "13")
-  (check-equal? (->list (zip-with list (list 1 2 3) (list 1 2 3))) '((1 1) (2 2) (3 3)))
-  (check-equal? (->list (zip-with list (list 1 2 3) (list 1 2 3) (list 1 2 3))) '((1 1 1) (2 2 2) (3 3 3)))
-  (check-equal? (->list (zip-with list (list 1 2 3))) '((1) (2) (3)))
-  (check-equal? (->list (zip-with list (list) (list))) '())
-  (check-equal? (->list (zip-with string "hello" "there")) (list "ht" "eh" "le" "lr" "oe"))
-  (check-equal? (->list (zip-with list (list 1 2 3) (list 1 2 3 4))) '((1 1) (2 2) (3 3)) "sequences of unequal length")
-  (check-equal? (->list (zip-with list (list 1 2 3 4) (list 1 2 3))) '((1 1) (2 2) (3 3)) "sequences of unequal length")
-  (check-equal? (->list (zip-with list (naturals 1) (list 'a 'b 'c))) '((1 a) (2 b) (3 c)))
-  (let ([seqs (list
-               (list (list 1 2 3) (list 1 2 3))
-               (list (list 1 2 3) (list 1 2 3) (list 1 2 3))
-               (list (list 1 2 3)))])
-    (for-each (λ (seq)
-                (check-equal? (->list (unzip-with list (apply zip-with list seq)))
-                              seq))
-              seqs))
-  (check-equal? (->list (unzip-with string (zip-with (.. string->immutable-string string) "hello" "there")))
-                (list "hello" "there"))
-  (check-equal? (->list (unzip-with list (zip-with list (list 1 2 3) (list 1 2 3 4))))
-                (list (list 1 2 3) (list 1 2 3)))
-  (check-equal? (->list (unzip-with list (zip-with list (list 1 2 3 4) (list 1 2 3))))
-                (list (list 1 2 3) (list 1 2 3)))
-  (check-equal? (->list (unzip-with list (zip-with list (naturals 1) (list 'a 'b 'c))))
-                (list (list 1 2 3) (list 'a 'b 'c)))
-  (check-equal? (index-of 2 (list)) #f)
-  (check-equal? (index-of 2 (list 2)) 0)
-  (check-equal? (index-of 2 (list 1 2)) 1)
-  (check-equal? (index-of 3 (list 1 2)) #f)
-  (check-equal? (index-of 2 (list 1 2 2 1)) 1)
-  (check-equal? (index-of 2 (stream 1 2 2 1)) 1)
-  (check-equal? (index-of #:key even? 2 (list 1 4 2 3 6)) 1)
-  (check-equal? (index-of #:key string-upcase "BANANA" (list "apple" "banana" "cherry")) 1)
-  (check-equal? (->list (remove 2 (list 2))) '())
-  (check-equal? (->list (remove 2 (list 2 1))) (list 1))
-  (check-equal? (->list (remove 2 (list 1 2))) (list 1))
-  (check-equal? (->list (remove 2 (list 1 2 2 1))) (list 1 1))
-  (check-equal? (->list (remove 2 (stream 1 2 2 1))) (list 1 1))
-  (check-equal? (->list (remove #:how-many 1 2 (list 1 2 2 1))) (list 1 2 1))
-  (check-equal? (->list (remove #:how-many 2 2 (list 1 2 2 1 2))) (list 1 1 2))
-  (check-equal? (->list (remove #:key even? 2 (list 1 2 4 3 6))) (list 1 3))
-  (check-equal? (->list (remove #:key even? #:how-many 2 2 (list 1 2 4 3 6))) (list 1 3 6))
-  (check-equal? (remove "banana" (set "apple" "banana" "cherry")) (set "apple" "cherry"))
-  (check-equal? (remove "BANANA" (generic-set #:key string-upcase "apple" "banana" "cherry")) (generic-set #:key string-upcase "apple" "cherry"))
-  (check-equal? (remove "a" "aaahai athaerea") "hi there")
-  (check-equal? (remove #\a "aaahai athaerea") "hi there")
-  (check-equal? (->list (drop-when odd? (list 2))) (list 2))
-  (check-equal? (->list (drop-when even? (list 2))) '())
-  (check-equal? (->list (drop-when even? (list 2 1))) (list 1))
-  (check-equal? (->list (drop-when even? (list 1 2))) (list 1))
-  (check-equal? (->list (drop-when even? (list 1 2 2 1))) (list 1 1))
-  (check-equal? (->list (drop-when even? (stream 1 2 2 1))) (list 1 1))
-  (check-equal? (->list (drop-when even? #:how-many 1 (list 1 2 2 1))) (list 1 2 1))
-  (check-equal? (->list (drop-when even? #:how-many 2 (list 1 2 2 1 2))) (list 1 1 2))
-  (check-equal? (->list (drop-when even? (list 1 2 4 3 6))) (list 1 3))
-  (check-equal? (->list (drop-when even? #:how-many 2 (list 1 2 4 3 6))) (list 1 3 6))
-  (check-exn exn:fail:contract?
-             (thunk (drop-when (curry = "banana") (set "apple" "banana" "cherry"))) (set "apple" "cherry"))
-  (check-exn exn:fail:contract?
-             (thunk (drop-when (curry = "BANANA") (generic-set #:key string-upcase "apple" "banana" "cherry")))))
+(define (zip . seqs)
+  (apply zip-with list seqs))
 
-(module+ main
-  ;; (Optional) main submodule. Put code here if you need it to be executed when
-  ;; this file is run using DrRacket or the `racket` executable.  The code here
-  ;; does not run when this file is required by another module. Documentation:
-  ;; http://docs.racket-lang.org/guide/Module_Syntax.html#%28part._main-and-test%29
+;; zip is its own inverse
+(define unzip-with (curry apply zip-with))
 
-  (require racket/cmdline)
-  (define who (box "world"))
-  (command-line
-    #:program "my-program"
-    #:once-each
-    [("-n" "--name") name "Who to say hello to" (set-box! who name)]
-    #:args ()
-    (printf "hello ~a~n" (unbox who))))
+(define unzip (curry apply zip))
+
+(define exists ormap)
+
+(define for-all andmap)
+
+;; nah. let's do either:
+;; choose max seq ... => the max value in each list
+;; OR
+;; choose pred seq ... => choose the first value in each that satisfies the predicate
+(define choose zip-with)
+
+(define (take-while pred seq)
+  (if (empty? seq)
+      (stream)
+      (let ([v (first seq)]
+            [vs (rest seq)])
+        (if (pred v)
+            (stream-cons v (take-while pred vs))
+            null))))
+
+(define (drop-while pred seq)
+  (if (empty? seq)
+      (stream)
+      (let ([v (first seq)]
+            [vs (rest seq)])
+        (if (pred v)
+            (drop-while pred vs)
+            seq))))
+
+(define (take-until pred seq)
+  (take-while (!! pred) seq))
+
+(define (drop-until pred seq)
+  (drop-while (!! pred) seq))
+
+(define (~split-when pred seq)
+  (if (empty? seq)
+      (stream ID)
+      (let-values ([(chunk remaining) (split-where pred seq)])
+        (if (empty? remaining)
+            (stream-cons chunk empty-stream)
+            (stream-cons chunk
+                         (~split-when pred
+                                      (rest remaining)))))))
+
+(define (split-when #:trim? [trim? #t]
+                    pred
+                    seq)
+  (let ([result (~split-when pred
+                             (if trim?
+                                 (trim-if pred seq)
+                                 seq))])
+    (if (string? seq)
+        (map ->string result)
+        result)))
+
+(define (split #:key [key #f]
+               #:trim? [trim? #t]
+               elem
+               seq)
+  (let ([elem (if (string? seq)
+                  (->char elem)
+                  elem)])
+    (split-when #:trim? trim?
+                (curry = #:key key elem)
+                seq)))
+
+(define (split-at pos seq)
+  (let ([left (take pos seq)]
+        [right (drop pos seq)])
+    (if (string? seq)
+        (values (->string left) (->string right))
+        (values left right))))
+
+(define (split-where pred seq)
+  (let ([left (take-until pred seq)]
+        [right (drop-until pred seq)])
+    (if (string? seq)
+        (values (->string left) (->string right))
+        (values left right))))
+
+(define (deduplicate seq #:key [key #f])
+  (->list
+   (apply generic-set
+          #:key key
+          seq)))
+
+(define (interleave . seqs)
+  (if (empty? seqs)
+      (stream)
+      (let loop ([remaining-seqs seqs])
+        (if (empty? remaining-seqs)
+            (apply interleave (map rest seqs))
+            (if (empty? (first remaining-seqs))
+                (stream)
+                (stream-cons (first (first remaining-seqs))
+                             (loop (rest remaining-seqs))))))))
+
+(define (cascade step-size seq)
+  (if (empty? seq)
+      (stream)
+      (stream-cons seq
+                   (with-handlers ([exn:fail:contract? (λ (exn)
+                                                         (stream))])
+                     (cascade step-size
+                              (drop step-size seq))))))
+
+(define (slide window-size seq)
+  (let loop ([seq (cascade 1 seq)])
+    (if (empty? seq)
+        (stream)
+        (let ([window (with-handlers ([exn:fail:contract? (λ (exn)
+                                                            (stream))])
+                        (take window-size (first seq)))])
+          (if (empty? window)
+              (stream)
+              (stream-cons window (loop (rest seq))))))))
+
+(define (prefix-of? #:key [key #f] prefix seq)
+  (if (empty? prefix)
+      #t
+      (if (empty? seq)
+          #f
+          (and (= #:key key
+                  (first seq)
+                  (first prefix))
+               (prefix-of? #:key key
+                             (rest prefix)
+                             (rest seq))))))
+
+(define starts-with? prefix-of?)
+
+(define (suffix-of? #:key [key #f] suffix seq)
+  (prefix-of? #:key key
+                (reverse suffix)
+                (reverse seq)))
+
+(define ends-with? suffix-of?)
+
+(define (find #:key [key #f] subseq seq [idx 0])
+  (if (empty? subseq)
+      0
+      (if (empty? seq)
+          #f
+          (let ([v (first seq)]
+                [w (first subseq)])
+            (if (= #:key key v w)
+                (let ([remaining-seq (rest seq)]
+                      [remaining-subseq (rest subseq)])
+                  (if (prefix-of? #:key key
+                                    remaining-subseq
+                                    remaining-seq)
+                      idx
+                      (find #:key key
+                            subseq
+                            (rest seq)
+                            (add1 idx))))
+                (find #:key key
+                      subseq
+                      (rest seq)
+                      (add1 idx)))))))
+
+(define (~replace #:key [key #f]
+                  #:how-many [how-many #f]
+                  orig-subseq
+                  new-subseq
+                  seq)
+  (if (or (not how-many)
+          (> how-many 0))
+      (let ([idx (find #:key key
+                       orig-subseq
+                       seq)])
+        (if idx
+            (.. (take idx seq)
+                new-subseq
+                (~replace #:key key
+                          orig-subseq
+                          new-subseq
+                          (drop (+ idx
+                                   (length orig-subseq))
+                                seq)
+                          #:how-many (and how-many (sub1 how-many))))
+            seq))
+      seq))
+
+(define (replace #:key [key #f]
+                 #:how-many [how-many #f]
+                 orig-subseq
+                 new-subseq
+                 seq)
+  (let ([result (~replace #:key key
+                          #:how-many how-many
+                          orig-subseq
+                          new-subseq
+                          seq)])
+    (if (string? seq)
+        (->string result)
+        result)))
+
+(define (infix-of? #:key [key #f] subseq seq)
+  (->boolean (find #:key key subseq seq)))
+
+(define contains? infix-of?)
+
+(define (trim-left-if pred
+                      seq
+                      #:how-many [how-many #f])
+  (if (empty? seq)
+      seq
+      (let ([v (first seq)])
+        (if (or (not how-many)
+                (> how-many 0))
+            (if (pred v)
+                (trim-left-if pred
+                              (rest seq)
+                              #:how-many (and how-many (sub1 how-many)))
+                seq)
+            seq))))
+
+(define (trim-right-if pred
+                       seq
+                       #:how-many [how-many #f])
+  (reverse (trim-left-if pred
+                         (reverse seq)
+                         #:how-many how-many)))
+
+(define (~trim-if pred
+                  seq
+                  #:side [side 'both]
+                  #:how-many [how-many #f])
+  (let ([seq (if (member? side '(left both))
+                 (trim-left-if pred
+                               seq
+                               #:how-many how-many)
+                 seq)])
+    (if (member side '(right both))
+        (trim-right-if pred
+                       seq
+                       #:how-many how-many)
+        seq)))
+
+(define (trim-if pred
+                 seq
+                 #:side [side 'both]
+                 #:how-many [how-many #f])
+  (let ([result (~trim-if pred
+                          seq
+                          #:side side
+                          #:how-many how-many)])
+    (if (string? seq)
+        (->string result)
+        result)))
+
+(define (trim elem
+              seq
+              #:key [key #f]
+              #:side [side 'both]
+              #:how-many [how-many #f])
+  (let ([elem (if (string? seq)
+                  (->char elem)
+                  elem)])
+    (trim-if (curry = #:key key elem)
+             seq
+             #:side side
+             #:how-many how-many)))
+
+(define (trim-length left right seq)
+  (let ([len (length seq)])
+    (if (> (+ left right)
+           len)
+        (raise-arguments-error 'trim-length
+                               "Trimmed lengths exceed total length!"
+                               "left" left
+                               "right" right
+                               "sequence length" len)
+        (take (- len
+                 (+ left
+                    right))
+              (drop left seq)))))
+
+(define (index-of #:key [key #f]
+                  elem
+                  seq)
+  (let ([elem (if (string? seq)
+                  (->char elem)
+                  elem)])
+    (d:index-of seq
+                elem
+                (curry = #:key key))))
+
+(define (~drop-when #:how-many [how-many #f]
+                    pred
+                    seq)
+  (if ((|| set? gset?) seq)
+      (raise-argument-error 'drop-when
+                            "sequence? that is not a pure set"
+                            seq)
+      (if (empty? seq)
+          seq
+          (if how-many
+              (if (> how-many 0)
+                  (let ([v (first seq)]
+                        [vs (rest seq)])
+                    (if (pred v)
+                        (~drop-when #:how-many (sub1 how-many)
+                                    pred
+                                    (rest seq))
+                        (stream-cons v
+                                     (~drop-when #:how-many how-many
+                                                 pred
+                                                 (rest seq)))))
+                  seq)
+              (filter (!! pred) seq)))))
+
+(define (drop-when #:how-many [how-many #f]
+                   pred
+                   seq)
+  (let ([result (~drop-when #:how-many how-many
+                            pred
+                            seq)])
+    (if (string? seq)
+        (->string result)
+        result)))
+
+(define (remove #:key [key #f]
+                #:how-many [how-many #f]
+                elem
+                seq)
+  (if ((|| set? gset?) seq)
+      (set-remove seq elem)
+      (let ([elem (if (string? seq)
+                      (->char elem)
+                      elem)])
+        (drop-when #:how-many how-many
+                   (curry = #:key key elem)
+                   seq))))
+
+(define (add-between sep seq)
+  (if (empty? seq)
+      (stream)
+      (let ([v (first seq)]
+            [vs (rest seq)])
+        (if (empty? vs)
+            (stream v)
+            (stream-cons v
+                         (stream-cons sep
+                                      (add-between sep vs)))))))
+
+(define (wrap-each before after seq)
+  (if (empty? seq)
+      (stream)
+      (let ([v (first seq)]
+            [vs (rest seq)])
+        (let ([wrapped-v (stream before v after)])
+          (if (empty? vs)
+              wrapped-v
+              (stream-append wrapped-v
+                             (wrap-each before after vs)))))))
+
+(define (join seq [sep undefined])
+  (fold .. (if (undefined? sep)
+               seq
+               (add-between sep seq))))
+
+(define (weave to from seq)
+  (fold .. (wrap-each to from seq)))

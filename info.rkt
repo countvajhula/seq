@@ -10,6 +10,8 @@
                      "rackunit-lib"
                      "sandbox-lib"))
 (define scribblings '(("scribblings/collection-util.scrbl" ())))
+(define compile-omit-paths '("dev" "test.rkt"))
+(define test-include-paths '("test.rkt"))
 (define clean '("compiled" "doc"))
 (define pkg-desc "Useful utilities for collections")
 (define version "0.0")
