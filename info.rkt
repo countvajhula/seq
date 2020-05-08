@@ -6,9 +6,10 @@
 (define build-deps '("scribble-lib"
                      "scribble-abbrevs"
                      "racket-doc"
+                     "collections-doc"
                      "rackunit-lib"
                      "sandbox-lib"))
-(define scribblings '(("scribblings/collection-util.scrbl" (multi-page))))
+(define scribblings '(("scribblings/collection-util.scrbl" ())))
 (define clean '("compiled" "doc"))
 (define pkg-desc "Useful utilities for collections")
 (define version "0.0")

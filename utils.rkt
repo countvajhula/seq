@@ -24,12 +24,22 @@
                               (and/c (procedure-arity-includes/c (b:length seqs))
                                      (unconstrained-domain-> boolean?))])
                        #:rest [seqs (listof (sequenceof any/c))]
-                       [result boolean?])]
+                       [result any/c])]
           [for-all (->i ([pred (seqs)
                                (and/c (procedure-arity-includes/c (b:length seqs))
                                       (unconstrained-domain-> boolean?))])
                         #:rest [seqs (listof (sequenceof any/c))]
-                        [result boolean?])]
+                        [result any/c])]
+          [zip-with (->* (procedure? sequence?)
+                         #:rest (listof sequence?)
+                         sequence?)]
+          [choose (->* (procedure? sequence?)
+                        #:rest (listof sequence?)
+                        sequence?)]
+          [zip (-> sequence? sequence? ... sequence?)]
+          [unzip-with (->* (procedure? sequence?)
+                           sequence?)]
+          [unzip (-> sequence? sequence?)]
           [take-while (-> (-> any/c boolean?)
                           sequence?
                           sequence?)]
@@ -160,13 +170,6 @@
           [weave (-> any/c any/c sequence?
                      (or/c sequence?
                            procedure?))] ; procedure doesn't implement sequence
-          [zip-with (->* (procedure? sequence?)
-                         #:rest (listof sequence?)
-                         sequence?)]
-          [zip (-> sequence? sequence? ... sequence?)]
-          [unzip-with (->* (procedure? sequence?)
-                           sequence?)]
-          [unzip (-> sequence? sequence?)]
           [interleave (-> sequence? sequence? ... sequence?)]
           [: (collection? any/c . -> . collection?)]))
 
@@ -183,17 +186,30 @@
                     (drop cnt seq))])
         (stream-cons head (every cnt tail)))))
 
-(define (exists pred . seqs)
-  (if (andmap empty? seqs)
-      #f
-      (or (apply pred (map first seqs))
-          (apply exists pred (map rest seqs)))))
+(define (zip-with op . seqs)
+  (if (exists empty? seqs)
+      empty-stream
+      (let ([vs (map first seqs)])
+        (stream-cons (apply op vs)
+                     (apply zip-with op (map rest seqs))))))
 
-(define (for-all pred . seqs)
-  (if (andmap empty? seqs)
-      #t
-      (and (apply pred (map first seqs))
-           (apply for-all pred (map rest seqs)))))
+(define (zip . seqs)
+  (apply zip-with list seqs))
+
+;; zip is its own inverse
+(define unzip-with (curry apply zip-with))
+
+(define unzip (curry apply zip))
+
+(define exists ormap)
+
+(define for-all andmap)
+
+;; nah. let's do either:
+;; choose max seq ... => the max value in each list
+;; OR
+;; choose pred seq ... => choose the first value in each that satisfies the predicate
+(define choose zip-with)
 
 (define (take-while pred seq)
   (if (empty? seq)
@@ -550,18 +566,3 @@
 
 (define (weave to from seq)
   (fold .. (wrap-each to from seq)))
-
-(define (zip-with op . seqs)
-  (if (any? (map empty? seqs))
-      (stream)
-      (let ([vs (map first seqs)])
-        (stream-cons (apply op vs)
-                     (apply zip-with op (map rest seqs))))))
-
-(define (zip . seqs)
-  (apply zip-with list seqs))
-
-;; zip is its own inverse
-(define unzip-with (curry apply zip-with))
-
-(define unzip (curry apply zip))
