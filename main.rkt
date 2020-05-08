@@ -93,18 +93,18 @@
                            (#:key (or/c (-> comparable? comparable?)
                                         #f))
                            boolean?)]
-          [find (->* (sequence? sequence?)
-                     (exact-nonnegative-integer?
-                      #:key (or/c (-> comparable? comparable?)
-                                  #f))
-                     (or/c exact-nonnegative-integer?
-                           #f))]
-          [replace (->* (sequence? sequence? sequence?)
-                        (#:key (or/c (-> comparable? comparable?)
-                                     #f)
-                         #:how-many (and/c integer?
-                                           (>=/c 0)))
-                        sequence?)]
+          [find-infix (->* (sequence? sequence?)
+                           (exact-nonnegative-integer?
+                            #:key (or/c (-> comparable? comparable?)
+                                        #f))
+                           (or/c exact-nonnegative-integer?
+                                 #f))]
+          [replace-infix (->* (sequence? sequence? sequence?)
+                              (#:key (or/c (-> comparable? comparable?)
+                                           #f)
+                               #:how-many (and/c integer?
+                                                 (>=/c 0)))
+                              sequence?)]
           [infix-of? (->* (sequence? sequence?)
                           (#:key (or/c (-> comparable? comparable?)
                                        #f))
@@ -339,7 +339,7 @@
 
 (define ends-with? suffix-of?)
 
-(define (find #:key [key #f] subseq seq [idx 0])
+(define (find-infix #:key [key #f] subseq seq [idx 0])
   (if (empty? subseq)
       0
       (if (empty? seq)
@@ -350,57 +350,57 @@
                 (let ([remaining-seq (rest seq)]
                       [remaining-subseq (rest subseq)])
                   (if (prefix-of? #:key key
-                                    remaining-subseq
-                                    remaining-seq)
+                                  remaining-subseq
+                                  remaining-seq)
                       idx
-                      (find #:key key
+                      (find-infix #:key key
+                                  subseq
+                                  (rest seq)
+                                  (add1 idx))))
+                (find-infix #:key key
                             subseq
                             (rest seq)
-                            (add1 idx))))
-                (find #:key key
-                      subseq
-                      (rest seq)
-                      (add1 idx)))))))
+                            (add1 idx)))))))
 
-(define (~replace #:key [key #f]
-                  #:how-many [how-many #f]
-                  orig-subseq
-                  new-subseq
-                  seq)
+(define (~replace-infix #:key [key #f]
+                        #:how-many [how-many #f]
+                        orig-subseq
+                        new-subseq
+                        seq)
   (if (or (not how-many)
           (> how-many 0))
-      (let ([idx (find #:key key
-                       orig-subseq
-                       seq)])
+      (let ([idx (find-infix #:key key
+                             orig-subseq
+                             seq)])
         (if idx
             (.. (take idx seq)
                 new-subseq
-                (~replace #:key key
-                          orig-subseq
-                          new-subseq
-                          (drop (+ idx
-                                   (length orig-subseq))
-                                seq)
-                          #:how-many (and how-many (sub1 how-many))))
+                (~replace-infix #:key key
+                                orig-subseq
+                                new-subseq
+                                (drop (+ idx
+                                         (length orig-subseq))
+                                      seq)
+                                #:how-many (and how-many (sub1 how-many))))
             seq))
       seq))
 
-(define (replace #:key [key #f]
-                 #:how-many [how-many #f]
-                 orig-subseq
-                 new-subseq
-                 seq)
-  (let ([result (~replace #:key key
-                          #:how-many how-many
-                          orig-subseq
-                          new-subseq
-                          seq)])
+(define (replace-infix #:key [key #f]
+                       #:how-many [how-many #f]
+                       orig-subseq
+                       new-subseq
+                       seq)
+  (let ([result (~replace-infix #:key key
+                                #:how-many how-many
+                                orig-subseq
+                                new-subseq
+                                seq)])
     (if (string? seq)
         (->string result)
         result)))
 
 (define (infix-of? #:key [key #f] subseq seq)
-  (->boolean (find #:key key subseq seq)))
+  (->boolean (find-infix #:key key subseq seq)))
 
 (define contains? infix-of?)
 
