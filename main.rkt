@@ -40,6 +40,15 @@
           [unzip-with (->* (procedure? sequence?)
                            sequence?)]
           [unzip (-> sequence? sequence?)]
+          [find (->i ([pred (seqs)
+                            (and/c (procedure-arity-includes/c (b:length seqs))
+                                   (unconstrained-domain-> boolean?))])
+                     #:rest [seqs (listof (sequenceof any/c))]
+                     [result any/c])]
+          [take-when ((any/c . -> . any/c)
+                      sequence?
+                      . -> .
+                      sequence?)]
           [take-while (-> (-> any/c boolean?)
                           sequence?
                           sequence?)]
@@ -175,6 +184,8 @@
 
 (define : conj)
 
+(define take-when filter)
+
 (define (every cnt seq)
   (if (empty? seq)
       empty-stream
@@ -210,6 +221,24 @@
 ;; OR
 ;; choose pred seq ... => choose the first value in each that satisfies the predicate
 (define choose zip-with)
+
+(define (singleton? seq)
+  ;; cheap check to see if a list is of length 1,
+  ;; instead of traversing to compute the length
+  (if (empty? seq)
+      #f
+      (with-handlers ([exn:fail? (λ (exn) #t)])
+        (and (second seq) #f))))
+
+(define (find pred . seqs)
+  (let ([vs (take-when (curry apply pred)
+                       (apply zip seqs))])
+    (if (empty? vs)
+        #f
+        (let ([result (first vs)])
+          (if (singleton? result)
+              (join result)
+              result)))))
 
 (define (take-while pred seq)
   (if (empty? seq)
@@ -512,7 +541,7 @@
                                                  pred
                                                  (rest seq)))))
                   seq)
-              (filter (!! pred) seq)))))
+              (take-when (!! pred) seq)))))
 
 (define (drop-when #:how-many [how-many #f]
                    pred
