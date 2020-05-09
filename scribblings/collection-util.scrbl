@@ -3,23 +3,22 @@
          scribble-abbrevs/manual
          scribble/example
          racket/sandbox
-         @for-label[(except-in racket/base
-                               length
-                               reverse
-                               apply
-                               remove
-                               map
-                               filter
-                               append
-                               sequence?
-                               for-each
-                               andmap
-                               ormap)
-                    collection-util
-                    (except-in data/collection
+         @for-label[(except-in racket
+                               split-at
+                               add-between
                                index-of
-                               foldl
-                               foldl/steps)]]
+                               sequence?
+                               remove)
+                    (prefix-in r: relation)
+                    (only-in relation ->list)
+                    collection-util
+                    (prefix-in d: data/collection)
+                    (only-in data/collection
+                             sequence?
+                             sequenceof
+                             repeat
+                             subsequence
+                             naturals)]]
 
 @(define eval-for-docs
   (parameterize ([sandbox-output 'string]
@@ -51,7 +50,7 @@ Some of these interfaces are either implementations of or are inspired by the Sc
 
 @section{Naming Conventions}
 
-Many sequence utilities have a central verb - for instance, @racket[take] or @racket[split]. In all such cases, where applicable, suffixes have the following meanings:
+Many sequence utilities have a central verb - for instance, @racketlink[d:take]{take} or @racket[split]. In all such cases, where applicable, suffixes have the following meanings:
 
 @itemize[
   @item{@bold{Undecorated verbs} usually check for equality. E.g. @racket[trim] removes the specified elements at the head and tail of a sequence (if present).}
@@ -88,7 +87,7 @@ Many sequence utilities have a central verb - for instance, @racket[take] or @ra
                  ...)
          boolean?]{
 
- Similar to @hyperlink["https://docs.racket-lang.org/r6rs/r6rs-lib-std/r6rs-lib-Z-H-4.html?q=for-all#node_idx_206"]{exists} but generalized to all sequences rather than only lists, this checks if @emph{any} of the sequence values fulfill a provided predicate. @racket[pred] must accept a number of arguments equal to the number of provided sequences @racket[seq]. This is an alias for @racket[ormap].
+ Similar to @hyperlink["https://docs.racket-lang.org/r6rs/r6rs-lib-std/r6rs-lib-Z-H-4.html?q=for-all#node_idx_206"]{exists} but generalized to all sequences rather than only lists, this checks if @emph{any} of the sequence values fulfill a provided predicate. @racket[pred] must accept a number of arguments equal to the number of provided sequences @racket[seq]. This is an alias for @racketlink[d:ormap]{ormap}.
 
 @examples[
     #:eval eval-for-docs
@@ -103,7 +102,7 @@ Many sequence utilities have a central verb - for instance, @racket[take] or @ra
                   ...)
          boolean?]{
 
- Similar to @hyperlink["https://docs.racket-lang.org/r6rs/r6rs-lib-std/r6rs-lib-Z-H-4.html?q=for-all#node_idx_204"]{for-all} but generalized to all sequences rather than only lists, this checks if @emph{all} of the sequence values fulfill a provided predicate. @racket[pred] must accept a number of arguments equal to the number of provided sequences @racket[seq]. This is an alias for @racket[andmap].
+ Similar to @hyperlink["https://docs.racket-lang.org/r6rs/r6rs-lib-std/r6rs-lib-Z-H-4.html?q=for-all#node_idx_204"]{for-all} but generalized to all sequences rather than only lists, this checks if @emph{all} of the sequence values fulfill a provided predicate. @racket[pred] must accept a number of arguments equal to the number of provided sequences @racket[seq]. This is an alias for @racketlink[d:andmap]{andmap}.
 
 @examples[
     #:eval eval-for-docs
@@ -121,23 +120,34 @@ Many sequence utilities have a central verb - for instance, @racket[take] or @ra
 @defproc[(zip [seq sequence?]
               ...)
          (sequenceof list?)]
-@defproc[(choose [choice procedure?]
-                 [seq sequence?]
-                 ...)
-         any/c]
 )]{
 
- Merges the input sequences using the provided operation @racket[op]. Equivalent to Haskell's @hyperlink["http://zvon.org/other/haskell/Outputprelude/zipWith_f.html"]{zipWith}. @racket[zip] is equivalent to @racket[zip-with list]. Finally, @racket[choose] is simply an alias for @racket[zip-with] which may be more clear in some cases.
+ @racket[zip-with] merges the input sequences using the provided operation @racket[op]. Equivalent to Haskell's @hyperlink["http://zvon.org/other/haskell/Outputprelude/zipWith_f.html"]{zipWith}. @racket[zip] is equivalent to @racket[zip-with list].
 
 @examples[
     #:eval eval-for-docs
-    (zip-with + (list 1 2 3) (list 3 2 1))
+    (->list (zip (list 'a 'b 'c) (list 1 2 3 4 5)))
+    (->list (zip-with + (list 1 2 3) (list 3 2 1)))
     (->list (zip-with expt (repeat 5) (range 10)))
     (->list (zip-with (lambda (x y)
                         (+ (* 2 x)
                            y))
                       (range 1 5)
                       (range 5 9)))
-    (->list (choose max (list 10 20 30) (list 15 15 15)))
+  ]
+}
+
+@defproc[(choose [pred procedure?]
+                 [seq sequence?]
+                 ...)
+         sequence?]{
+
+ Lazily choose a single item from each of the input sequences -- the first one that fulfills the choice predicate @racket[pred]. The result is a sequence containing as many values as the number of input sequences. If no item in a particular sequence fulfills the choice predicate, then the corresponding element in the resulting sequence is @racket[#f].
+
+@examples[
+    #:eval eval-for-docs
+    (->list (choose number? (list 10 "left shoe" 30) (list "right shoe" 15 15) (list "sock" -55 7)))
+    (->list (choose positive? (list -1 -2 1 2) (list -5 3 -2) (list 5 2 -1)))
+    (->list (choose (curry prefix-of? "ap") (list "banana" "apple" "apricot") (list "dog" "cat" "ape")))
   ]
 }

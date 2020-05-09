@@ -33,9 +33,10 @@
           [zip-with (->* (procedure? sequence?)
                          #:rest (listof sequence?)
                          sequence?)]
-          [choose (->* (procedure? sequence?)
-                        #:rest (listof sequence?)
-                        sequence?)]
+          [choose (-> (-> any/c boolean?)
+                      sequence?
+                      ...
+                      sequence?)]
           [zip (-> sequence? sequence? ... sequence?)]
           [unzip-with (->* (procedure? sequence?)
                            sequence?)]
@@ -216,12 +217,6 @@
 
 (define for-all andmap)
 
-;; nah. let's do either:
-;; choose max seq ... => the max value in each list
-;; OR
-;; choose pred seq ... => choose the first value in each that satisfies the predicate
-(define choose zip-with)
-
 (define (singleton? seq)
   ;; cheap check to see if a list is of length 1,
   ;; instead of traversing to compute the length
@@ -239,6 +234,9 @@
           (if (singleton? result)
               (join result)
               result)))))
+
+(define (choose pred . seqs)
+  (map (curry find pred) seqs))
 
 (define (take-while pred seq)
   (if (empty? seq)
