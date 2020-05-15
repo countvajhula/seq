@@ -77,6 +77,9 @@
           [split-where (-> (-> any/c boolean?)
                            sequence?
                            (values sequence? sequence?))]
+          [split-by (-> exact-positive-integer?
+                        sequence?
+                        (sequenceof sequence?))]
           [deduplicate (->* (sequence?)
                             (#:key (or/c (-> comparable? comparable?)
                                          #f))
@@ -307,6 +310,9 @@
     (if (string? seq)
         (values (->string left) (->string right))
         (values left right))))
+
+(define (split-by n seq)
+  (every n (slide n seq)))
 
 (define (deduplicate seq #:key [key #f])
   (->list
