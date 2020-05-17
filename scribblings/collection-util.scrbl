@@ -42,15 +42,19 @@
 
 Standard and general-purpose collection utilities.
 
-These utilities build on top of the foundation for generic collections and provide a broad range of general-purpose utilities that work on all sequences.
+These utilities build on top of the @other-doc['(lib "scribblings/data/collection/collections.scrbl")] foundation to provide a broad range of general-purpose utilities that work on all sequences.
 
-Some of these interfaces are either implementations of or are inspired by the Scheme specifications for list utilities, while others are similar in spirit. Many operations we may desire to perform on sequences stem from simple intuitions, so an attempt has been made to adhere to naming conventions that might map to these intuitions in a minimal way.
+Some of these interfaces are either implementations of or are inspired by the Scheme @hyperlink["https://docs.racket-lang.org/r6rs/r6rs-lib-std/r6rs-lib-Z-H-4.html"]{specifications} for @hyperlink["https://docs.racket-lang.org/srfi/srfi-std/srfi-1.html"]{list utilities}, while others are similar in spirit. Many operations we may desire to perform on sequences stem from simple intuitions, so an attempt has been made to adhere to naming conventions that might map to these intuitions in a minimal way.
 
 @table-of-contents[]
 
 @section{Naming Conventions}
 
-Many sequence utilities have a central verb - for instance, @racketlink[d:take]{take} or @racket[split]. In all such cases, where applicable, suffixes have the following meanings:
+While some of the provided sequence utilities have a standard name familiar from string or list contexts, others take their name from the Scheme specification or are borrowed from other functional languages such as Haskell. When the utilities don't take their name from one of these sources, they instead have a "canonical" name with the following format:
+
+@codeblock{(verb-adverb args ... noun)}
+
+Whenever a canonical name is used for a well-known interface, the more common name is also usually provided as an alias. Examples of verbs are @racketlink[d:take]{take} or @racket[split]. In canonical names, where applicable, adverb suffixes have the following meanings:
 
 @itemize[
   @item{@bold{Undecorated verbs} usually check for equality. E.g. @racket[trim] removes the specified elements at the head and tail of a sequence (if present).}
@@ -58,9 +62,10 @@ Many sequence utilities have a central verb - for instance, @racketlink[d:take]{
   @item{@bold{-when} indicates a sequence-spanning condition -- @racket[take-when] takes @emph{all} elements in the input sequence for which a predicate holds (more commonly known as @racket[filter]).}
   @item{@bold{-while} indicates a running condition -- e.g. @racket[take-while] takes @emph{as long as} a predicate holds, and then stops at the point where it fails.}
   @item{@bold{-until} indicates a running condition, the negation of "-while" -- e.g. @racket[take-until] takes as long as a predicate @emph{does not hold}, and then stops at the point where it returns true.}
+  @item{@bold{-by} indicates operations that deal in terms of lengths rather than the actual contents of the sequence. For instance, @racket[trim-by] removes a certain @emph{number} of elements at the head and tail of the sequence.}
+  @item{@bold{-with} indicates a function to be used as part of the operation. For instance, @racket[zip-with] "zips" sequences together by using a provided function to combine partnered elements.}
   @item{@bold{-if} indicates a sequence-spanning condition. @racket[trim-if] removes elements at the head and tail of a sequence @emph{if} some condition is met.}
   @item{@bold{-unless} is a sequence-spanning condition, the negation of "-if". E.g. @racket[trim-unless] removes elements at the head and tail of a sequence @emph{unless} some condition is met. Note that in general, "-unless" is avoided in favor of simply using the opposite verbs. For instance, in lieu of @racket[take-unless], there's @racket[drop-when].}
-  @item{@bold{-by} indicates operations that deal in terms of lengths rather than the actual contents of the sequence. For instance, @racket[trim-by] removes a certain @emph{number} of elements at the head and tail of the sequence.}
 ]
 
 @section{APIs}
@@ -113,16 +118,25 @@ Many sequence utilities have a central verb - for instance, @racketlink[d:take]{
 }
 
 @deftogether[(
+@defproc[(zip [seq sequence?]
+              ...)
+         (sequenceof list?)]
 @defproc[(zip-with [op procedure?]
                    [seq sequence?]
                    ...)
          any/c]
-@defproc[(zip [seq sequence?]
-              ...)
+@defproc[(unzip [seq sequence?])
          (sequenceof list?)]
+@defproc[(unzip-with [op procedure?]
+                     [seq sequence?])
+         any/c]
 )]{
 
- @racket[zip-with] merges the input sequences using the provided operation @racket[op]. Equivalent to Haskell's @hyperlink["http://zvon.org/other/haskell/Outputprelude/zipWith_f.html"]{zipWith}. @racket[zip] is equivalent to @racket[zip-with list].
+ @racket[zip-with] merges the input sequences using the provided operation @racket[op]. Equivalent to Haskell's @hyperlink["http://zvon.org/other/haskell/Outputprelude/zipWith_f.html"]{zipWith}.
+
+ @racket[zip] is equivalent to @racket[zip-with list].
+
+ @racket[zip] is its own inverse, so applying it twice is essentially equivalent to doing nothing. Still, @racket[unzip-with] and @racket[unzip] are provided with a slightly different signature -- accepting a single sequence rather than an arbitrary number of sequences, making it convenient to apply to a result already derived by using @racket[zip]. @racket[unzip] is equivalent to @racket[(curry apply zip)].
 
 @examples[
     #:eval eval-for-docs
@@ -134,6 +148,22 @@ Many sequence utilities have a central verb - for instance, @racketlink[d:take]{
                            y))
                       (range 1 5)
                       (range 5 9)))
+    (->list (unzip (zip (list 'a 'b 'c) (list 1 2 3))))
+  ]
+}
+
+@defproc[(find [pred procedure?]
+               [seq sequence?]
+               ...)
+         sequence?]{
+
+ Find the first element in @racket[seq] that fulfills @racket[pred]. If no item fulfills the predicate, then the result is @racket[#f].
+
+@examples[
+    #:eval eval-for-docs
+    (find number? (list "cherry" 'banana 10 30))
+    (find positive? (list -1 -2 -1 2 3))
+    (find (curry prefix-of? "ap") (list "banana" "apple" "apricot"))
   ]
 }
 
@@ -149,5 +179,74 @@ Many sequence utilities have a central verb - for instance, @racketlink[d:take]{
     (->list (choose number? (list 10 "left shoe" 30) (list "right shoe" 15 15) (list "sock" -55 7)))
     (->list (choose positive? (list -1 -2 1 2) (list -5 3 -2) (list 5 2 -1)))
     (->list (choose (curry prefix-of? "ap") (list "banana" "apple" "apricot") (list "dog" "cat" "ape")))
+  ]
+}
+
+@defproc[(take-when [pred procedure?]
+                    [seq sequence?])
+         sequence?]{
+
+ Select all elements from @racket[seq] that satisfy @racket[pred]. An alias for @racket[filter].
+
+@examples[
+    #:eval eval-for-docs
+    (->list (take-when positive? (list 1 -4 -1 3)))
+    (->list (take-when (curry prefix-of? "ap") (list "banana" "apple" "apricot" "cherry")))
+  ]
+}
+
+@deftogether[(
+@defproc[(take-while [pred procedure?]
+                     [seq sequence?])
+         sequence?]
+@defproc[(drop-while [pred procedure?]
+                     [seq sequence?])
+         sequence?]
+)]{
+
+ Select (take) or exclude (drop) elements from @racket[seq] as long as they satisfy @racket[pred], stopping at the first one that fails to.
+
+@examples[
+    #:eval eval-for-docs
+    (->list (take-while positive? (list 1 2 -4 -12 3)))
+    (->list (drop-while positive? (list 1 2 -4 -12 3)))
+    (->list (take-while positive? (list -1 3 2 4 -12)))
+    (->list (drop-while positive? (list -1 3 2 4 -12)))
+    (->list (take-while (curry prefix-of? "ap") (list "apple" "banana" "apricot" "cherry")))
+    (->list (drop-while (curry prefix-of? "ap") (list "apple" "banana" "apricot" "cherry")))
+  ]
+}
+
+@deftogether[(
+@defproc[(take-until [pred procedure?]
+                     [seq sequence?])
+         sequence?]
+@defproc[(drop-until [pred procedure?]
+                     [seq sequence?])
+         sequence?]
+)]{
+ Select (take) or exclude (drop) elements from @racket[seq] as long as they @emph{do not} satisfy @racket[pred], stopping at the first one that succeeds.
+
+@examples[
+    #:eval eval-for-docs
+    (->list (take-until positive? (list -1 -2 3 2 -4)))
+    (->list (drop-until positive? (list -1 -2 3 2 -4)))
+    (->list (take-until positive? (list 1 3 2 -4)))
+    (->list (drop-until positive? (list 1 3 2 -4)))
+    (->list (take-until (curry prefix-of? "ap") (list "banana" "apple" "apricot" "cherry")))
+    (->list (drop-until (curry prefix-of? "ap") (list "banana" "apple" "apricot" "cherry")))
+  ]
+}
+
+@defproc[(split-when [pred procedure?]
+                     [seq sequence?])
+         sequence?]{
+
+ Cut a subsequence from @racket[seq] at each point where @racket[pred] is satisfied.
+
+@examples[
+    #:eval eval-for-docs
+    (->list (split-when (curry = #\space) "hello there old friend"))
+    (->list (split-when positive? (list 1 -4 -1 3)))
   ]
 }

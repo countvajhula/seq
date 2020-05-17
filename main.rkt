@@ -33,10 +33,6 @@
           [zip-with (->* (procedure? sequence?)
                          #:rest (listof sequence?)
                          sequence?)]
-          [choose (-> (-> any/c boolean?)
-                      sequence?
-                      ...
-                      sequence?)]
           [zip (-> sequence? sequence? ... sequence?)]
           [unzip-with (->* (procedure? sequence?)
                            sequence?)]
@@ -46,6 +42,10 @@
                                    (unconstrained-domain-> boolean?))])
                      #:rest [seqs (listof (sequenceof any/c))]
                      [result any/c])]
+          [choose (-> (-> any/c boolean?)
+                      sequence?
+                      ...
+                      sequence?)]
           [take-when ((any/c . -> . any/c)
                       sequence?
                       . -> .
@@ -53,10 +53,10 @@
           [take-while (-> (-> any/c boolean?)
                           sequence?
                           sequence?)]
-          [take-until (-> (-> any/c boolean?)
+          [drop-while (-> (-> any/c boolean?)
                           sequence?
                           sequence?)]
-          [drop-while (-> (-> any/c boolean?)
+          [take-until (-> (-> any/c boolean?)
                           sequence?
                           sequence?)]
           [drop-until (-> (-> any/c boolean?)
@@ -156,6 +156,12 @@
                          (or/c (and/c integer?
                                       (>=/c 0))
                                #f))]
+          [index (->* (any/c sequence?)
+                      (#:key (or/c (-> comparable? comparable?)
+                                   #f))
+                      (or/c (and/c integer?
+                                   (>=/c 0))
+                            #f))]
           [remove (->* (any/c sequence?)
                        (#:key (or/c (-> comparable? comparable?)
                                     #f)
@@ -522,6 +528,8 @@
     (d:index-of seq
                 elem
                 (curry = #:key key))))
+
+(define index index-of)
 
 (define (~drop-when #:how-many [how-many #f]
                     pred
