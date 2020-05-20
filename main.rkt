@@ -248,22 +248,20 @@
   (map (curry find pred) seqs))
 
 (define (take-while pred seq)
-  (if (empty? seq)
-      empty-stream
-      (let ([v (first seq)]
-            [vs (rest seq)])
-        (if (pred v)
-            (stream-cons v (take-while pred vs))
-            null))))
+  (match seq
+    [(sequence) empty-stream]
+    [(sequence v vs ...)
+     (if (pred v)
+         (stream-cons v (take-while pred vs))
+         empty-stream)]))
 
 (define (drop-while pred seq)
-  (if (empty? seq)
-      empty-stream
-      (let ([v (first seq)]
-            [vs (rest seq)])
-        (if (pred v)
-            (drop-while pred vs)
-            seq))))
+  (match seq
+    [(sequence) empty-stream]
+    [(sequence v vs ...)
+     (if (pred v)
+         (drop-while pred vs)
+         seq)]))
 
 (define (take-until pred seq)
   (take-while (!! pred) seq))
@@ -275,11 +273,12 @@
   (if (empty? seq)
       (stream ID)
       (let-values ([(chunk remaining) (split-where pred seq)])
-        (if (empty? remaining)
-            (stream-cons chunk empty-stream)
-            (stream-cons chunk
-                         (~split-when pred
-                                      (rest remaining)))))))
+        (match remaining
+          [(sequence) (stream-cons chunk empty-stream)]
+          [(sequence _ vs ...)
+           (stream-cons chunk
+                        (~split-when pred
+                                     vs))]))))
 
 (define (split-when #:trim? [trim? #t]
                     pred
@@ -330,12 +329,12 @@
   (if (empty? seqs)
       empty-stream
       (let loop ([remaining-seqs seqs])
-        (if (empty? remaining-seqs)
-            (apply interleave (map rest seqs))
-            (if (empty? (first remaining-seqs))
-                empty-stream
-                (stream-cons (first (first remaining-seqs))
-                             (loop (rest remaining-seqs))))))))
+        (match remaining-seqs
+          [(sequence) (apply interleave (map rest seqs))]
+          [(sequence (sequence) _ ...) empty-stream]
+          [(sequence seq seqs ...)
+           (stream-cons (first seq)
+                        (loop seqs))]))))
 
 (define (cascade step-size seq)
   (if (empty? seq)
@@ -358,71 +357,63 @@
               (stream-cons window (loop (rest seq))))))))
 
 (define (prefix-of? #:key [key #f] prefix seq)
-  (if (empty? prefix)
-      #t
-      (if (empty? seq)
-          #f
-          (and (= #:key key
-                  (first seq)
-                  (first prefix))
-               (prefix-of? #:key key
-                             (rest prefix)
-                             (rest seq))))))
+  (cond [(empty? prefix) #t]
+        [(empty? seq) #f]
+        [else (and (= #:key key
+                      (first seq)
+                      (first prefix))
+                   (prefix-of? #:key key
+                               (rest prefix)
+                               (rest seq)))]))
 
 (define starts-with? prefix-of?)
 
 (define (suffix-of? #:key [key #f] suffix seq)
   (prefix-of? #:key key
-                (reverse suffix)
-                (reverse seq)))
+              (reverse suffix)
+              (reverse seq)))
 
 (define ends-with? suffix-of?)
 
 (define (find-infix #:key [key #f] subseq seq [idx 0])
-  (if (empty? subseq)
-      0
-      (if (empty? seq)
-          #f
-          (let ([v (first seq)]
-                [w (first subseq)])
-            (if (= #:key key v w)
-                (let ([remaining-seq (rest seq)]
-                      [remaining-subseq (rest subseq)])
-                  (if (prefix-of? #:key key
-                                  remaining-subseq
-                                  remaining-seq)
-                      idx
-                      (find-infix #:key key
-                                  subseq
-                                  (rest seq)
-                                  (add1 idx))))
-                (find-infix #:key key
-                            subseq
-                            (rest seq)
-                            (add1 idx)))))))
+  (match* (seq subseq)
+    [(_ (sequence)) 0]
+    [((sequence) _) #f]
+    [((sequence v remaining-seq ...) (sequence w remaining-subseq ...))
+     (if (and (= #:key key v w)
+              (prefix-of? #:key key
+                          remaining-subseq
+                          remaining-seq))
+         idx
+         (find-infix #:key key
+                     subseq
+                     remaining-seq
+                     (add1 idx)))]))
+
+(define (~remain? how-many)
+  (or (not how-many)
+      (> how-many 0)))
 
 (define (~replace-infix #:key [key #f]
                         #:how-many [how-many #f]
                         orig-subseq
                         new-subseq
                         seq)
-  (if (or (not how-many)
-          (> how-many 0))
-      (let ([idx (find-infix #:key key
-                             orig-subseq
-                             seq)])
-        (if idx
-            (.. (take idx seq)
-                new-subseq
-                (~replace-infix #:key key
-                                orig-subseq
-                                new-subseq
-                                (drop (+ idx
-                                         (length orig-subseq))
-                                      seq)
-                                #:how-many (and how-many (sub1 how-many))))
-            seq))
-      seq))
+  (let ([found-index (find-infix #:key key
+                                 orig-subseq
+                                 seq)])
+    (if (and (~remain? how-many)
+             found-index)
+        (.. (take found-index seq)
+            new-subseq
+            (~replace-infix #:key key
+                            orig-subseq
+                            new-subseq
+                            (drop (+ found-index
+                                     (length orig-subseq))
+                                  seq)
+                            #:how-many (and how-many (sub1 how-many))))
+        seq)))
 
 (define (replace-infix #:key [key #f]
                        #:how-many [how-many #f]
@@ -446,17 +437,16 @@
 (define (trim-left-if pred
                       seq
                       #:how-many [how-many #f])
-  (if (empty? seq)
-      seq
-      (let ([v (first seq)])
-        (if (or (not how-many)
-                (> how-many 0))
-            (if (pred v)
-                (trim-left-if pred
-                              (rest seq)
-                              #:how-many (and how-many (sub1 how-many)))
-                seq)
-            seq))))
+  (match seq
+    [(sequence) seq]
+    [(sequence v vs ...)
+     (if (and (~remain? how-many)
+              (pred v))
+         (trim-left-if pred
+                       vs
+                       #:how-many (and how-many
+                                       (sub1 how-many)))
+         seq)]))
 
 (define (trim-right-if pred
                        seq
@@ -538,22 +528,21 @@
       (raise-argument-error 'drop-when
                             "sequence? that is not a pure set"
                             seq)
-      (if (empty? seq)
-          seq
-          (if how-many
-              (if (> how-many 0)
-                  (let ([v (first seq)]
-                        [vs (rest seq)])
-                    (if (pred v)
-                        (~drop-when #:how-many (sub1 how-many)
-                                    pred
-                                    (rest seq))
-                        (stream-cons v
-                                     (~drop-when #:how-many how-many
-                                                 pred
-                                                 (rest seq)))))
-                  seq)
-              (take-when (!! pred) seq)))))
+      (match seq
+        [(sequence) seq]
+        [(sequence v vs ...)
+         (if how-many
+             (if (> how-many 0)
+                 (if (pred v)
+                     (~drop-when #:how-many (sub1 how-many)
+                                 pred
+                                 vs)
+                     (stream-cons v
+                                  (~drop-when #:how-many how-many
+                                              pred
+                                              vs)))
+                 seq)
+             (take-when (!! pred) seq))])))
 
 (define (drop-when #:how-many [how-many #f]
                    pred
@@ -579,26 +568,22 @@
                    seq))))
 
 (define (add-between sep seq)
-  (if (empty? seq)
-      empty-stream
-      (let ([v (first seq)]
-            [vs (rest seq)])
-        (if (empty? vs)
-            (stream v)
-            (stream-cons v
-                         (stream-cons sep
-                                      (add-between sep vs)))))))
+  (match seq
+    [(or (sequence) (sequence _)) seq]
+    [(sequence v vs ...)
+     (stream-cons v
+                  (stream-cons sep
+                               (add-between sep vs)))]))
 
 (define (wrap-each before after seq)
-  (if (empty? seq)
-      empty-stream
-      (let ([v (first seq)]
-            [vs (rest seq)])
-        (let ([wrapped-v (stream before v after)])
-          (if (empty? vs)
-              wrapped-v
-              (stream-append wrapped-v
-                             (wrap-each before after vs)))))))
+  (match seq
+    [(sequence) seq]
+    [(sequence v vs ...)
+     (let ([wrapped-v (stream before v after)])
+       (if (empty? vs)
+           wrapped-v
+           (stream-append wrapped-v
+                          (wrap-each before after vs))))]))
 
 (define (join seq [sep undefined])
   (fold .. (if (undefined? sep)
