@@ -2,6 +2,7 @@
 @require[scribble/manual
          scribble-abbrevs/manual
          scribble/example
+         scribble/bnf
          racket/sandbox
          @for-label[(except-in racket
                                split-at
@@ -50,15 +51,72 @@ Some of these interfaces are either implementations of or are inspired by the Sc
 
 @section{Naming Conventions}
 
-While some of the provided sequence utilities have a standard name familiar from string or list contexts, others take their name from the Scheme specification or are borrowed from other functional languages such as Haskell. When the utilities don't take their name from one of these sources, they instead have a "canonical" name with the following format:
+While some of the provided sequence utilities have a standard name familiar from string or list contexts, others take their name from the Scheme specification or are borrowed from other functional languages such as Haskell. When the utilities don't take their name from one of these sources, they instead have a "canonical" name that is approximately expressed as:
 
-@codeblock{(verb-adverb args ... noun)}
+@(let ([open @litchar{(}]
+       [close @litchar{)}]
+       [hyphen @litchar{-}])
+     @BNF[(list @nonterm{expr}
+                @nonterm{verb phrase}
+                @nonterm{special phrase})
+          (list @nonterm{verb phrase}
+                @BNF-seq[open @nonterm{verb}
+                              @kleenestar[@nonterm{args}]
+                              @nonterm{noun}
+                         close]
+                @BNF-seq[open @nonterm{verb} hyphen @nonterm{modifier}
+                              @kleenestar[@nonterm{args}]
+                              @nonterm{noun}
+                         close])
+          (list @nonterm{verb}
+                @litchar{take}
+                @litchar{drop}
+                @litchar{split}
+                @litchar{trim}
+                @litchar{find}
+                @litchar{remove}
+                @litchar{choose}
+                @litchar{index}
+                @litchar{zip})
+          (list @nonterm{modifier}
+                @litchar{while}
+                @litchar{until}
+                @litchar{when}
+                @litchar{if}
+                @litchar{unless}
+                @litchar{at}
+                @litchar{where}
+                @litchar{with}
+                @litchar{by})
+          (list @nonterm{special phrase}
+                @BNF-seq[open @nonterm{special operation}
+                              @kleenestar[@nonterm{args}]
+                              @nonterm{noun}
+                         close])
+          (list @nonterm{special operation}
+                @litchar{every}
+                @litchar{exists}
+                @litchar{for-all}
+                @litchar{join}
+                @litchar{add-between}
+                @litchar{wrap-each}
+                @litchar{slide}
+                @litchar{interleave}
+                @litchar{choose}
+                @litchar{deduplicate}
+                @litchar{cascade}
+                @litchar{weave})
+          (list @nonterm{args}
+                @elem{any parameters for the operation to be performed})
+          (list @nonterm{noun}
+                @elem{@litchar{sequence?}})])
 
-Whenever a canonical name is used for a well-known interface, the more common name is also usually provided as an alias. Examples of verbs are @racketlink[d:take]{take} or @racket[split]. In canonical names, where applicable, adverb suffixes have the following meanings:
+Whenever a canonical name is used for a well-known interface, the more common name is also usually provided as an alias. In canonical names, where applicable, suffixes and other terms have the following meanings:
 
 @itemize[
   @item{@bold{Undecorated verbs} usually check for equality. E.g. @racket[trim] removes the specified elements at the head and tail of a sequence (if present).}
-  @item{@bold{-where} indicates a specific place in the sequence, for instance @racket[split-where] splits the input sequence at a particular (the first) point where a given predicate evaluates to true.}
+  @item{@bold{-where} indicates a specific place with respect to the contents of the sequence, for instance @racket[split-where] splits the input sequence at a particular (the first) point where a given predicate evaluates to true.}
+  @item{@bold{-at} indicates a specific place in the sequence @emph{by position}, for instance @racket[split-at] splits the input sequence at the indicated index.}
   @item{@bold{-when} indicates a sequence-spanning condition -- @racket[take-when] takes @emph{all} elements in the input sequence for which a predicate holds (more commonly known as @racket[filter]).}
   @item{@bold{-while} indicates a running condition -- e.g. @racket[take-while] takes @emph{as long as} a predicate holds, and then stops at the point where it fails.}
   @item{@bold{-until} indicates a running condition, the negation of "-while" -- e.g. @racket[take-until] takes as long as a predicate @emph{does not hold}, and then stops at the point where it returns true.}

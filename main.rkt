@@ -249,7 +249,7 @@
 
 (define (take-while pred seq)
   (if (empty? seq)
-      (stream)
+      empty-stream
       (let ([v (first seq)]
             [vs (rest seq)])
         (if (pred v)
@@ -258,7 +258,7 @@
 
 (define (drop-while pred seq)
   (if (empty? seq)
-      (stream)
+      empty-stream
       (let ([v (first seq)]
             [vs (rest seq)])
         (if (pred v)
@@ -328,33 +328,33 @@
 
 (define (interleave . seqs)
   (if (empty? seqs)
-      (stream)
+      empty-stream
       (let loop ([remaining-seqs seqs])
         (if (empty? remaining-seqs)
             (apply interleave (map rest seqs))
             (if (empty? (first remaining-seqs))
-                (stream)
+                empty-stream
                 (stream-cons (first (first remaining-seqs))
                              (loop (rest remaining-seqs))))))))
 
 (define (cascade step-size seq)
   (if (empty? seq)
-      (stream)
+      empty-stream
       (stream-cons seq
                    (with-handlers ([exn:fail:contract? (λ (exn)
-                                                         (stream))])
+                                                         empty-stream)])
                      (cascade step-size
                               (drop step-size seq))))))
 
 (define (slide window-size seq)
   (let loop ([seq (cascade 1 seq)])
     (if (empty? seq)
-        (stream)
+        empty-stream
         (let ([window (with-handlers ([exn:fail:contract? (λ (exn)
-                                                            (stream))])
+                                                            empty-stream)])
                         (take window-size (first seq)))])
           (if (empty? window)
-              (stream)
+              empty-stream
               (stream-cons window (loop (rest seq))))))))
 
 (define (prefix-of? #:key [key #f] prefix seq)
@@ -580,7 +580,7 @@
 
 (define (add-between sep seq)
   (if (empty? seq)
-      (stream)
+      empty-stream
       (let ([v (first seq)]
             [vs (rest seq)])
         (if (empty? vs)
@@ -591,7 +591,7 @@
 
 (define (wrap-each before after seq)
   (if (empty? seq)
-      (stream)
+      empty-stream
       (let ([v (first seq)]
             [vs (rest seq)])
         (let ([wrapped-v (stream before v after)])
