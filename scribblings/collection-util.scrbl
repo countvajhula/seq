@@ -110,7 +110,9 @@ While some of the provided sequence utilities have standard names familiar from 
           (list @nonterm{noun}
                 @elem{@litchar{sequence?}})])
 
-Whenever a canonical name is used for a well-known interface, the more common name is also usually provided as an alias. In canonical names, where applicable, suffixes and other terms have the following meanings:
+Whenever a canonical name is used for a well-known interface, the more common name is also usually provided as an alias. In canonical names, where applicable, verbs and suffixes have the following meanings:
+
+@subsection{Suffixes}
 
 @itemize[
   @item{@bold{Undecorated verbs} usually check for equality. E.g. @racket[trim] removes the specified elements at the head and tail of a sequence (if present).}
@@ -125,7 +127,18 @@ Whenever a canonical name is used for a well-known interface, the more common na
   @item{@bold{-unless} is a sequence-spanning condition, the negation of "-if". E.g. @racket[trim-unless] removes elements at the head and tail of a sequence @emph{unless} some condition is met. Note that in general, "-unless" is avoided in favor of simply using the opposite verbs. For instance, in lieu of @racket[take-unless], there's @racket[drop-when].}
 ]
 
+@subsection{Verbs}
+
+@itemize[
+  @item{@bold{cut} and @bold{infix} refer to subsequences. E.g. @racket[find-infix] searches for a @emph{subsequence} in the input, rather than an individual element.}
+]
+
 @section{APIs}
+
+;; TODO: split into categories? subsequence, interpoloation, etc.
+;; it may still be better to document the cut/infix naming convention
+;; since a user would not be consulting docs to learn the _category_
+;; of the API in order to understand the idea behind the name
 
 @defproc[(every [n exact-nonnegative-integer?]
                 [seq sequence?])
