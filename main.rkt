@@ -80,6 +80,9 @@
           [cut-by (-> exact-positive-integer?
                       sequence?
                       (sequenceof sequence?))]
+          [cut-with (-> procedure?
+                        sequence?
+                        (values sequence? sequence?))]
           [deduplicate (->* (sequence?)
                             (#:key (or/c (-> comparable? comparable?)
                                          #f))
@@ -318,6 +321,10 @@
 
 (define (cut-by n seq)
   (every n (slide n seq)))
+
+(define (cut-with pred seq)
+  (values (take-when pred seq)
+          (drop-when pred seq)))
 
 (define (deduplicate seq #:key [key #f])
   (->list
