@@ -5,7 +5,6 @@
          scribble/bnf
          racket/sandbox
          @for-label[(except-in racket
-                               split-at
                                add-between
                                index-of
                                sequence?
@@ -51,7 +50,7 @@ Some of these interfaces are either implementations of or are inspired by the Sc
 
 @section{Naming Conventions}
 
-While some of the provided sequence utilities have a standard name familiar from string or list contexts, others take their name from the Scheme specification or are borrowed from other functional languages such as Haskell. When the utilities don't take their name from one of these sources, they instead have a "canonical" name that is approximately expressed as:
+While some of the provided sequence utilities have standard names familiar from string or list contexts, others take their name from the Scheme specification or are borrowed from other functional languages such as Haskell. When the utilities don't take their name from one of these sources, they instead have a "canonical" name that is approximately expressed as:
 
 @(let ([open @litchar{(}]
        [close @litchar{)}]
@@ -71,7 +70,7 @@ While some of the provided sequence utilities have a standard name familiar from
           (list @nonterm{verb}
                 @litchar{take}
                 @litchar{drop}
-                @litchar{split}
+                @litchar{cut}
                 @litchar{trim}
                 @litchar{find}
                 @litchar{remove}
@@ -115,8 +114,8 @@ Whenever a canonical name is used for a well-known interface, the more common na
 
 @itemize[
   @item{@bold{Undecorated verbs} usually check for equality. E.g. @racket[trim] removes the specified elements at the head and tail of a sequence (if present).}
-  @item{@bold{-where} indicates a specific place with respect to the contents of the sequence, for instance @racket[split-where] splits the input sequence at a particular (the first) point where a given predicate evaluates to true.}
-  @item{@bold{-at} indicates a specific place in the sequence @emph{by position}, for instance @racket[split-at] splits the input sequence at the indicated index.}
+  @item{@bold{-where} indicates a specific place with respect to the contents of the sequence, for instance @racket[cut-where] splits the input sequence at a particular (the first) point where a given predicate evaluates to true.}
+  @item{@bold{-at} indicates a specific place in the sequence @emph{by position}, for instance @racket[cut-at] splits the input sequence at the indicated index.}
   @item{@bold{-when} indicates a sequence-spanning condition -- @racket[take-when] takes @emph{all} elements in the input sequence for which a predicate holds (more commonly known as @racket[filter]).}
   @item{@bold{-while} indicates a running condition -- e.g. @racket[take-while] takes @emph{as long as} a predicate holds, and then stops at the point where it fails.}
   @item{@bold{-until} indicates a running condition, the negation of "-while" -- e.g. @racket[take-until] takes as long as a predicate @emph{does not hold}, and then stops at the point where it returns true.}
@@ -296,7 +295,7 @@ Whenever a canonical name is used for a well-known interface, the more common na
   ]
 }
 
-@defproc[(split-when [pred procedure?]
+@defproc[(cut-when [pred procedure?]
                      [seq sequence?])
          sequence?]{
 
@@ -304,7 +303,7 @@ Whenever a canonical name is used for a well-known interface, the more common na
 
 @examples[
     #:eval eval-for-docs
-    (->list (split-when (curry = #\space) "hello there old friend"))
-    (->list (split-when positive? (list 1 -4 -1 3)))
+    (->list (cut-when (curry = #\space) "hello there old friend"))
+    (->list (cut-when positive? (list 1 -4 -1 3)))
   ]
 }

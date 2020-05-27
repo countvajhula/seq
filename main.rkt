@@ -62,24 +62,24 @@
           [drop-until (-> (-> any/c boolean?)
                           sequence?
                           sequence?)]
-          [split-when (->* ((-> any/c boolean?) sequence?)
-                           (#:trim? boolean?)
-                           (sequenceof sequence?))]
-          [split (->* (any/c
-                       sequence?)
-                      (#:key (or/c (-> comparable? comparable?)
-                                   #f)
-                       #:trim? boolean?)
+          [cut-when (->* ((-> any/c boolean?) sequence?)
+                         (#:trim? boolean?)
+                         (sequenceof sequence?))]
+          [cut (->* (any/c
+                     sequence?)
+                    (#:key (or/c (-> comparable? comparable?)
+                                 #f)
+                     #:trim? boolean?)
+                    (sequenceof sequence?))]
+          [cut-at (-> exact-positive-integer?
+                      sequence?
+                      (values sequence? sequence?))]
+          [cut-where (-> (-> any/c boolean?)
+                         sequence?
+                         (values sequence? sequence?))]
+          [cut-by (-> exact-positive-integer?
+                      sequence?
                       (sequenceof sequence?))]
-          [split-at (-> exact-positive-integer?
-                        sequence?
-                        (values sequence? sequence?))]
-          [split-where (-> (-> any/c boolean?)
-                           sequence?
-                           (values sequence? sequence?))]
-          [split-by (-> exact-positive-integer?
-                        sequence?
-                        (sequenceof sequence?))]
           [deduplicate (->* (sequence?)
                             (#:key (or/c (-> comparable? comparable?)
                                          #f))
@@ -269,54 +269,54 @@
 (define (drop-until pred seq)
   (drop-while (!! pred) seq))
 
-(define (~split-when pred seq)
+(define (~cut-when pred seq)
   (if (empty? seq)
       (stream ID)
-      (let-values ([(chunk remaining) (split-where pred seq)])
+      (let-values ([(chunk remaining) (cut-where pred seq)])
         (match remaining
           [(sequence) (stream-cons chunk empty-stream)]
           [(sequence _ vs ...)
            (stream-cons chunk
-                        (~split-when pred
-                                     vs))]))))
+                        (~cut-when pred
+                                   vs))]))))
 
-(define (split-when #:trim? [trim? #t]
-                    pred
-                    seq)
-  (let ([result (~split-when pred
-                             (if trim?
-                                 (trim-if pred seq)
-                                 seq))])
+(define (cut-when #:trim? [trim? #t]
+                  pred
+                  seq)
+  (let ([result (~cut-when pred
+                           (if trim?
+                               (trim-if pred seq)
+                               seq))])
     (if (string? seq)
         (map ->string result)
         result)))
 
-(define (split #:key [key #f]
-               #:trim? [trim? #t]
-               elem
-               seq)
+(define (cut #:key [key #f]
+             #:trim? [trim? #t]
+             elem
+             seq)
   (let ([elem (if (string? seq)
                   (->char elem)
                   elem)])
-    (split-when #:trim? trim?
-                (curry = #:key key elem)
-                seq)))
+    (cut-when #:trim? trim?
+              (curry = #:key key elem)
+              seq)))
 
-(define (split-at pos seq)
+(define (cut-at pos seq)
   (let ([left (take pos seq)]
         [right (drop pos seq)])
     (if (string? seq)
         (values (->string left) (->string right))
         (values left right))))
 
-(define (split-where pred seq)
+(define (cut-where pred seq)
   (let ([left (take-until pred seq)]
         [right (drop-until pred seq)])
     (if (string? seq)
         (values (->string left) (->string right))
         (values left right))))
 
-(define (split-by n seq)
+(define (cut-by n seq)
   (every n (slide n seq)))
 
 (define (deduplicate seq #:key [key #f])
