@@ -44,11 +44,13 @@ Standard and general-purpose collection utilities.
 
 These utilities build on top of the @other-doc['(lib "scribblings/data/collection/collections.scrbl")] foundation to provide a broad range of general-purpose utilities that work on all sequences.
 
-Some of these interfaces are either implementations of or are inspired by the Scheme @hyperlink["https://docs.racket-lang.org/r6rs/r6rs-lib-std/r6rs-lib-Z-H-4.html"]{specifications} for @hyperlink["https://docs.racket-lang.org/srfi/srfi-std/srfi-1.html"]{list utilities}, while others are similar in spirit. Many operations we may desire to perform on sequences stem from simple intuitions, so an attempt has been made to adhere to naming conventions that might map to these intuitions in a minimal way.
+Some of these interfaces are either implementations of or are inspired by the Scheme @hyperlink["https://docs.racket-lang.org/r6rs/r6rs-lib-std/r6rs-lib-Z-H-4.html"]{specifications} for @hyperlink["https://docs.racket-lang.org/srfi/srfi-std/srfi-1.html"]{list utilities}, while others are similar in spirit. Many operations we may desire to perform on sequences stem from simple intuitions, so an attempt has been made to adhere to naming conventions and categories that might map to these intuitions.
 
 @table-of-contents[]
 
 @section{Naming Conventions}
+
+These naming conventions are intended to minimize the need to look up documentation while working with sequences.
 
 While some of the provided sequence utilities have standard names familiar from string or list contexts, others take their name from the Scheme specification or are borrowed from other functional languages such as Haskell. When the utilities don't take their name from one of these sources, they instead have a "canonical" name that is approximately expressed as:
 
@@ -110,7 +112,7 @@ While some of the provided sequence utilities have standard names familiar from 
           (list @nonterm{noun}
                 @elem{@litchar{sequence?}})])
 
-Whenever a canonical name is used for a well-known interface, the more common name is also usually provided as an alias. In canonical names, where applicable, verbs and suffixes have the following meanings:
+Whenever a canonical name is used for a well-known interface, the more common name is also usually provided as an alias. Not every interface here corresponds neatly to a naming convention, but in cases where they do, verbs and suffixes have the following meanings:
 
 @subsection{Suffixes}
 
@@ -130,15 +132,31 @@ Whenever a canonical name is used for a well-known interface, the more common na
 @subsection{Verbs}
 
 @itemize[
-  @item{@bold{cut} and @bold{infix} refer to subsequences. E.g. @racket[find-infix] searches for a @emph{subsequence} in the input, rather than an individual element.}
+  @item{@bold{take} and @bold{drop} refer to elements, hence they return a sequence containing the relevant @emph{elements} in the original sequence.}
+  @item{@bold{cut} and @bold{infix} refer to subsequences, hence they either accept or return subsequences of the original sequence conforming to the query. E.g. @racket[find-infix] searches for a @emph{subsequence} in the input, rather than an individual element. @racket[cut-when] returns a sequence of subsequences cut from the original. Most string-related operations are of this kind.}
 ]
 
 @section{APIs}
 
-;; TODO: split into categories? subsequence, interpoloation, etc.
-;; it may still be better to document the cut/infix naming convention
-;; since a user would not be consulting docs to learn the _category_
-;; of the API in order to understand the idea behind the name
+@subsection{Specific Element}
+
+@defproc[(find [pred procedure?]
+               [seq sequence?]
+               ...)
+         sequence?]{
+
+ Find the first element in @racket[seq] that fulfills @racket[pred]. If no item fulfills the predicate, then the result is @racket[#f].
+
+@examples[
+    #:eval eval-for-docs
+    (find number? (list "cherry" 'banana 10 30))
+    (find positive? (list -1 -2 -1 2 3))
+    (find (curry prefix-of? "ap") (list "banana" "apple" "apricot"))
+  ]
+}
+
+
+@subsection{Index and Length-based}
 
 @defproc[(every [n exact-nonnegative-integer?]
                 [seq sequence?])
@@ -156,6 +174,23 @@ Whenever a canonical name is used for a well-known interface, the more common na
     (->list (every 3 #(1 2 3 4 5 6 7 8 9 10)))
   ]
 }
+
+@subsection{Infix}
+
+@defproc[(cut-when [pred procedure?]
+                     [seq sequence?])
+         sequence?]{
+
+ Cut a subsequence from @racket[seq] at each point where @racket[pred] is satisfied.
+
+@examples[
+    #:eval eval-for-docs
+    (->list (cut-when (curry = #\space) "hello there old friend"))
+    (->list (map ->list (cut-when negative? (list -1 4 1 -3 2 -5 3 7))))
+  ]
+}
+
+@subsection{Predicates}
 
 @defproc[(exists [pred (-> any/c boolean?)]
                  [seq sequence?]
@@ -187,70 +222,7 @@ Whenever a canonical name is used for a well-known interface, the more common na
   ]
 }
 
-@deftogether[(
-@defproc[(zip [seq sequence?]
-              ...)
-         (sequenceof list?)]
-@defproc[(zip-with [op procedure?]
-                   [seq sequence?]
-                   ...)
-         any/c]
-@defproc[(unzip [seq sequence?])
-         (sequenceof list?)]
-@defproc[(unzip-with [op procedure?]
-                     [seq sequence?])
-         any/c]
-)]{
-
- @racket[zip-with] merges the input sequences using the provided operation @racket[op]. Equivalent to Haskell's @hyperlink["http://zvon.org/other/haskell/Outputprelude/zipWith_f.html"]{zipWith}.
-
- @racket[zip] is equivalent to @racket[zip-with list].
-
- @racket[zip] is its own inverse, so applying it twice is essentially equivalent to doing nothing. Still, @racket[unzip-with] and @racket[unzip] are provided with a slightly different signature -- accepting a single sequence rather than an arbitrary number of sequences, making it convenient to apply to a result already derived by using @racket[zip]. @racket[unzip] is equivalent to @racket[(curry apply zip)].
-
-@examples[
-    #:eval eval-for-docs
-    (->list (zip (list 'a 'b 'c) (list 1 2 3 4 5)))
-    (->list (zip-with + (list 1 2 3) (list 3 2 1)))
-    (->list (zip-with expt (repeat 5) (range 10)))
-    (->list (zip-with (lambda (x y)
-                        (+ (* 2 x)
-                           y))
-                      (range 1 5)
-                      (range 5 9)))
-    (->list (unzip (zip (list 'a 'b 'c) (list 1 2 3))))
-  ]
-}
-
-@defproc[(find [pred procedure?]
-               [seq sequence?]
-               ...)
-         sequence?]{
-
- Find the first element in @racket[seq] that fulfills @racket[pred]. If no item fulfills the predicate, then the result is @racket[#f].
-
-@examples[
-    #:eval eval-for-docs
-    (find number? (list "cherry" 'banana 10 30))
-    (find positive? (list -1 -2 -1 2 3))
-    (find (curry prefix-of? "ap") (list "banana" "apple" "apricot"))
-  ]
-}
-
-@defproc[(choose [pred procedure?]
-                 [seq sequence?]
-                 ...)
-         sequence?]{
-
- Lazily choose a single item from each of the input sequences -- the first one that fulfills the choice predicate @racket[pred]. The result is a sequence containing as many values as the number of input sequences. If no item in a particular sequence fulfills the choice predicate, then the corresponding element in the resulting sequence is @racket[#f].
-
-@examples[
-    #:eval eval-for-docs
-    (->list (choose number? (list 10 "left shoe" 30) (list "right shoe" 15 15) (list "sock" -55 7)))
-    (->list (choose positive? (list -1 -2 1 2) (list -5 3 -2) (list 5 2 -1)))
-    (->list (choose (curry prefix-of? "ap") (list "banana" "apple" "apricot") (list "dog" "cat" "ape")))
-  ]
-}
+@subsection{Filtering}
 
 @defproc[(take-when [pred procedure?]
                     [seq sequence?])
@@ -308,15 +280,54 @@ Whenever a canonical name is used for a well-known interface, the more common na
   ]
 }
 
-@defproc[(cut-when [pred procedure?]
-                     [seq sequence?])
-         sequence?]{
+@subsection{Composing}
 
- Cut a subsequence from @racket[seq] at each point where @racket[pred] is satisfied.
+@deftogether[(
+@defproc[(zip [seq sequence?]
+              ...)
+         (sequenceof list?)]
+@defproc[(zip-with [op procedure?]
+                   [seq sequence?]
+                   ...)
+         any/c]
+@defproc[(unzip [seq sequence?])
+         (sequenceof list?)]
+@defproc[(unzip-with [op procedure?]
+                     [seq sequence?])
+         any/c]
+)]{
+
+ @racket[zip-with] merges the input sequences using the provided operation @racket[op]. Equivalent to Haskell's @hyperlink["http://zvon.org/other/haskell/Outputprelude/zipWith_f.html"]{zipWith}.
+
+ @racket[zip] is equivalent to @racket[zip-with list].
+
+ @racket[zip] is its own inverse, so applying it twice is essentially equivalent to doing nothing. Still, @racket[unzip-with] and @racket[unzip] are provided with a slightly different signature -- accepting a single sequence rather than an arbitrary number of sequences, making it convenient to apply to a result already derived by using @racket[zip]. @racket[unzip] is equivalent to @racket[(curry apply zip)].
 
 @examples[
     #:eval eval-for-docs
-    (->list (cut-when (curry = #\space) "hello there old friend"))
-    (->list (cut-when positive? (list 1 -4 -1 3)))
+    (->list (zip (list 'a 'b 'c) (list 1 2 3 4 5)))
+    (->list (zip-with + (list 1 2 3) (list 3 2 1)))
+    (->list (zip-with expt (repeat 5) (range 10)))
+    (->list (zip-with (lambda (x y)
+                        (+ (* 2 x)
+                           y))
+                      (range 1 5)
+                      (range 5 9)))
+    (->list (unzip (zip (list 'a 'b 'c) (list 1 2 3))))
+  ]
+}
+
+@defproc[(choose [pred procedure?]
+                 [seq sequence?]
+                 ...)
+         sequence?]{
+
+ Lazily choose a single item from each of the input sequences -- the first one that fulfills the choice predicate @racket[pred]. The result is a sequence containing as many values as the number of input sequences. If no item in a particular sequence fulfills the choice predicate, then the corresponding element in the resulting sequence is @racket[#f].
+
+@examples[
+    #:eval eval-for-docs
+    (->list (choose number? (list 10 "left shoe" 30) (list "right shoe" 15 15) (list "sock" -55 7)))
+    (->list (choose positive? (list -1 -2 1 2) (list -5 3 -2) (list 5 2 -1)))
+    (->list (choose (curry prefix-of? "ap") (list "banana" "apple" "apricot") (list "dog" "cat" "ape")))
   ]
 }
