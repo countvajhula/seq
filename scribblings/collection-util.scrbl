@@ -331,3 +331,26 @@ Whenever a canonical name is used for a well-known interface, the more common na
     (->list (choose (curry prefix-of? "ap") (list "banana" "apple" "apricot") (list "dog" "cat" "ape")))
   ]
 }
+
+@subsection{Permuting}
+
+@deftogether[(
+@defproc[(rotate-left [n exact-nonnegative-integer?]
+                      [seq sequence?])
+         sequence?]
+@defproc[(rotate-right [n exact-nonnegative-integer?]
+                       [seq sequence?])
+         sequence?]
+)]{
+ Derive a new sequence by shifting the elements of @racket[seq] to the left or to the right, wrapping around the tail of the list.
+
+@examples[
+    #:eval eval-for-docs
+    (->list (rotate-left 1 (range 1 8)))
+    (->list (rotate-right 1 (range 1 8)))
+    (->list (rotate-left 3 (range 1 8)))
+    (->list (rotate-right 3 (range 1 8)))
+    (->string (rotate-left 2 "avocado"))
+    (->string (rotate-right 2 "avocado"))
+  ]
+}
