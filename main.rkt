@@ -83,6 +83,12 @@
           [cut-with (-> procedure?
                         sequence?
                         (values sequence? sequence?))]
+          [rotate-left (-> exact-nonnegative-integer?
+                           sequence?
+                           sequence?)]
+          [rotate-right (-> exact-nonnegative-integer?
+                            sequence?
+                            sequence?)]
           [deduplicate (->* (sequence?)
                             (#:key (or/c (-> comparable? comparable?)
                                          #f))
@@ -325,6 +331,24 @@
 (define (cut-with pred seq)
   (values (take-when pred seq)
           (drop-when pred seq)))
+
+(define (rotate-left n seq)
+  (with-handlers ([exn:fail:contract?
+                   (λ (exn)
+                     (set! n (remainder n (length seq)))
+                     (append (drop n seq)
+                             (take n seq)))])
+    ;; attempt it lazily first; only rotate modulo length
+    ;; if it fails, since computing length is not lazy
+    (append (drop n seq)
+            (take n seq))))
+
+(define (rotate-right n seq)
+  ;; this operation must compute sequence length and so it isn't lazy
+  (let* ([len (length seq)]
+         [n (remainder n len)])
+    (append (drop (- len n) seq)
+            (take (- len n) seq))))
 
 (define (deduplicate seq #:key [key #f])
   (->list
