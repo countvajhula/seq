@@ -178,7 +178,7 @@ Whenever a canonical name is used for a well-known interface, the more common na
 @subsection{Infix}
 
 @defproc[(cut-when [pred procedure?]
-                     [seq sequence?])
+                   [seq sequence?])
          sequence?]{
 
  Cut a subsequence from @racket[seq] at each point where @racket[pred] is satisfied.
@@ -189,6 +189,37 @@ Whenever a canonical name is used for a well-known interface, the more common na
     (->list (map ->list (cut-when negative? (list -1 4 1 -3 2 -5 3 7))))
   ]
 }
+
+@defproc[(cut [elem any/c]
+              [seq sequence?]
+			  [#:key key procedure? #f]
+			  [#:trim? trim? boolean? #f])
+         sequence?]{
+
+ Similar to @racket[string-split] but generalized to work on any sequence, this cuts a subsequence from @racket[seq] at each point where @racket[elem] is encountered, excluding @racket[elem]. In the special case where the input sequence is a string, @racket[elem] may be either a @tech/reference{character} or a string representing a character. In some contexts this operation is called "tokenization." The @racket[key] argument, if provided, is passed through to the underlying generic equality relation, @racketlink[r:=]{@racket[=]}.
+
+@examples[
+    #:eval eval-for-docs
+    (->list (cut " " "hello there old friend"))
+    (->list (map ->list (cut 1 (list -1 4 1 -3 2 -5 1 3 7))))
+  ]
+}
+
+@defproc[(cut-at [pos exact-nonnegative-integer?]
+                 [seq sequence?])
+         (values sequence? sequence?)]{
+
+ Cut @racket[seq] at the index @racket[pos], resulting in a pair of subsequences.
+
+@examples[
+    #:eval eval-for-docs
+	(define-values (before after) (cut-at 11 "hello there old friend"))
+    (->list (map ->string (list before after)))
+	(define-values (before after) (cut-at 3 (list -1 4 1 -3 2 -5 3 7)))
+    (->list (map ->list (list before after)))
+  ]
+}
+
 
 @subsection{Predicates}
 
