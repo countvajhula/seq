@@ -93,8 +93,7 @@
                             (#:key (or/c (-> comparable? comparable?)
                                          #f))
                             list?)]
-          [cascade (-> exact-positive-integer?
-                       sequence?
+          [cascade (-> sequence?
                        (sequenceof sequence?))]
           [slide (-> exact-positive-integer?
                      sequence?
@@ -367,17 +366,13 @@
            (stream-cons (first seq)
                         (loop seqs))]))))
 
-(define (cascade step-size seq)
+(define (cascade seq)
   (if (empty? seq)
       empty-stream
-      (stream-cons seq
-                   (with-handlers ([exn:fail:contract? (λ (exn)
-                                                         empty-stream)])
-                     (cascade step-size
-                              (drop step-size seq))))))
+      (stream-cons seq (cascade (rest seq)))))
 
 (define (slide window-size seq)
-  (let loop ([seq (cascade 1 seq)])
+  (let loop ([seq (cascade seq)])
     (if (empty? seq)
         empty-stream
         (let ([window (with-handlers ([exn:fail:contract? (λ (exn)
