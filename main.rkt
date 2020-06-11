@@ -19,7 +19,7 @@
          relation)
 
 (provide (contract-out
-          [every (-> exact-positive-integer? sequence? sequence?)]
+          [by (-> exact-positive-integer? sequence? sequence?)]
           [exists (->i ([pred (seqs)
                               (and/c (procedure-arity-includes/c (b:length seqs))
                                      (unconstrained-domain-> boolean?))])
@@ -204,7 +204,7 @@
 
 (define take-when filter)
 
-(define (every cnt seq)
+(define (by cnt seq)
   (if (empty? seq)
       empty-stream
       (let ([head (first seq)]
@@ -213,7 +213,7 @@
                       (λ (exn)
                         empty-stream)])
                     (drop cnt seq))])
-        (stream-cons head (every cnt tail)))))
+        (stream-cons head (by cnt tail)))))
 
 (define (zip-with op . seqs)
   (if (exists empty? seqs)
@@ -325,7 +325,7 @@
         (values left right))))
 
 (define (cut-by n seq)
-  (every n (slide n seq)))
+  (by n (slide n seq)))
 
 (define (cut-with pred seq)
   (values (take-when pred seq)

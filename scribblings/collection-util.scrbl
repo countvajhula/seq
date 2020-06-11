@@ -95,7 +95,7 @@ While some of the provided sequence utilities have standard names familiar from 
                               @nonterm{noun}
                          close])
           (list @nonterm{special operation}
-                @litchar{every}
+                @litchar{by}
                 @litchar{exists}
                 @litchar{for-all}
                 @litchar{join}
@@ -158,20 +158,20 @@ Whenever a canonical name is used for a well-known interface, the more common na
 
 @subsection{Index and Length-based}
 
-@defproc[(every [n exact-nonnegative-integer?]
-                [seq sequence?])
+@defproc[(by [n exact-nonnegative-integer?]
+             [seq sequence?])
          sequence?]{
 
  A sequence containing every @racket[n]'th element in the input sequence.
 
 @examples[
     #:eval eval-for-docs
-    (->list (take 10 (every 5 (naturals))))
-    (->list (take 10 (every 2 (naturals))))
-    (->list (take 10 (every 2 (naturals 1))))
-    (->list (take 10 (every 7 (drop 100 (naturals)))))
-    (->list (every 3 (subsequence (naturals) 10 20)))
-    (->list (every 3 #(1 2 3 4 5 6 7 8 9 10)))
+    (->list (take 10 (by 5 (naturals))))
+    (->list (take 10 (by 2 (naturals))))
+    (->list (take 10 (by 2 (naturals 1))))
+    (->list (take 10 (by 7 (drop 100 (naturals)))))
+    (->list (by 3 (subsequence (naturals) 10 20)))
+    (->list (by 3 #(1 2 3 4 5 6 7 8 9 10)))
   ]
 }
 
