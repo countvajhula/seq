@@ -220,6 +220,33 @@ Whenever a canonical name is used for a well-known interface, the more common na
   ]
 }
 
+@defproc[(cut-where [pred (-> any/c boolean?)]
+                    [seq sequence?])
+         (values sequence? sequence?)]{
+
+ Cut @racket[seq] at the (first) point where @racket[pred] returns true, resulting in a pair of subsequences.
+
+@examples[
+    #:eval eval-for-docs
+	(define-values (before after) (cut-where char-whitespace? "hello there old friend"))
+    (->list (map ->string (list before after)))
+	(define-values (before after) (cut-where positive? (list -2 -1 0 1 2 3 4)))
+    (->list (map ->list (list before after)))
+  ]
+}
+
+@defproc[(cut-by [n (-> any/c boolean?)]
+                 [seq sequence?])
+         (values sequence? sequence?)]{
+
+ Cut @racket[seq] into subsequences of length @racket[n].
+
+@examples[
+    #:eval eval-for-docs
+	(->list (map ->string (cut-by 5 "hello there old friend")))
+	(->list (cut-by 3 (list -2 4 1 -3 2 -5 3 7)))
+  ]
+}
 
 @subsection{Predicates}
 
