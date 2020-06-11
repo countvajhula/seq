@@ -195,6 +195,7 @@
   (check-equal? (->list (map ->list (cut-by 3 (list 1 2)))) '())
   (check-equal? (->list (map ->list (cut-by 3 (list 1)))) '())
   (check-equal? (->list (map ->list (cut-by 3 (list)))) '())
+  (check-equal? (->list (map ->list (cut-by 5 (range 12)))) '((0 1 2 3 4) (5 6 7 8 9)) "cut a lazy sequence")
   (let-values ([(yes no) (cut-with positive? (list))])
     (check-equal? (->list yes) '())
     (check-equal? (->list no) '()))

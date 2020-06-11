@@ -377,7 +377,9 @@
         empty-stream
         (let ([window (with-handlers ([exn:fail:contract? (λ (exn)
                                                             empty-stream)])
-                        (take window-size (first seq)))])
+                        ;; convert to list or the exception would
+                        ;; be deferred here
+                        (->list (take window-size (first seq))))])
           (if (empty? window)
               empty-stream
               (stream-cons window (loop (rest seq))))))))
