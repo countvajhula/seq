@@ -186,10 +186,10 @@
           [add-between (-> any/c
                            sequence?
                            sequence?)]
-          [join (->* (sequence?)
-                     (any/c)
-                     (or/c sequence?
-                           procedure?))] ; procedure doesn't implement sequence
+          [join-with (-> any/c
+                         sequence?
+                         (or/c sequence?
+                               procedure?))] ; procedure doesn't implement sequence
           [wrap-each (-> any/c
                          any/c
                          sequence?
@@ -613,10 +613,8 @@
            (stream-append wrapped-v
                           (wrap-each before after vs))))]))
 
-(define (join seq [sep undefined])
-  (fold .. (if (undefined? sep)
-               seq
-               (add-between sep seq))))
+(define (join-with sep seq)
+  (join (add-between sep seq)))
 
 (define (weave to from seq)
-  (fold .. (wrap-each to from seq)))
+  (apply .. (wrap-each to from seq)))

@@ -106,7 +106,9 @@ While some of the provided sequence utilities have standard names familiar from 
                 @litchar{choose}
                 @litchar{deduplicate}
                 @litchar{cascade}
-                @litchar{weave})
+                @litchar{weave}
+                @litchar{rotate-left}
+                @litchar{rotate-right})
           (list @nonterm{args}
                 @elem{any parameters for the operation to be performed})
           (list @nonterm{noun}
