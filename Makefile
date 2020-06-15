@@ -63,4 +63,4 @@ errortrace: test-with-errortrace
 docs:
 	raco docs $(PACKAGE-NAME)
 
-.PHONY:	help install remove build build-docs build-all test clean check-deps test test-with-errortrace docs
+.PHONY:	help install remove build build-docs build-all test clean check-deps test test-with-errortrace errortrace docs
