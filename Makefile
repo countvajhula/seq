@@ -57,7 +57,7 @@ test:
 	raco test -x -p $(PACKAGE-NAME)
 
 test-with-errortrace:
-	racket -l errortrace -t test.rkt
+	racket -l errortrace -l racket -e '(require (submod "test.rkt" test))'
 
 errortrace: test-with-errortrace
 

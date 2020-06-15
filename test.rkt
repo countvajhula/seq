@@ -14,9 +14,7 @@
          relation
          collection-util)
 
-(module+ ~test
-
-  (provide tests)
+(module+ test
 
   (define tests
     (test-suite
@@ -283,12 +281,7 @@
      (check-exn exn:fail:contract?
                 (thunk (drop-when (curry = "banana") (set "apple" "banana" "cherry"))) (set "apple" "cherry"))
      (check-exn exn:fail:contract?
-                (thunk (drop-when (curry = "BANANA") (generic-set #:key string-upcase "apple" "banana" "cherry")))))))
+                (thunk (drop-when (curry = "BANANA") (generic-set #:key string-upcase "apple" "banana" "cherry"))))))
 
-(module+ test
-  (require (submod ".." ~test))
   (run-tests tests))
 
-(module+ main
-  (require (submod ".." ~test))
-  (run-tests tests))
