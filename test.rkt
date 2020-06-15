@@ -281,7 +281,7 @@
      (check-exn exn:fail:contract?
                 (thunk (drop-when (curry = "banana") (set "apple" "banana" "cherry"))) (set "apple" "cherry"))
      (check-exn exn:fail:contract?
-                (thunk (drop-when (curry = "BANANA") (generic-set #:key string-upcase "apple" "banana" "cherry"))))))
+                (thunk (drop-when (curry = "BANANA") (generic-set #:key string-upcase "apple" "banana" "cherry")))))))
 
+(module+ test
   (run-tests tests))
-
