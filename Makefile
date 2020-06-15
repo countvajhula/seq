@@ -12,6 +12,7 @@ help:
 	@echo "remove - remove package"
 	@echo "check-deps - check dependencies"
 	@echo "test - run tests"
+	@echo "test-with-errortrace - run tests with error tracing"
 	@echo "docs - view docs in a browser"
 
 # Primarily for use by CI.
@@ -54,7 +55,12 @@ check-deps:
 test:
 	raco test -x -p $(PACKAGE-NAME)
 
+test-with-errortrace:
+	racket -l errortrace -t test.rkt
+
+errortrace: test-with-errortrace
+
 docs:
 	raco docs $(PACKAGE-NAME)
 
-.PHONY:	help setup check-deps test clean install remove docs
+.PHONY:	help install remove build build-docs build-all test clean check-deps test test-with-errortrace docs
