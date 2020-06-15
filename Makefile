@@ -4,15 +4,16 @@ PACKAGE-NAME=collection-util
 DEPS-FLAGS=--check-pkg-deps --unused-pkg-deps
 
 help:
+	@echo "install - install package along with dependencies"
+	@echo "remove - remove package"
 	@echo "build - Compile libraries"
 	@echo "build-docs - Build docs"
 	@echo "build-all - Compile libraries, build docs, and check dependencies"
 	@echo "clean - remove all build artifacts"
-	@echo "install - install package along with dependencies"
-	@echo "remove - remove package"
 	@echo "check-deps - check dependencies"
 	@echo "test - run tests"
 	@echo "test-with-errortrace - run tests with error tracing"
+	@echo "errortrace - alias for test-with-errortrace"
 	@echo "docs - view docs in a browser"
 
 # Primarily for use by CI.
