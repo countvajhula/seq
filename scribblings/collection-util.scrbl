@@ -106,6 +106,7 @@ While some of the provided sequence utilities have standard names familiar from 
                 @litchar{choose}
                 @litchar{deduplicate}
                 @litchar{suffixes}
+                @litchar{prefixes}
                 @litchar{weave}
                 @litchar{rotate-left}
                 @litchar{rotate-right})
@@ -471,5 +472,18 @@ Whenever a canonical name is used for a well-known interface, the more common na
         (stream-cons 1
           (apply zip-with + (take 2 (suffixes (fibs)))))))
     (->list (take 10 (fibs)))
+  ]
+}
+
+@defproc[(prefixes [seq sequence?])
+         sequence?]{
+
+ A sequence of all prefixes of @racket[seq].
+
+@examples[
+    #:eval eval-for-docs
+    (->list (map ->string (prefixes "hello")))
+    (->list (map ->string (prefixes "echo")))
+    (->list (take 5 (map ->list (prefixes (naturals)))))
   ]
 }

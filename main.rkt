@@ -95,6 +95,8 @@
                             list?)]
           [suffixes (-> sequence?
                         (sequenceof sequence?))]
+          [prefixes (-> sequence?
+                        (sequenceof sequence?))]
           [slide (-> exact-positive-integer?
                      sequence?
                      (sequenceof sequence?))]
@@ -370,6 +372,14 @@
   (if (empty? seq)
       empty-stream
       (stream-cons seq (suffixes (rest seq)))))
+
+(define (prefixes seq)
+  (define len (and (known-finite? seq) (length seq)))
+  (let loop ([n 1])
+    (cond [(empty? seq) empty-stream]
+          [(and len (> n len)) empty-stream]
+          [else (stream-cons (take n seq)
+                             (loop (add1 n)))])))
 
 (define (slide window-size seq)
   (let loop ([seq (suffixes seq)])
