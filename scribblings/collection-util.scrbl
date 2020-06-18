@@ -10,7 +10,7 @@
                                sequence?
                                remove)
                     (prefix-in r: relation)
-                    (only-in relation ->list)
+                    (only-in relation ->list ->string comparable?)
                     collection-util
                     (prefix-in d: data/collection)
                     (only-in data/collection
@@ -250,6 +250,25 @@ Whenever a canonical name is used for a well-known interface, the more common na
   ]
 }
 
+@defproc[(cut-with [pred (-> any/c boolean?)]
+                   [seq sequence?])
+         (values sequence? sequence?)]{
+
+ Similar to @racket[partition], use a predicate @racket[pred] to cut @racket[seq] into two subsequences, one containing those elements for which @racket[pred] holds, and the other containing those elements of @racket[seq] for which @racket[pred] fails.
+
+@examples[
+    #:eval eval-for-docs
+    (define-values (yes no)
+                   (cut-with (curry prefix-of? "ap")
+                             (list "banana" "apple" "apricot" "cherry")))
+    (->list (map ->list (list yes no)))
+	(define-values (yes no)
+                   (cut-with positive?
+                             (list -2 4 1 -3 2 -5 3 7)))
+    (->list (map ->list (list yes no)))
+  ]
+}
+
 @subsection{Predicates}
 
 @defproc[(exists [pred (-> any/c boolean?)]
@@ -284,16 +303,23 @@ Whenever a canonical name is used for a well-known interface, the more common na
 
 @subsection{Filtering}
 
+@deftogether[(
 @defproc[(take-when [pred procedure?]
                     [seq sequence?])
-         sequence?]{
+         sequence?]
+@defproc[(drop-when [pred procedure?]
+                    [seq sequence?])
+         sequence?]
+)]{
 
- Select all elements from @racket[seq] that satisfy @racket[pred]. An alias for @racket[filter].
+ An alias for @racketlink[d:filter]{@racket[filter]}, @racket[take-when] selects all elements from @racket[seq] that satisfy @racket[pred], while @racket[drop-when] selects those elements that do not satisfy @racket[pred].
 
 @examples[
     #:eval eval-for-docs
     (->list (take-when positive? (list 1 -4 -1 3)))
+    (->list (drop-when positive? (list 1 -4 -1 3)))
     (->list (take-when (curry prefix-of? "ap") (list "banana" "apple" "apricot" "cherry")))
+    (drop-when char-whitespace? "  the quick   \tbrown\nfox")
   ]
 }
 

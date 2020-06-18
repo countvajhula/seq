@@ -80,7 +80,7 @@
           [cut-by (-> exact-positive-integer?
                       sequence?
                       (sequenceof sequence?))]
-          [cut-with (-> procedure?
+          [cut-with (-> (-> any/c boolean?)
                         sequence?
                         (values sequence? sequence?))]
           [rotate-left (-> exact-nonnegative-integer?
