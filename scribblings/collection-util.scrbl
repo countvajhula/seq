@@ -105,7 +105,7 @@ While some of the provided sequence utilities have standard names familiar from 
                 @litchar{interleave}
                 @litchar{choose}
                 @litchar{deduplicate}
-                @litchar{cascade}
+                @litchar{suffixes}
                 @litchar{weave}
                 @litchar{rotate-left}
                 @litchar{rotate-right})
@@ -456,20 +456,20 @@ Whenever a canonical name is used for a well-known interface, the more common na
 
 @subsection{Derived}
 
-@defproc[(cascade [seq sequence?])
+@defproc[(suffixes [seq sequence?])
          sequence?]{
 
- A sequence of all tail subsequences of @racket[seq].
+ A sequence of all suffixes or "tails" of @racket[seq].
 
 @examples[
     #:eval eval-for-docs
-    (->list (cascade (list 1 2 3 4 5)))
-    (->list (map ->string (cascade "hello")))
-    (->list (map ->string (cascade "echo")))
+    (->list (suffixes (list 1 2 3 4 5)))
+    (->list (map ->string (suffixes "hello")))
+    (->list (map ->string (suffixes "echo")))
     (define (fibs)
       (stream-cons 1
         (stream-cons 1
-          (apply zip-with + (take 2 (cascade (fibs)))))))
+          (apply zip-with + (take 2 (suffixes (fibs)))))))
     (->list (take 10 (fibs)))
   ]
 }

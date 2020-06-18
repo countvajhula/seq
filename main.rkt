@@ -93,8 +93,8 @@
                             (#:key (or/c (-> comparable? comparable?)
                                          #f))
                             list?)]
-          [cascade (-> sequence?
-                       (sequenceof sequence?))]
+          [suffixes (-> sequence?
+                        (sequenceof sequence?))]
           [slide (-> exact-positive-integer?
                      sequence?
                      (sequenceof sequence?))]
@@ -366,13 +366,13 @@
            (stream-cons (first seq)
                         (loop seqs))]))))
 
-(define (cascade seq)
+(define (suffixes seq)
   (if (empty? seq)
       empty-stream
-      (stream-cons seq (cascade (rest seq)))))
+      (stream-cons seq (suffixes (rest seq)))))
 
 (define (slide window-size seq)
-  (let loop ([seq (cascade seq)])
+  (let loop ([seq (suffixes seq)])
     (if (empty? seq)
         empty-stream
         (let ([window (with-handlers ([exn:fail:contract? (λ (exn)
