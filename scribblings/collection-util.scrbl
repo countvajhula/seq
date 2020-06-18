@@ -366,6 +366,19 @@ Whenever a canonical name is used for a well-known interface, the more common na
   ]
 }
 
+@defproc[(deduplicate [#:key key (-> comparable? comparable?) #f]
+                      [seq sequence?])
+         list?]{
+
+ Remove duplicate occurrences of elements in @racket[seq], using the generic equivalence relation @racketlink[r:=]{@racket[=]} to determine equality.
+
+@examples[
+    #:eval eval-for-docs
+    (deduplicate (list 1 2 3 "hi" 3 "bye" 1 2 "hi"))
+    (deduplicate #:key string-upcase (list "hi" "hello" "HI" "HeLLo"))
+  ]
+}
+
 @subsection{Composing}
 
 @deftogether[(
@@ -438,5 +451,25 @@ Whenever a canonical name is used for a well-known interface, the more common na
     (->list (rotate-right 3 (range 1 8)))
     (->string (rotate-left 2 "avocado"))
     (->string (rotate-right 2 "avocado"))
+  ]
+}
+
+@subsection{Derived}
+
+@defproc[(cascade [seq sequence?])
+         sequence?]{
+
+ A sequence of all tail subsequences of @racket[seq].
+
+@examples[
+    #:eval eval-for-docs
+    (->list (cascade (list 1 2 3 4 5)))
+    (->list (map ->string (cascade "hello")))
+    (->list (map ->string (cascade "echo")))
+    (define (fibs)
+      (stream-cons 1
+        (stream-cons 1
+          (apply zip-with + (take 2 (cascade (fibs)))))))
+    (->list (take 10 (fibs)))
   ]
 }
