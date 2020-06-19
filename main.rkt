@@ -18,7 +18,10 @@
                   (append d:append))
          relation)
 
-(provide (contract-out
+(provide take-when
+         prefix
+         suffix-at
+         (contract-out
           [by (-> exact-positive-integer? sequence? sequence?)]
           [exists (->i ([pred (seqs)
                               (and/c (procedure-arity-includes/c (b:length seqs))
@@ -46,9 +49,8 @@
                       sequence?
                       ...
                       sequence?)]
-          [take-when ((any/c . -> . any/c)
+          [suffix (-> exact-nonnegative-integer?
                       sequence?
-                      . -> .
                       sequence?)]
           [take-while (-> (-> any/c boolean?)
                           sequence?
@@ -205,6 +207,13 @@
 (define : conj)
 
 (define take-when filter)
+
+(define prefix take)
+
+(define suffix-at drop)
+
+(define (suffix n seq)
+  (drop (- (length seq) n) seq))
 
 (define (by cnt seq)
   (if (empty? seq)

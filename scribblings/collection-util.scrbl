@@ -8,6 +8,7 @@
                                add-between
                                index-of
                                sequence?
+                               prefix
                                remove)
                     (prefix-in r: relation)
                     (only-in relation ->list ->string comparable?)
@@ -101,12 +102,15 @@ While some of the provided sequence utilities have standard names familiar from 
                 @litchar{join}
                 @litchar{add-between}
                 @litchar{wrap-each}
-                @litchar{slide}
                 @litchar{interleave}
                 @litchar{choose}
                 @litchar{deduplicate}
-                @litchar{suffixes}
+                @litchar{prefix}
+                @litchar{suffix}
+                @litchar{suffix-at}
                 @litchar{prefixes}
+                @litchar{suffixes}
+                @litchar{infixes}
                 @litchar{weave}
                 @litchar{rotate-left}
                 @litchar{rotate-right})
