@@ -97,9 +97,9 @@
                         (sequenceof sequence?))]
           [prefixes (-> sequence?
                         (sequenceof sequence?))]
-          [slide (-> exact-positive-integer?
-                     sequence?
-                     (sequenceof sequence?))]
+          [infixes (-> exact-positive-integer?
+                       sequence?
+                       (sequenceof sequence?))]
           [prefix-of? (->* (sequence? sequence?)
                              (#:key (or/c (-> comparable? comparable?)
                                           #f))
@@ -327,7 +327,7 @@
         (values left right))))
 
 (define (cut-by n seq)
-  (by n (slide n seq)))
+  (by n (infixes n seq)))
 
 (define (cut-with pred seq)
   (values (take-when pred seq)
@@ -381,18 +381,18 @@
           [else (stream-cons (take n seq)
                              (loop (add1 n)))])))
 
-(define (slide window-size seq)
-  (let loop ([seq (suffixes seq)])
-    (if (empty? seq)
-        empty-stream
-        (let ([window (with-handlers ([exn:fail:contract? (λ (exn)
-                                                            empty-stream)])
-                        ;; convert to list or the exception would
-                        ;; be deferred here
-                        (->list (take window-size (first seq))))])
-          (if (empty? window)
-              empty-stream
-              (stream-cons window (loop (rest seq))))))))
+(define (infixes len seq)
+  (if (empty? seq)
+      empty-stream
+      (let ([infix (with-handlers ([exn:fail:contract?
+                                    (λ (exn)
+                                      empty-stream)])
+                     ;; convert to list or the exception would
+                     ;; be deferred here
+                     (->list (prefix len seq)))])
+        (if (empty? infix)
+            empty-stream
+            (stream-cons infix (infixes len (rest seq)))))))
 
 (define (prefix-of? #:key [key #f] prefix seq)
   (cond [(empty? prefix) #t]

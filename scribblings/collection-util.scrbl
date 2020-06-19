@@ -487,3 +487,15 @@ Whenever a canonical name is used for a well-known interface, the more common na
     (->list (take 5 (map ->list (prefixes (naturals)))))
   ]
 }
+
+@defproc[(infixes [len exact-positive-integer?] [seq sequence?])
+         sequence?]{
+
+ A sequence of all infixes of @racket[seq] of length @racket[len].
+
+@examples[
+    #:eval eval-for-docs
+    (->list (map ->string (infixes 4 "avocado")))
+    (->list (take 5 (map ->list (infixes 3 (naturals)))))
+  ]
+}
