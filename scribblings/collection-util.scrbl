@@ -158,7 +158,7 @@ Whenever a canonical name is used for a well-known interface, the more common na
     #:eval eval-for-docs
     (find number? (list "cherry" 'banana 10 30))
     (find positive? (list -1 -2 -1 2 3))
-    (find (curry prefix-of? "ap") (list "banana" "apple" "apricot"))
+    (find (curry prefix? "ap") (list "banana" "apple" "apricot"))
   ]
 }
 
@@ -264,7 +264,7 @@ Whenever a canonical name is used for a well-known interface, the more common na
 @examples[
     #:eval eval-for-docs
     (define-values (yes no)
-                   (cut-with (curry prefix-of? "ap")
+                   (cut-with (curry prefix? "ap")
                              (list "banana" "apple" "apricot" "cherry")))
     (->list (map ->list (list yes no)))
 	(define-values (yes no)
@@ -347,7 +347,7 @@ Whenever a canonical name is used for a well-known interface, the more common na
     #:eval eval-for-docs
     (->list (take-when positive? (list 1 -4 -1 3)))
     (->list (drop-when positive? (list 1 -4 -1 3)))
-    (->list (take-when (curry prefix-of? "ap") (list "banana" "apple" "apricot" "cherry")))
+    (->list (take-when (curry prefix? "ap") (list "banana" "apple" "apricot" "cherry")))
     (drop-when char-whitespace? "  the quick   \tbrown\nfox")
   ]
 }
@@ -369,8 +369,8 @@ Whenever a canonical name is used for a well-known interface, the more common na
     (->list (drop-while positive? (list 1 2 -4 -12 3)))
     (->list (take-while positive? (list -1 3 2 4 -12)))
     (->list (drop-while positive? (list -1 3 2 4 -12)))
-    (->list (take-while (curry prefix-of? "ap") (list "apple" "banana" "apricot" "cherry")))
-    (->list (drop-while (curry prefix-of? "ap") (list "apple" "banana" "apricot" "cherry")))
+    (->list (take-while (curry prefix? "ap") (list "apple" "banana" "apricot" "cherry")))
+    (->list (drop-while (curry prefix? "ap") (list "apple" "banana" "apricot" "cherry")))
   ]
 }
 
@@ -390,8 +390,8 @@ Whenever a canonical name is used for a well-known interface, the more common na
     (->list (drop-until positive? (list -1 -2 3 2 -4)))
     (->list (take-until positive? (list 1 3 2 -4)))
     (->list (drop-until positive? (list 1 3 2 -4)))
-    (->list (take-until (curry prefix-of? "ap") (list "banana" "apple" "apricot" "cherry")))
-    (->list (drop-until (curry prefix-of? "ap") (list "banana" "apple" "apricot" "cherry")))
+    (->list (take-until (curry prefix? "ap") (list "banana" "apple" "apricot" "cherry")))
+    (->list (drop-until (curry prefix? "ap") (list "banana" "apple" "apricot" "cherry")))
   ]
 }
 
@@ -456,7 +456,7 @@ Whenever a canonical name is used for a well-known interface, the more common na
     #:eval eval-for-docs
     (->list (choose number? (list 10 "left shoe" 30) (list "right shoe" 15 15) (list "sock" -55 7)))
     (->list (choose positive? (list -1 -2 1 2) (list -5 3 -2) (list 5 2 -1)))
-    (->list (choose (curry prefix-of? "ap") (list "banana" "apple" "apricot") (list "dog" "cat" "ape")))
+    (->list (choose (curry prefix? "ap") (list "banana" "apple" "apricot") (list "dog" "cat" "ape")))
   ]
 }
 

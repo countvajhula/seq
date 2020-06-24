@@ -102,18 +102,18 @@
           [infixes (-> exact-positive-integer?
                        sequence?
                        (sequenceof sequence?))]
-          [prefix-of? (->* (sequence? sequence?)
-                             (#:key (or/c (-> comparable? comparable?)
-                                          #f))
-                             boolean?)]
+          [prefix? (->* (sequence? sequence?)
+                        (#:key (or/c (-> comparable? comparable?)
+                                     #f))
+                        boolean?)]
           [starts-with? (->* (sequence? sequence?)
                              (#:key (or/c (-> comparable? comparable?)
                                           #f))
                              boolean?)]
-          [suffix-of? (->* (sequence? sequence?)
-                           (#:key (or/c (-> comparable? comparable?)
-                                        #f))
-                           boolean?)]
+          [suffix? (->* (sequence? sequence?)
+                        (#:key (or/c (-> comparable? comparable?)
+                                     #f))
+                        boolean?)]
           [ends-with? (->* (sequence? sequence?)
                            (#:key (or/c (-> comparable? comparable?)
                                         #f))
@@ -130,10 +130,10 @@
                                #:how-many (and/c integer?
                                                  (>=/c 0)))
                               sequence?)]
-          [infix-of? (->* (sequence? sequence?)
-                          (#:key (or/c (-> comparable? comparable?)
-                                       #f))
-                          boolean?)]
+          [infix? (->* (sequence? sequence?)
+                       (#:key (or/c (-> comparable? comparable?)
+                                    #f))
+                       boolean?)]
           [contains? (->* (sequence? sequence?)
                           (#:key (or/c (-> comparable? comparable?)
                                        #f))
@@ -403,24 +403,24 @@
             empty-stream
             (stream-cons infix (infixes len (rest seq)))))))
 
-(define (prefix-of? #:key [key #f] prefix seq)
+(define (prefix? #:key [key #f] prefix seq)
   (cond [(empty? prefix) #t]
         [(empty? seq) #f]
         [else (and (= #:key key
                       (first seq)
                       (first prefix))
-                   (prefix-of? #:key key
-                               (rest prefix)
-                               (rest seq)))]))
+                   (prefix? #:key key
+                            (rest prefix)
+                            (rest seq)))]))
 
-(define starts-with? prefix-of?)
+(define starts-with? prefix?)
 
-(define (suffix-of? #:key [key #f] suffix seq)
-  (prefix-of? #:key key
-              (reverse suffix)
-              (reverse seq)))
+(define (suffix? #:key [key #f] suffix seq)
+  (prefix? #:key key
+           (reverse suffix)
+           (reverse seq)))
 
-(define ends-with? suffix-of?)
+(define ends-with? suffix?)
 
 (define (find-infix #:key [key #f] subseq seq [idx 0])
   (match* (seq subseq)
@@ -428,9 +428,9 @@
     [((sequence) _) #f]
     [((sequence v remaining-seq ...) (sequence w remaining-subseq ...))
      (if (and (= #:key key v w)
-              (prefix-of? #:key key
-                          remaining-subseq
-                          remaining-seq))
+              (prefix? #:key key
+                       remaining-subseq
+                       remaining-seq))
          idx
          (find-infix #:key key
                      subseq
@@ -476,10 +476,10 @@
         (->string result)
         result)))
 
-(define (infix-of? #:key [key #f] subseq seq)
+(define (infix? #:key [key #f] subseq seq)
   (->boolean (find-infix #:key key subseq seq)))
 
-(define contains? infix-of?)
+(define contains? infix?)
 
 (define (trim-left-if pred
                       seq
