@@ -309,6 +309,30 @@ Whenever a canonical name is used for a well-known interface, the more common na
 @subsection{Filtering}
 
 @deftogether[(
+@defproc[(prefix [n exact-nonnegative-integer?]
+                 [seq sequence?])
+         sequence?]
+@defproc[(suffix [n exact-nonnegative-integer?]
+                 [seq sequence?])
+         sequence?]
+@defproc[(suffix-at [n exact-nonnegative-integer?]
+                    [seq sequence?])
+         sequence?]
+)]{
+  @racket[prefix] returns the first @racket[n] elements of @racket[seq], i.e. a prefix of length @racket[n]; it is an alias for @racket[take]. @racket[suffix] analogously returns the last @racket[n] elements of @racket[seq], i.e. a suffix of length @racket[n]. @racket[suffix-at] is an alias for @racket[drop], returning the suffix at the @emph{index} @racket[n].
+
+@examples[
+    #:eval eval-for-docs
+    (->string (prefix 2 "apricot"))
+    (->string (suffix 2 "apricot"))
+    (->string (suffix-at 2 "apricot"))
+    (->string (.. (prefix 2 "apricot") (suffix-at 2 "apricot")))
+    (->list (prefix 2 (list "banana" "apple" "apricot" "cherry" "avocado")))
+    (->list (suffix 3 (list 1 2 3 4 5 6 7 8 9)))
+  ]
+}
+
+@deftogether[(
 @defproc[(take-when [pred procedure?]
                     [seq sequence?])
          sequence?]
