@@ -105,6 +105,12 @@ While some of the provided sequence utilities have standard names familiar from 
                 @litchar{interleave}
                 @litchar{choose}
                 @litchar{deduplicate}
+                @litchar{prefix?}
+                @litchar{starts-with?}
+                @litchar{suffix?}
+                @litchar{ends-with?}
+                @litchar{infix?}
+                @litchar{contains?}
                 @litchar{prefix}
                 @litchar{suffix}
                 @litchar{suffix-at}
@@ -281,7 +287,7 @@ Whenever a canonical name is used for a well-known interface, the more common na
                  ...)
          boolean?]{
 
- Similar to @hyperlink["https://docs.racket-lang.org/r6rs/r6rs-lib-std/r6rs-lib-Z-H-4.html?q=for-all#node_idx_206"]{exists} but generalized to all sequences rather than only lists, this checks if @emph{any} of the sequence values fulfill a provided predicate. @racket[pred] must accept a number of arguments equal to the number of provided sequences @racket[seq]. This is an alias for @racketlink[d:ormap]{ormap}.
+ Similar to @hyperlink["https://docs.racket-lang.org/r6rs/r6rs-lib-std/r6rs-lib-Z-H-4.html#node_idx_206"]{exists} but generalized to all sequences rather than only lists, this checks if @emph{any} of the sequence values fulfill a provided predicate. @racket[pred] must accept a number of arguments equal to the number of provided sequences @racket[seq]. This is an alias for @racketlink[d:ormap]{ormap}.
 
 @examples[
     #:eval eval-for-docs
@@ -296,13 +302,55 @@ Whenever a canonical name is used for a well-known interface, the more common na
                   ...)
          boolean?]{
 
- Similar to @hyperlink["https://docs.racket-lang.org/r6rs/r6rs-lib-std/r6rs-lib-Z-H-4.html?q=for-all#node_idx_204"]{for-all} but generalized to all sequences rather than only lists, this checks if @emph{all} of the sequence values fulfill a provided predicate. @racket[pred] must accept a number of arguments equal to the number of provided sequences @racket[seq]. This is an alias for @racketlink[d:andmap]{andmap}.
+ Similar to @hyperlink["https://docs.racket-lang.org/r6rs/r6rs-lib-std/r6rs-lib-Z-H-4.html#node_idx_204"]{for-all} but generalized to all sequences rather than only lists, this checks if @emph{all} of the sequence values fulfill a provided predicate. @racket[pred] must accept a number of arguments equal to the number of provided sequences @racket[seq]. This is an alias for @racketlink[d:andmap]{andmap}.
 
 @examples[
     #:eval eval-for-docs
     (for-all positive? (list -1 3 0 2 5))
     (for-all positive? (list 1 3 2 2 5))
     (for-all < (list 1 2 3 4 5) (list 2 3 4 5 6))
+  ]
+}
+
+@deftogether[(
+@defproc[(prefix? [fx sequence?]
+                  [seq sequence?]
+                  ...)
+         boolean?]
+@defproc[(starts-with? [fx sequence?]
+                       [seq sequence?]
+                       ...)
+         boolean?]
+@defproc[(suffix? [fx sequence?]
+                  [seq sequence?]
+                  ...)
+         boolean?]
+@defproc[(ends-with? [fx sequence?]
+                     [seq sequence?]
+                     ...)
+         boolean?]
+@defproc[(infix? [fx sequence?]
+                 [seq sequence?]
+                 ...)
+         boolean?]
+@defproc[(contains? [fx sequence?]
+                    [seq sequence?]
+                    ...)
+         boolean?]
+)]{
+
+ @racket[prefix?] / @racket[starts-with?] checks if the sequence @racket[seq] contains @racket[fx] at its head.
+ @racket[suffix?] / @racket[ends-with?] checks if the sequence @racket[seq] contains @racket[fx] at its tail end.
+ @racket[infix?] / @racket[contains?] checks if the sequence @racket[seq] contains @racket[fx].
+
+@examples[
+    #:eval eval-for-docs
+    (prefix? (list 1 3) (list 1 3 0 2 5))
+    (prefix? "ap" "apricot")
+    (suffix? (list 2 5) (list 1 3 0 2 5))
+    (suffix? "cot" "apricot")
+    (infix? (list 3 0) (list 1 3 0 2 5))
+    (infix? "rico" "apricot")
   ]
 }
 
