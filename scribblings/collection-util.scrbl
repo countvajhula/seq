@@ -156,7 +156,7 @@ Whenever a canonical name is used for a well-known interface, the more common na
 @defproc[(find [pred procedure?]
                [seq sequence?]
                ...)
-         sequence?]{
+         any/c]{
 
  Find the first element in @racket[seq] that fulfills @racket[pred]. If no item fulfills the predicate, then the result is @racket[#f].
 
@@ -280,6 +280,38 @@ Whenever a canonical name is used for a well-known interface, the more common na
   ]
 }
 
+@defproc[(find-infix [#:key key (-> comparable? comparable?) #f]
+                     [pred (-> any/c boolean?)]
+                     [nfx sequence?]
+                     [seq sequence?])
+         any/c]{
+
+ Finds the first occurrence of the subsequence @racket[nfx] in @racket[seq] and returns its index, if present, or @racket[#f] otherwise. The infixes are compared using the generic @racketlink[r:=]{@racket[=]} relation, and any provided @racket[key] for comparison is forwarded to it.
+
+@examples[
+    #:eval eval-for-docs
+    (find-infix "fox" "the quick brown fox jumps over the lazy dog")
+    (find-infix (range 3 5) (range 10))
+    (find-infix "fish" "the quick brown fox jumps over the lazy dog")
+  ]
+}
+
+@defproc[(replace-infix [#:key key (-> comparable? comparable?) #f]
+                        [#:how-many how-many exact-nonnegative-integer? #f]
+                        [nfx sequence?]
+                        [new-nfx sequence?]
+                        [seq sequence?])
+         any/c]{
+
+ Replaces the first @racket[how-many] occurrences of the subsequence @racket[nfx] in @racket[seq] with @racket[new-nfx]. The infixes are compared using the generic @racketlink[r:=]{@racket[=]} relation, and any provided @racket[key] for comparison is forwarded to it. If @racket[how-many] is not specified, all occurrences are replaced.
+
+@examples[
+    #:eval eval-for-docs
+    (replace-infix "fox" "bear" "the quick brown fox jumps over the lazy dog")
+    (->list (replace-infix (range 3 5) (range 13 21 2) (range 10)))
+  ]
+}
+
 @subsection{Predicates}
 
 @defproc[(exists [pred (-> any/c boolean?)]
@@ -313,35 +345,35 @@ Whenever a canonical name is used for a well-known interface, the more common na
 }
 
 @deftogether[(
-@defproc[(prefix? [fx sequence?]
+@defproc[(prefix? [nfx sequence?]
                   [seq sequence?]
                   ...)
          boolean?]
-@defproc[(starts-with? [fx sequence?]
+@defproc[(starts-with? [nfx sequence?]
                        [seq sequence?]
                        ...)
          boolean?]
-@defproc[(suffix? [fx sequence?]
+@defproc[(suffix? [nfx sequence?]
                   [seq sequence?]
                   ...)
          boolean?]
-@defproc[(ends-with? [fx sequence?]
+@defproc[(ends-with? [nfx sequence?]
                      [seq sequence?]
                      ...)
          boolean?]
-@defproc[(infix? [fx sequence?]
+@defproc[(infix? [nfx sequence?]
                  [seq sequence?]
                  ...)
          boolean?]
-@defproc[(contains? [fx sequence?]
+@defproc[(contains? [nfx sequence?]
                     [seq sequence?]
                     ...)
          boolean?]
 )]{
 
- @racket[prefix?] / @racket[starts-with?] checks if the sequence @racket[seq] contains @racket[fx] at its head.
- @racket[suffix?] / @racket[ends-with?] checks if the sequence @racket[seq] contains @racket[fx] at its tail end.
- @racket[infix?] / @racket[contains?] checks if the sequence @racket[seq] contains @racket[fx].
+ @racket[prefix?] / @racket[starts-with?] checks if the sequence @racket[seq] contains @racket[nfx] at its head.
+ @racket[suffix?] / @racket[ends-with?] checks if the sequence @racket[seq] contains @racket[nfx] at its tail end.
+ @racket[infix?] / @racket[contains?] checks if the sequence @racket[seq] contains @racket[nfx].
 
 @examples[
     #:eval eval-for-docs

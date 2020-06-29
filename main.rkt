@@ -127,8 +127,7 @@
           [replace-infix (->* (sequence? sequence? sequence?)
                               (#:key (or/c (-> comparable? comparable?)
                                            #f)
-                               #:how-many (and/c integer?
-                                                 (>=/c 0)))
+                               #:how-many exact-nonnegative-integer?)
                               sequence?)]
           [infix? (->* (sequence? sequence?)
                        (#:key (or/c (-> comparable? comparable?)
@@ -143,8 +142,7 @@
                         (#:side (one-of/c 'left
                                           'right
                                           'both)
-                         #:how-many (or/c (and/c integer?
-                                                 (>=/c 0))
+                         #:how-many (or/c exact-nonnegative-integer?
                                           #f))
                         sequence?)]
           [trim (->* (any/c
@@ -154,8 +152,7 @@
                       #:side (one-of/c 'left
                                        'right
                                        'both)
-                      #:how-many (or/c (and/c integer?
-                                              (>=/c 0))
+                      #:how-many (or/c exact-nonnegative-integer?
                                        #f))
                      sequence?)]
           [trim-by (-> exact-nonnegative-integer?
@@ -165,8 +162,7 @@
           [index-of (->* (any/c sequence?)
                          (#:key (or/c (-> comparable? comparable?)
                                       #f))
-                         (or/c (and/c integer?
-                                      (>=/c 0))
+                         (or/c exact-nonnegative-integer?
                                #f))]
           [index (->* (any/c sequence?)
                       (#:key (or/c (-> comparable? comparable?)
@@ -177,14 +173,12 @@
           [remove (->* (any/c sequence?)
                        (#:key (or/c (-> comparable? comparable?)
                                     #f)
-                        #:how-many (or/c (and/c integer?
-                                                (>=/c 0))
+                        #:how-many (or/c exact-nonnegative-integer?
                                          #f))
                        sequence?)]
           [drop-when (->* ((-> any/c boolean?)
                            sequence?)
-                          (#:how-many (or/c (and/c integer?
-                                                   (>=/c 0))
+                          (#:how-many (or/c exact-nonnegative-integer?
                                             #f))
                           sequence?)]
           [add-between (-> any/c
