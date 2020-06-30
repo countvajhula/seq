@@ -19,6 +19,7 @@
                              sequenceof
                              repeat
                              subsequence
+                             subsequence*
                              naturals)]]
 
 @(define eval-for-docs
@@ -409,6 +410,29 @@ Whenever a canonical name is used for a well-known interface, the more common na
     (->string (.. (prefix 2 "apricot") (suffix-at 2 "apricot")))
     (->list (prefix 2 (list "banana" "apple" "apricot" "cherry" "avocado")))
     (->list (suffix 3 (list 1 2 3 4 5 6 7 8 9)))
+  ]
+}
+
+@deftogether[(
+@defproc[(infix [start exact-nonnegative-integer?]
+                [length exact-nonnegative-integer?]
+                [seq sequence?])
+         sequence?]
+@defproc[(infix-at [start exact-nonnegative-integer?]
+                   [end exact-nonnegative-integer?]
+                   [seq sequence?])
+         sequence?]
+)]{
+  @racket[infix] and @racket[infix-at] compose @racket[prefix] and @racket[suffix] to extract subsequences of seq. @racket[infix] expects a @racket[start] index along with the length of the subsequence to extract, while @racket[infix-at] expects @racket[start] and @racket[end] positions identifying the subsequence to be extracted. @racket[infix] is essentially an alias for @racket[subsequence*], while @racket[infix-at] is an alias for @racket[subsequence].
+
+@examples[
+    #:eval eval-for-docs
+    (->string (infix 4 5 "the quick brown fox"))
+    (->string (infix-at 4 9 "the quick brown fox"))
+    (->string (infix 10 5 "the quick brown fox"))
+    (->string (infix-at 10 15 "the quick brown fox"))
+    (->list (infix 64 5 (range 100)))
+    (->list (infix-at 64 69 (range 100)))
   ]
 }
 

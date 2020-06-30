@@ -21,6 +21,8 @@
 (provide take-when
          prefix
          suffix-at
+         infix
+         infix-at
          (contract-out
           [by (-> exact-positive-integer? sequence? sequence?)]
           [exists (->i ([pred (seqs)
@@ -208,6 +210,12 @@
 
 (define (suffix n seq)
   (drop (- (length seq) n) seq))
+
+(define (infix-at start end seq)
+  (subsequence seq start end))
+
+(define (infix start len seq)
+  (subsequence* seq start len))
 
 (define (by cnt seq)
   (if (empty? seq)
