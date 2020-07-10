@@ -512,6 +512,50 @@ Whenever a canonical name is used for a well-known interface, the more common na
   ]
 }
 
+@defproc[(trim-if [pred procedure?]
+                  [seq sequence?]
+                  [#:side side (one-of/c 'left 'right 'both) 'both]
+                  [#:how-many how-many exact-nonnegative-integer? #f])
+         sequence?]{
+
+ Trim elements on one or both sides of @racket[seq] as long as they satisfy @racket[pred], terminating at the first element that does not.
+
+@examples[
+    #:eval eval-for-docs
+    (trim-if negative? (list -1 0 1 2 3 -2 -1))
+    (trim-if char-whitespace? "  \t the quick brown fox\n ")
+  ]
+}
+
+@defproc[(trim [elem any/c]
+               [seq sequence?]
+               [#:side side (one-of/c 'left 'right 'both) 'both]
+               [#:how-many how-many exact-nonnegative-integer? #f])
+         sequence?]{
+
+ Trim occurrences of @racket[elem] (under the equivalence check @racketlink[r:=]{@racket[=]}) on one or both sides of @racket[seq], terminating at the first element that is not @racketlink[r:=]{@racket[=]} to @racket[elem].
+
+@examples[
+    #:eval eval-for-docs
+    (trim -1 (list -1 0 1 2 3 -2 -1))
+    (trim " " "  \t the quick brown fox\n ")
+  ]
+}
+
+@defproc[(trim-by [left exact-nonnegative-integer?]
+                  [right exact-nonnegative-integer?]
+                  [seq sequence?])
+         sequence?]{
+
+ Trim @racket[seq] on the left by @racket[left] elements, and on the right by @racket[right] elements.
+
+@examples[
+    #:eval eval-for-docs
+    (->list (trim-by 1 2 (list -1 0 1 2 3 -2 -1)))
+    (->string (trim-by 4 5 "the quick brown fox\n"))
+  ]
+}
+
 @subsection{Composing}
 
 @deftogether[(
