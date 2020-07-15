@@ -189,6 +189,27 @@ Whenever a canonical name is used for a well-known interface, the more common na
   ]
 }
 
+@deftogether[(
+@defproc[(index-of [#:key key procedure? #f]
+                   [elem any/c]
+                   [seq sequence?])
+         exact-nonnegative-integer?]
+@defproc[(index [#:key key procedure? #f]
+                [elem any/c]
+                [seq sequence?])
+         exact-nonnegative-integer?]
+)]{
+
+ The index of @racket[elem] in @racket[seq], or @racket[#f] if it doesn't exist. If @racket[key] is provided, it is used in the @racketlink[r:=]{@racket[=]} comparison to find @racket[elem]. @racket[index] is an alias of @racket[index-of].
+
+@examples[
+    #:eval eval-for-docs
+    (index-of 3 (list 1 2 3 4 5))
+    (index-of #:key string-upcase "cherry" (list "Apple" "CHERry" "BaNaNa"))
+    (index-of " " "The quick brown fox")
+  ]
+}
+
 @subsection{Infix}
 
 @defproc[(cut-when [pred procedure?]
