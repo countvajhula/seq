@@ -169,6 +169,22 @@ Whenever a canonical name is used for a well-known interface, the more common na
   ]
 }
 
+@defproc[(remove [#:key key procedure? #f]
+                 [#:how-many how-many exact-nonnegative-integer? #f]
+                 [elem any/c]
+                 [seq sequence?])
+         exact-nonnegative-integer?]{
+
+ Remove occurrences of @racket[elem] from @racket[seq]. If @racket[how-many] is not specified, then all occurrences are removed. The @racket[key] argument, if provided, is passed through to the underlying generic equality relation, @racketlink[r:=]{@racket[=]} used to identify occurrences of @racket[elem].
+
+@examples[
+    #:eval eval-for-docs
+    (->list (remove 3 (list 1 2 3 4 5)))
+    (->list (remove #:key string-upcase "cherry" (list "Apple" "CHERry" "BaNaNa")))
+    (->list (remove #:key odd? 1 #:how-many 2 (range 10)))
+    (remove " " "The quick brown fox")
+  ]
+}
 
 @subsection{Index and Length-based}
 
