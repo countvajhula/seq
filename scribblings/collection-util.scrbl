@@ -10,6 +10,8 @@
                                sequence?
                                prefix
                                remove)
+                    (only-in racket
+                             (add-between b:add-between))
                     (prefix-in r: relation)
                     (only-in relation ->list ->string comparable?)
                     collection-util
@@ -101,7 +103,7 @@ While some of the provided sequence utilities have standard names familiar from 
                 @litchar{exists}
                 @litchar{for-all}
                 @litchar{join}
-                @litchar{add-between}
+                @litchar{intersperse}
                 @litchar{wrap-each}
                 @litchar{interleave}
                 @litchar{choose}
@@ -128,6 +130,13 @@ While some of the provided sequence utilities have standard names familiar from 
 
 Whenever a canonical name is used for a well-known interface, the more common name is also usually provided as an alias. Not every interface here corresponds neatly to a naming convention, but in cases where they do, verbs and suffixes have the following meanings:
 
+@subsection{Verbs}
+
+@itemize[
+  @item{@bold{take} and @bold{drop} refer to elements, hence they return a sequence containing the relevant @emph{elements} in the original sequence.}
+  @item{@bold{cut} and @bold{infix} refer to subsequences, hence they either accept or return subsequences of the original sequence conforming to the query. E.g. @racket[find-infix] searches for a @emph{subsequence} in the input, rather than an individual element. @racket[cut-when] returns a sequence of subsequences cut from the original. Most string-related operations are of this kind.}
+]
+
 @subsection{Suffixes}
 
 @itemize[
@@ -141,13 +150,6 @@ Whenever a canonical name is used for a well-known interface, the more common na
   @item{@bold{-with} indicates a function to be used as part of the operation. For instance, @racket[zip-with] "zips" sequences together by using a provided function to combine partnered elements.}
   @item{@bold{-if} indicates a sequence-spanning condition. @racket[trim-if] removes elements at the head and tail of a sequence @emph{if} some condition is met.}
   @item{@bold{-unless} is a sequence-spanning condition, the negation of "-if". E.g. @racket[trim-unless] removes elements at the head and tail of a sequence @emph{unless} some condition is met. Note that in general, "-unless" is avoided in favor of simply using the opposite verbs. For instance, in lieu of @racket[take-unless], there's @racket[drop-when].}
-]
-
-@subsection{Verbs}
-
-@itemize[
-  @item{@bold{take} and @bold{drop} refer to elements, hence they return a sequence containing the relevant @emph{elements} in the original sequence.}
-  @item{@bold{cut} and @bold{infix} refer to subsequences, hence they either accept or return subsequences of the original sequence conforming to the query. E.g. @racket[find-infix] searches for a @emph{subsequence} in the input, rather than an individual element. @racket[cut-when] returns a sequence of subsequences cut from the original. Most string-related operations are of this kind.}
 ]
 
 @section{APIs}
@@ -180,9 +182,9 @@ Whenever a canonical name is used for a well-known interface, the more common na
 @examples[
     #:eval eval-for-docs
     (->list (remove 3 (list 1 2 3 4 5)))
-    (->list (remove #:key string-upcase "cherry" (list "Apple" "CHERry" "BaNaNa")))
-    (->list (remove #:key odd? 1 #:how-many 2 (range 10)))
     (remove " " "The quick brown fox")
+    (->list (remove #:key string-upcase "cherry" (list "Apple" "CHERry" "BaNaNa")))
+    (->list (remove #:key (curryr remainder 3) 1 #:how-many 2 (range 10)))
   ]
 }
 
@@ -602,12 +604,12 @@ Whenever a canonical name is used for a well-known interface, the more common na
 @defproc[(zip-with [op procedure?]
                    [seq sequence?]
                    ...)
-         any/c]
+         (sequenceof any/c)]
 @defproc[(unzip [seq sequence?])
          (sequenceof list?)]
 @defproc[(unzip-with [op procedure?]
                      [seq sequence?])
-         any/c]
+         (sequenceof any/c)]
 )]{
 
  @racket[zip-with] merges the input sequences using the provided operation @racket[op]. Equivalent to Haskell's @hyperlink["http://zvon.org/other/haskell/Outputprelude/zipWith_f.html"]{zipWith}.
@@ -642,6 +644,25 @@ Whenever a canonical name is used for a well-known interface, the more common na
     (->list (choose number? (list 10 "left shoe" 30) (list "right shoe" 15 15) (list "sock" -55 7)))
     (->list (choose positive? (list -1 -2 1 2) (list -5 3 -2) (list 5 2 -1)))
     (->list (choose (curry prefix? "ap") (list "banana" "apple" "apricot") (list "dog" "cat" "ape")))
+  ]
+}
+
+@deftogether[(
+@defproc[(intersperse [elem any/c]
+                      [seq sequence?])
+         sequence?]
+@defproc[(add-between [elem any/c]
+                      [seq sequence?])
+         sequence?]
+)]{
+
+ Similar to @racketlink[b:add-between]{@racket[add-between]}, create a new sequence by adding @racket[elem] between the elements of @racket[seq].
+
+@examples[
+    #:eval eval-for-docs
+    (->list (intersperse 'and '(x y z)))
+    (->list (intersperse 'and '(x)))
+    (->list (intersperse "," '("a" "b" "c" "d")))
   ]
 }
 

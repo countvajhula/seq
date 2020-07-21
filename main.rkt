@@ -183,6 +183,9 @@
                           (#:how-many (or/c exact-nonnegative-integer?
                                             #f))
                           sequence?)]
+          [intersperse (-> any/c
+                           sequence?
+                           sequence?)]
           [add-between (-> any/c
                            sequence?
                            sequence?)]
@@ -616,13 +619,15 @@
                    (curry = #:key key elem)
                    seq))))
 
-(define (add-between sep seq)
+(define (intersperse sep seq)
   (match seq
     [(or (sequence) (sequence _)) seq]
     [(sequence v vs ...)
      (stream-cons v
                   (stream-cons sep
-                               (add-between sep vs)))]))
+                               (intersperse sep vs)))]))
+
+(define add-between intersperse)
 
 (define (wrap-each before after seq)
   (match seq
@@ -635,7 +640,7 @@
                           (wrap-each before after vs))))]))
 
 (define (join-with sep seq)
-  (join (add-between sep seq)))
+  (join (intersperse sep seq)))
 
 (define (weave to from seq)
   (apply .. (wrap-each to from seq)))
