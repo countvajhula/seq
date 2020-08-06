@@ -191,8 +191,7 @@
                            sequence?)]
           [join-with (-> any/c
                          sequence?
-                         (or/c sequence?
-                               procedure?))] ; procedure doesn't implement sequence
+                         any/c)] ; parametrize the type here?
           [wrap-each (-> any/c
                          any/c
                          sequence?

@@ -35,9 +35,10 @@
                                                       index-of
                                                       foldl
                                                       foldl/steps)
-								 		   collection-util
-                                 		   racket/set
-                                 		   racket/stream))))
+                                           collection-util
+                                           racket/set
+                                           racket/math
+                                           racket/stream))))
 
 @title{Collection Utilities}
 @author{Siddhartha Kasivajhula}
@@ -647,6 +648,8 @@ Whenever a canonical name is used for a well-known interface, the more common na
   ]
 }
 
+@;{intersperse has type T,Seq[T] -> Seq[T], while join-with has type T,Seq[T] -> T. These involve composition, in the former case of the members of seq lifted to Seq, and in the latter case, of the members of seq themselves (indirectly, via an endofunctor), but they are not compositions of provided sequences as the preceding interfaces are. May warrant a separate category.}
+
 @deftogether[(
 @defproc[(intersperse [elem any/c]
                       [seq sequence?])
@@ -663,6 +666,26 @@ Whenever a canonical name is used for a well-known interface, the more common na
     (->list (intersperse 'and '(x y z)))
     (->list (intersperse 'and '(x)))
     (->list (intersperse "," '("a" "b" "c" "d")))
+  ]
+}
+
+@defproc[(join-with [elem any/c]
+                    [seq sequence?])
+         any/c]{
+
+ Similar to @racketlink[r:join]{@racket[join]}, but @racketlink[intersperse]{intersperses} @racket[elem] between the elements of @racket[seq] prior to joining them together. The result is of the same type as @racket[elem] and the members of @racket[seq].
+
+@examples[
+    #:eval eval-for-docs
+    (join-with " " (list "hello" "there" "old" "friend"))
+    (display (join-with "\n" (list "Item 1" "Item 2" "Item 3")))
+    (->list (join-with '(0 0) (stream '(1 2 3) '(4 5 6) '(7 8 9))))
+    (join-with 1 (list 1 2 3 4))
+    ((join-with (λ (n)
+                   (displayln n)
+                   n)
+                (list number->string sub1 sqr add1 sqr))
+     3)
   ]
 }
 
