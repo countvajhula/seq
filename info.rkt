@@ -8,9 +8,11 @@
                      "racket-doc"
                      "collections-doc"
                      "rackunit-lib"
+                     "cover"
+                     "cover-coveralls"
                      "sandbox-lib"))
 (define scribblings '(("scribblings/collection-util.scrbl" ())))
-(define compile-omit-paths '("dev" "test.rkt"))
+(define compile-omit-paths '("dev" "test.rkt" "coverage"))
 (define test-include-paths '("test.rkt"))
 (define clean '("compiled" "doc"))
 (define pkg-desc "Useful utilities for collections")
