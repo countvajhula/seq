@@ -13,7 +13,12 @@
                     (only-in racket
                              (add-between b:add-between))
                     (prefix-in r: relation)
-                    (only-in relation ->list ->string comparable?)
+                    (only-in relation
+                             ->list
+                             ->string
+                             ->number
+                             join
+                             comparable?)
                     collection-util
                     (prefix-in d: data/collection)
                     (only-in data/collection
@@ -666,6 +671,22 @@ Whenever a canonical name is used for a well-known interface, the more common na
     (->list (intersperse 'and '(x y z)))
     (->list (intersperse 'and '(x)))
     (->list (intersperse "," '("a" "b" "c" "d")))
+  ]
+}
+
+@defproc[(wrap-each [before any/c]
+                    [after any/c]
+                    [seq sequence?])
+         sequence?]{
+
+ Create a new sequence by wrapping each element of @racket[seq] with @racket[before] and @racket[after].
+
+@examples[
+    #:eval eval-for-docs
+    (->list (wrap-each '< '> '(x y z)))
+    (->list (wrap-each '< '> '(x)))
+    (join-with " " (wrap-each "fresh" "and" '("apples" "bananas" "cherries")))
+    ((join (wrap-each ->string ->number (list add1 sqr))) "3")
   ]
 }
 
