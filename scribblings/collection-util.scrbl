@@ -18,6 +18,8 @@
                              ->string
                              ->number
                              join
+                             onto
+                             ..
                              ^
                              comparable?)
                     collection-util
@@ -83,13 +85,15 @@ While some of the provided sequence utilities have standard names familiar from 
           (list @nonterm{verb}
                 @litchar{take}
                 @litchar{drop}
+                @litchar{prefix}
+                @litchar{suffix}
                 @litchar{cut}
                 @litchar{trim}
                 @litchar{find}
                 @litchar{remove}
                 @litchar{choose}
                 @litchar{index}
-                @litchar{zip})
+                @litchar{zip}
                 @litchar{unzip})
           (list @nonterm{modifier}
                 @litchar{while}
@@ -753,6 +757,23 @@ Whenever a canonical name is used for a well-known interface, the more common na
     (->list (rotate-right 3 (range 1 8)))
     (->string (rotate-left 2 "avocado"))
     (->string (rotate-right 2 "avocado"))
+  ]
+}
+
+@subsection{Defining}
+
+@defproc[(powers [elem any/c] [op (one-of/c .. + *) ..])
+         sequence?]{
+
+ A sequence of all @racketlink[r:power]{powers} of @racket[elem] under the operation @racket[op].
+
+@examples[
+    #:eval eval-for-docs
+    (->list (take 10 (powers 3)))
+    (->list (take 10 (powers 3 *)))
+    (->list (take 4 (powers "abc")))
+    (->list (take 4 (powers '(1 2 3))))
+    (->list (take 10 (onto (powers add1) 0)))
   ]
 }
 

@@ -16,7 +16,10 @@
          (only-in data/collection
                   (index-of d:index-of)
                   (append d:append))
-         relation)
+         (only-in racket/function
+                  curryr)
+         (except-in relation
+                    curryr))
 
 (provide take-when
          prefix
@@ -97,6 +100,9 @@
                             (#:key (or/c (-> comparable? comparable?)
                                          #f))
                             list?)]
+          [powers (->* (any/c)
+                       (procedure?)
+                       sequence?)]
           [suffixes (-> sequence?
                         (sequenceof sequence?))]
           [prefixes (-> sequence?
@@ -643,3 +649,7 @@
 
 (define (weave to from seq)
   (join (wrap-each to from seq)))
+
+(define (powers elem [op ..])
+  (map (curryr (curry power elem) op)
+       (naturals)))
