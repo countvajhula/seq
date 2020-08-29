@@ -18,6 +18,7 @@
                              ->string
                              ->number
                              join
+                             ^
                              comparable?)
                     collection-util
                     (prefix-in d: data/collection)
@@ -54,7 +55,7 @@ Standard and general-purpose collection utilities.
 
 These utilities build on top of the @other-doc['(lib "scribblings/data/collection/collections.scrbl")] foundation to provide a broad range of general-purpose utilities that work on all sequences.
 
-Some of these interfaces are either implementations of or are inspired by the Scheme @hyperlink["https://docs.racket-lang.org/r6rs/r6rs-lib-std/r6rs-lib-Z-H-4.html"]{specifications} for @hyperlink["https://docs.racket-lang.org/srfi/srfi-std/srfi-1.html"]{list utilities}, while others are similar in spirit. Many operations we may desire to perform on sequences stem from simple intuitions, so an attempt has been made to adhere to naming conventions and categories that might map to these intuitions.
+Some of these interfaces are either implementations of or are inspired by the Scheme @hyperlink["https://docs.racket-lang.org/r6rs/r6rs-lib-std/r6rs-lib-Z-H-4.html"]{specifications} for @hyperlink["https://docs.racket-lang.org/srfi/srfi-std/srfi-1.html"]{list utilities}, while others are similar in spirit. An attempt has been made to adhere to intuitive naming conventions and categories to minimize the need to lookup documentation and support the ability to "guess" the name of an unknown function rather than learn these (numerous) names purely through familiarity.
 
 @table-of-contents[]
 
@@ -89,6 +90,7 @@ While some of the provided sequence utilities have standard names familiar from 
                 @litchar{choose}
                 @litchar{index}
                 @litchar{zip})
+                @litchar{unzip})
           (list @nonterm{modifier}
                 @litchar{while}
                 @litchar{until}
@@ -108,8 +110,9 @@ While some of the provided sequence utilities have standard names familiar from 
                 @litchar{by}
                 @litchar{exists}
                 @litchar{for-all}
-                @litchar{join}
+                @litchar{join-with}
                 @litchar{intersperse}
+                @litchar{add-between}
                 @litchar{wrap-each}
                 @litchar{interleave}
                 @litchar{choose}
@@ -707,6 +710,26 @@ Whenever a canonical name is used for a well-known interface, the more common na
                    n)
                 (list number->string sub1 sqr add1 sqr))
      3)
+  ]
+}
+
+@defproc[(weave [before any/c]
+                [after any/c]
+                [seq sequence?])
+         sequence?]{
+
+ Similar to @racketlink[r:join]{@racket[join]}, but @racketlink[wrap-each]{wraps} each element of @racket[seq] with @racket[to] and @racket[from] prior to joining them together. The result is of the same type as @racket[to], @racket[from], and the members of @racket[seq].
+
+@examples[
+    #:eval eval-for-docs
+    ((weave ->string
+            ->number
+            (list add1
+                  ((^ 2) add1)
+                  ((^ 3) add1)))
+     "7")
+    (weave "fresh " " and " '("apples" "bananas" "cherries"))
+    ((weave ->string ->number (list add1 sqr)) "3")
   ]
 }
 

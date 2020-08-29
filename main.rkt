@@ -642,4 +642,4 @@
   (join (intersperse sep seq)))
 
 (define (weave to from seq)
-  (apply .. (wrap-each to from seq)))
+  (join (wrap-each to from seq)))
