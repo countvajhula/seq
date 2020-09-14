@@ -10,6 +10,7 @@
                      "rackunit-lib"
                      "cover"
                      "cover-coveralls"
+                     "relation"
                      "sandbox-lib"))
 (define scribblings '(("scribblings/collection-util.scrbl" ())))
 (define compile-omit-paths '("dev" "test.rkt" "coverage"))

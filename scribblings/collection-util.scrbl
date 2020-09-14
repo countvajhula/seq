@@ -762,6 +762,21 @@ Whenever a canonical name is used for a well-known interface, the more common na
 
 @subsection{Defining}
 
+Sequences that aren't derived from other sequences but defined from primitive elements.
+
+@defproc[(multiples [elem any/c] [n natural-number/c 0])
+         sequence?]{
+
+ A sequence of all multiples of @racket[elem] starting at the @racket[n]'th one.
+
+@examples[
+    #:eval eval-for-docs
+    (->list (take 10 (multiples 3)))
+    (->list (take 10 (multiples 3 1)))
+    (->list (take 10 (map add1 (multiples 3))))
+  ]
+}
+
 @defproc[(powers [elem any/c] [op (one-of/c .. + *) ..])
          sequence?]{
 
@@ -774,6 +789,8 @@ Whenever a canonical name is used for a well-known interface, the more common na
     (->list (take 4 (powers "abc")))
     (->list (take 4 (powers '(1 2 3))))
     (->list (take 10 (onto (powers add1) 0)))
+    (define (double x) (* 2 x))
+    (->list (take 10 (onto (powers double) 2)))
   ]
 }
 
