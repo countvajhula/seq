@@ -21,13 +21,18 @@
                              onto
                              ..
                              ^
+                             flip
+                             flip*
                              comparable?)
                     collection-util
                     (prefix-in d: data/collection)
                     (only-in data/collection
+                             conj
+                             conj*
                              sequence?
                              sequenceof
                              repeat
+                             cycle
                              subsequence
                              subsequence*
                              naturals)]]
@@ -135,7 +140,9 @@ While some of the provided sequence utilities have standard names familiar from 
                 @litchar{infixes}
                 @litchar{weave}
                 @litchar{rotate-left}
-                @litchar{rotate-right})
+                @litchar{rotate-right}
+                @litchar{multiples}
+                @litchar{powers})
           (list @nonterm{args}
                 @elem{any parameters for the operation to be performed})
           (list @nonterm{noun}
@@ -621,7 +628,30 @@ Extract a subsequence.
 
 @subsection{Defining}
 
-Construct new sequences from primitive elements and other sequences. Not to be confused with @seclink["Composing" #:doc '(lib "collection-util/scribblings/collection-util.scrbl")]{composing sequences}.
+Construct new sequences from primitive elements and other sequences. Not to be confused with @seclink["Composing" #:doc '(lib "collection-util/scribblings/collection-util.scrbl")]{composing} sequences.
+
+@deftogether[(
+ @defproc[(: [elem any/c] [seq sequence?])
+          sequence?]
+ @defproc[(:* [elem any/c] ... [seq sequence?])
+          sequence?]
+)]{
+ Elementary sequence constructors that construct a new sequence from primitive elements @racket[elem] and an existing sequence @racket[seq]. The constructed sequence is of the same type as @racket[seq].
+
+@racket[:] is equivalent to @racket[(flip conj)], and @racket[:*] is equivalent to @racket[(flip* conj*)].
+
+@;{do we need :*? can use a case lambda on number of arguments and just use : unambiguously}
+
+@examples[
+    #:eval eval-for-docs
+    (: 4 null)
+    (: 4 (list 1 2 3))
+    (: 4 #(1 2 3))
+    (: '(c . 3) (hash 'a 1 'b 2))
+    (:* 1 2 3 4 null)
+    (:* 1 2 3 (list 4 5 6))
+  ]
+}
 
 @defproc[(multiples [elem any/c] [n natural-number/c 0])
          sequence?]{
@@ -732,7 +762,7 @@ Construct new sequences from primitive elements and other sequences. Not to be c
 
 @subsection{Composing}
 
-Compose new sequences from given sequences. Not to be confused with @seclink["Defining" #:doc '(lib "collection-util/scribblings/collection-util.scrbl")]{defining sequences}.
+Compose new sequences from given sequences. Not to be confused with @seclink["Defining" #:doc '(lib "collection-util/scribblings/collection-util.scrbl")]{defining} sequences.
 
 @deftogether[(
 @defproc[(zip [seq sequence?]
@@ -766,6 +796,21 @@ Compose new sequences from given sequences. Not to be confused with @seclink["De
                       (range 1 5)
                       (range 5 9)))
     (->list (unzip (zip (list 'a 'b 'c) (list 1 2 3))))
+  ]
+}
+
+@defproc[(interleave [seq sequence?]
+                     ...)
+         sequence?]{
+
+ Lazily form a sequence by taking elements one at a time, in turn, from each of the input sequences, stopping at the first input sequence that runs out of elements.
+
+@examples[
+    #:eval eval-for-docs
+    (->list (interleave (list 1 2 3) (list 4 5 6) (list 7 8 9)))
+    (->list (interleave (list 'a 'b 'c) (list 1 2)))
+    (->list (take 10 (interleave (naturals 1) (cycle (list 'A 'B)))))
+    (->list (interleave (naturals 1) (list 'P 'Q 'R 'S 'T) (cycle (list 'a 'b))))
   ]
 }
 
@@ -811,7 +856,7 @@ Rearrange the elements of sequences.
 
 @subsection{Derived}
 
-@;{consider combining with "permuting", and possibly "index- and length-based", and these could be listed at the top as they are more elementary.}
+@;{consider combining with "permuting", and these could be listed at the top as they are more elementary.}
 
 Derive sequences from an existing sequence.
 
@@ -823,7 +868,6 @@ Derive sequences from an existing sequence.
 @examples[
     #:eval eval-for-docs
     (->list (suffixes (list 1 2 3 4 5)))
-    (->list (map ->string (suffixes "hello")))
     (->list (map ->string (suffixes "echo")))
     (define (fibs)
       (stream-cons 1
@@ -840,8 +884,7 @@ Derive sequences from an existing sequence.
 
 @examples[
     #:eval eval-for-docs
-    (->list (map ->string (prefixes "hello")))
-    (->list (map ->string (prefixes "echo")))
+    (->list (map ->string (prefixes "wild west")))
     (->list (take 5 (map ->list (prefixes (naturals)))))
   ]
 }
