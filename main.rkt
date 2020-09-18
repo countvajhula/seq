@@ -206,11 +206,18 @@
                      (or/c sequence?
                            procedure?))] ; procedure doesn't implement sequence
           [interleave (-> sequence? sequence? ... sequence?)]
-          [: (any/c collection? . -> . collection?)]
-          [:* (any/c any/c ... collection? . -> . collection?)]))
+          [: (case->
+              (any/c any/c . -> . (or/c collection? pair?))
+              (any/c #:rest list? . -> . (or/c collection? pair?)))]))
 
-(define : (flip conj))
-(define :* (flip* conj*))
+(define :
+  (case-lambda
+    [(elem col)
+     (if (collection? col)
+         (conj col elem)
+         (cons elem col))]
+    [args
+     (apply conj* (reverse args))]))
 
 (define take-when filter)
 

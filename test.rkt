@@ -20,6 +20,12 @@
     (test-suite
      "Tests for collection utilities"
 
+     (check-equal? (: 3 null) '(3))
+     (check-equal? (: 3 4) '(3 . 4))
+     (check-equal? (: 3 (list 1 2)) '(3 1 2))
+     (check-equal? (: 3 #(1 2)) #(1 2 3))
+     (check-equal? (: '(a . 1) '(d . 4) (hash 'b 2 'c 3)) (hash 'a 1 'b 2 'c 3 'd 4))
+     (check-equal? (: 1 2 3 (list 4 5 6)) '(1 2 3 4 5 6))
      (check-equal? (->list (by 3 (list 1 2 3 4 5 6 7 8))) '(1 4 7))
      (check-equal? (->list (by 3 (list 1 2 3 4))) '(1 4))
      (check-equal? (->list (by 3 (list 1 2 3))) '(1))
