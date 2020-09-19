@@ -175,43 +175,6 @@ Whenever a canonical name is used for a well-known interface, the more common na
 
 @section{APIs}
 
-@subsection{Specific Element}
-
-Refer to and reason in terms of specific elements contained in sequences.
-
-@defproc[(find [pred procedure?]
-               [seq sequence?]
-               ...)
-         any/c]{
-
- Find the first element in @racket[seq] that satisfies @racket[pred]. If no item satisfies the predicate, then the result is @racket[#f]. If more than one sequence is provided, @racket[pred] must accept as many arguments as there are sequences, and the result is a list of the first elements that satisfy it.
-
-@examples[
-    #:eval eval-for-docs
-    (find number? (list "cherry" 'banana 10 30))
-    (find positive? (list -1 -2 -1 2 3))
-    (find (curry prefix? "ap") (list "banana" "apple" "apricot"))
-    (find > (list -1 -2 -1 2 3) (list -1 3 1 0 1))
-  ]
-}
-
-@defproc[(remove [#:key key procedure? #f]
-                 [#:how-many how-many exact-nonnegative-integer? #f]
-                 [elem any/c]
-                 [seq sequence?])
-         exact-nonnegative-integer?]{
-
- Remove occurrences of @racket[elem] from @racket[seq]. If @racket[how-many] is not specified, then all occurrences are removed. The @racket[key] argument, if provided, is passed through to the underlying generic equality relation, @racketlink[r:=]{@racket[=]} used to identify occurrences of @racket[elem].
-
-@examples[
-    #:eval eval-for-docs
-    (->list (remove 3 (list 1 2 3 4 5)))
-    (remove " " "The quick brown fox")
-    (->list (remove #:key string-upcase "cherry" (list "Apple" "CHERry" "BaNaNa")))
-    (->list (remove #:key (curryr remainder 3) 1 #:how-many 2 (range 10)))
-  ]
-}
-
 @subsection{Index and Length-based}
 
 Reason in terms of gestalt properties of sequences, such as index and length, as opposed to their contents.
@@ -254,205 +217,40 @@ Reason in terms of gestalt properties of sequences, such as index and length, as
   ]
 }
 
-@subsection{Infix}
+@subsection{Specific Element}
 
-Refer to and reason in terms of contiguous subsequences, or "infixes."
+Refer to and reason in terms of specific elements contained in sequences.
 
-@defproc[(cut-when [pred procedure?]
-                   [seq sequence?])
-         sequence?]{
-
- Cut a subsequence from @racket[seq] at each point where @racket[pred] is satisfied.
-
-@examples[
-    #:eval eval-for-docs
-    (->list (cut-when (curry = #\space) "hello there old friend"))
-    (->list (map ->list (cut-when negative? (list -1 4 1 -3 2 -5 3 7))))
-  ]
-}
-
-@defproc[(cut [elem any/c]
-              [seq sequence?]
-			  [#:key key procedure? #f]
-			  [#:trim? trim? boolean? #f])
-         sequence?]{
-
- Similar to @racket[string-split] but generalized to work on any sequence, this cuts a subsequence from @racket[seq] at each point where @racket[elem] is encountered, excluding @racket[elem]. In the special case where the input sequence is a string, @racket[elem] may be either a @tech/reference{character} or a string representing a character. In some contexts this operation is called "tokenization." The @racket[key] argument, if provided, is passed through to the underlying generic equality relation, @racketlink[r:=]{@racket[=]}.
-
-@examples[
-    #:eval eval-for-docs
-    (->list (cut " " "hello there old friend"))
-    (->list (map ->list (cut 1 (list -1 4 1 -3 2 -5 1 3 7))))
-  ]
-}
-
-@defproc[(cut-at [pos exact-nonnegative-integer?]
-                 [seq sequence?])
-         (values sequence? sequence?)]{
-
- Cut @racket[seq] at the index @racket[pos], resulting in a pair of subsequences.
-
-@examples[
-    #:eval eval-for-docs
-	(define-values (before after) (cut-at 11 "hello there old friend"))
-    (->list (map ->string (list before after)))
-	(define-values (before after) (cut-at 3 (list -1 4 1 -3 2 -5 3 7)))
-    (->list (map ->list (list before after)))
-  ]
-}
-
-@defproc[(cut-where [pred (-> any/c boolean?)]
-                    [seq sequence?])
-         (values sequence? sequence?)]{
-
- Cut @racket[seq] at the (first) point where @racket[pred] returns true, resulting in a pair of subsequences.
-
-@examples[
-    #:eval eval-for-docs
-	(define-values (before after) (cut-where char-whitespace? "hello there old friend"))
-    (->list (map ->string (list before after)))
-	(define-values (before after) (cut-where positive? (list -2 -1 0 1 2 3 4)))
-    (->list (map ->list (list before after)))
-  ]
-}
-
-@defproc[(cut-by [n (-> any/c boolean?)]
-                 [seq sequence?])
-         (values sequence? sequence?)]{
-
- Cut @racket[seq] into subsequences of length @racket[n].
-
-@examples[
-    #:eval eval-for-docs
-	(->list (map ->string (cut-by 5 "hello there old friend")))
-	(->list (cut-by 3 (list -2 4 1 -3 2 -5 3 7)))
-  ]
-}
-
-@defproc[(cut-with [pred (-> any/c boolean?)]
-                   [seq sequence?])
-         (values sequence? sequence?)]{
-
- Similar to @racket[partition], use a predicate @racket[pred] to cut @racket[seq] into two subsequences, one containing those elements for which @racket[pred] holds, and the other containing those elements of @racket[seq] for which @racket[pred] fails.
-
-@examples[
-    #:eval eval-for-docs
-    (define-values (yes no)
-                   (cut-with (curry prefix? "ap")
-                             (list "banana" "apple" "apricot" "cherry")))
-    (->list (map ->list (list yes no)))
-	(define-values (yes no)
-                   (cut-with positive?
-                             (list -2 4 1 -3 2 -5 3 7)))
-    (->list (map ->list (list yes no)))
-  ]
-}
-
-@defproc[(find-infix [#:key key (-> comparable? comparable?) #f]
-                     [pred (-> any/c boolean?)]
-                     [nfx sequence?]
-                     [seq sequence?])
+@defproc[(find [pred procedure?]
+               [seq sequence?]
+               ...)
          any/c]{
 
- Finds the first occurrence of the subsequence @racket[nfx] in @racket[seq] and returns its index, if present, or @racket[#f] otherwise. The infixes are compared using the generic @racketlink[r:=]{@racket[=]} relation, and any provided @racket[key] for comparison is forwarded to it.
+ Find the first element in @racket[seq] that satisfies @racket[pred]. If no item satisfies the predicate, then the result is @racket[#f]. If more than one sequence is provided, @racket[pred] must accept as many arguments as there are sequences, and the result is a list of the first elements that satisfy it.
 
 @examples[
     #:eval eval-for-docs
-    (find-infix "fox" "the quick brown fox jumps over the lazy dog")
-    (find-infix (range 3 5) (range 10))
-    (find-infix "fish" "the quick brown fox jumps over the lazy dog")
+    (find number? (list "cherry" 'banana 10 30))
+    (find positive? (list -1 -2 -1 2 3))
+    (find (curry prefix? "ap") (list "banana" "apple" "apricot"))
+    (find > (list -1 -2 -1 2 3) (list -1 3 1 0 1))
   ]
 }
 
-@defproc[(replace-infix [#:key key (-> comparable? comparable?) #f]
-                        [#:how-many how-many exact-nonnegative-integer? #f]
-                        [nfx sequence?]
-                        [new-nfx sequence?]
-                        [seq sequence?])
-         any/c]{
+@defproc[(remove [#:key key procedure? #f]
+                 [#:how-many how-many exact-nonnegative-integer? #f]
+                 [elem any/c]
+                 [seq sequence?])
+         exact-nonnegative-integer?]{
 
- Replaces the first @racket[how-many] occurrences of the subsequence @racket[nfx] in @racket[seq] with @racket[new-nfx]. The infixes are compared using the generic @racketlink[r:=]{@racket[=]} relation, and any provided @racket[key] for comparison is forwarded to it. If @racket[how-many] is not specified, all occurrences are replaced.
-
-@examples[
-    #:eval eval-for-docs
-    (replace-infix "fox" "bear" "the quick brown fox jumps over the lazy dog")
-    (->list (replace-infix (range 3 5) (range 13 21 2) (range 10)))
-  ]
-}
-
-@subsection{Predicates}
-
-Assert or deny properties of sequences.
-
-@defproc[(exists [pred (-> any/c boolean?)]
-                 [seq sequence?]
-                 ...)
-         boolean?]{
-
- Similar to @hyperlink["https://docs.racket-lang.org/r6rs/r6rs-lib-std/r6rs-lib-Z-H-4.html#node_idx_206"]{exists} but generalized to all sequences rather than only lists, this checks if @emph{any} of the sequence values fulfill a provided predicate. @racket[pred] must accept a number of arguments equal to the number of provided sequences @racket[seq]. This is an alias for @racketlink[d:ormap]{ormap}.
+ Remove occurrences of @racket[elem] from @racket[seq]. If @racket[how-many] is not specified, then all occurrences are removed. The @racket[key] argument, if provided, is passed through to the underlying generic equality relation, @racketlink[r:=]{@racket[=]} used to identify occurrences of @racket[elem].
 
 @examples[
     #:eval eval-for-docs
-    (exists positive? (list -1 -3 0 -2 -5))
-    (exists positive? (list -1 -3 0 2 -5))
-    (exists < (list 1 2 3 4 5) (list 1 0 2 2 7))
-  ]
-}
-
-@defproc[(for-all [pred (-> any/c boolean?)]
-                  [seq sequence?]
-                  ...)
-         boolean?]{
-
- Similar to @hyperlink["https://docs.racket-lang.org/r6rs/r6rs-lib-std/r6rs-lib-Z-H-4.html#node_idx_204"]{for-all} but generalized to all sequences rather than only lists, this checks if @emph{all} of the sequence values fulfill a provided predicate. @racket[pred] must accept a number of arguments equal to the number of provided sequences @racket[seq]. This is an alias for @racketlink[d:andmap]{andmap}.
-
-@examples[
-    #:eval eval-for-docs
-    (for-all positive? (list -1 3 0 2 5))
-    (for-all positive? (list 1 3 2 2 5))
-    (for-all < (list 1 2 3 4 5) (list 2 3 4 5 6))
-  ]
-}
-
-@deftogether[(
-@defproc[(prefix? [nfx sequence?]
-                  [seq sequence?]
-                  ...)
-         boolean?]
-@defproc[(starts-with? [nfx sequence?]
-                       [seq sequence?]
-                       ...)
-         boolean?]
-@defproc[(suffix? [nfx sequence?]
-                  [seq sequence?]
-                  ...)
-         boolean?]
-@defproc[(ends-with? [nfx sequence?]
-                     [seq sequence?]
-                     ...)
-         boolean?]
-@defproc[(infix? [nfx sequence?]
-                 [seq sequence?]
-                 ...)
-         boolean?]
-@defproc[(contains? [nfx sequence?]
-                    [seq sequence?]
-                    ...)
-         boolean?]
-)]{
-
- @racket[prefix?] / @racket[starts-with?] checks if the sequence @racket[seq] contains @racket[nfx] at its head.
- @racket[suffix?] / @racket[ends-with?] checks if the sequence @racket[seq] contains @racket[nfx] at its tail end.
- @racket[infix?] / @racket[contains?] checks if the sequence @racket[seq] contains @racket[nfx].
-
-@examples[
-    #:eval eval-for-docs
-    (prefix? (list 1 3) (list 1 3 0 2 5))
-    (prefix? "ap" "apricot")
-    (suffix? (list 2 5) (list 1 3 0 2 5))
-    (suffix? "cot" "apricot")
-    (infix? (list 3 0) (list 1 3 0 2 5))
-    (infix? "rico" "apricot")
+    (->list (remove 3 (list 1 2 3 4 5)))
+    (remove " " "The quick brown fox")
+    (->list (remove #:key string-upcase "cherry" (list "Apple" "CHERry" "BaNaNa")))
+    (->list (remove #:key (curryr remainder 3) 1 #:how-many 2 (range 10)))
   ]
 }
 
@@ -624,6 +422,252 @@ Extract a subsequence.
     #:eval eval-for-docs
     (->list (trim-by 1 2 (list -1 0 1 2 3 -2 -1)))
     (->string (trim-by 4 5 "the quick brown fox\n"))
+  ]
+}
+
+@subsection{Infixes}
+
+Refer to and reason in terms of contiguous subsequences, or "infixes."
+
+@defproc[(cut-when [pred procedure?]
+                   [seq sequence?])
+         sequence?]{
+
+ Cut a subsequence from @racket[seq] at each point where @racket[pred] is satisfied.
+
+@examples[
+    #:eval eval-for-docs
+    (->list (cut-when (curry = #\space) "hello there old friend"))
+    (->list (map ->list (cut-when negative? (list -1 4 1 -3 2 -5 3 7))))
+  ]
+}
+
+@defproc[(cut [elem any/c]
+              [seq sequence?]
+			  [#:key key procedure? #f]
+			  [#:trim? trim? boolean? #f])
+         sequence?]{
+
+ Similar to @racket[string-split] but generalized to work on any sequence, this cuts a subsequence from @racket[seq] at each point where @racket[elem] is encountered, excluding @racket[elem]. In the special case where the input sequence is a string, @racket[elem] may be either a @tech/reference{character} or a string representing a character. In some contexts this operation is called "tokenization." The @racket[key] argument, if provided, is passed through to the underlying generic equality relation, @racketlink[r:=]{@racket[=]}.
+
+@examples[
+    #:eval eval-for-docs
+    (->list (cut " " "hello there old friend"))
+    (->list (map ->list (cut 1 (list -1 4 1 -3 2 -5 1 3 7))))
+  ]
+}
+
+@defproc[(cut-at [pos exact-nonnegative-integer?]
+                 [seq sequence?])
+         (values sequence? sequence?)]{
+
+ Cut @racket[seq] at the index @racket[pos], resulting in a pair of subsequences.
+
+@examples[
+    #:eval eval-for-docs
+	(define-values (before after) (cut-at 11 "hello there old friend"))
+    (->list (map ->string (list before after)))
+	(define-values (before after) (cut-at 3 (list -1 4 1 -3 2 -5 3 7)))
+    (->list (map ->list (list before after)))
+  ]
+}
+
+@defproc[(cut-where [pred (-> any/c boolean?)]
+                    [seq sequence?])
+         (values sequence? sequence?)]{
+
+ Cut @racket[seq] at the (first) point where @racket[pred] returns true, resulting in a pair of subsequences.
+
+@examples[
+    #:eval eval-for-docs
+	(define-values (before after) (cut-where char-whitespace? "hello there old friend"))
+    (->list (map ->string (list before after)))
+	(define-values (before after) (cut-where positive? (list -2 -1 0 1 2 3 4)))
+    (->list (map ->list (list before after)))
+  ]
+}
+
+@defproc[(cut-by [n (-> any/c boolean?)]
+                 [seq sequence?])
+         (values sequence? sequence?)]{
+
+ Cut @racket[seq] into subsequences of length @racket[n].
+
+@examples[
+    #:eval eval-for-docs
+	(->list (map ->string (cut-by 5 "hello there old friend")))
+	(->list (cut-by 3 (list -2 4 1 -3 2 -5 3 7)))
+  ]
+}
+
+@defproc[(cut-with [pred (-> any/c boolean?)]
+                   [seq sequence?])
+         (values sequence? sequence?)]{
+
+ Similar to @racket[partition], use a predicate @racket[pred] to cut @racket[seq] into two subsequences, one containing those elements for which @racket[pred] holds, and the other containing those elements of @racket[seq] for which @racket[pred] fails.
+
+@examples[
+    #:eval eval-for-docs
+    (define-values (yes no)
+                   (cut-with (curry prefix? "ap")
+                             (list "banana" "apple" "apricot" "cherry")))
+    (->list (map ->list (list yes no)))
+	(define-values (yes no)
+                   (cut-with positive?
+                             (list -2 4 1 -3 2 -5 3 7)))
+    (->list (map ->list (list yes no)))
+  ]
+}
+
+@defproc[(find-infix [#:key key (-> comparable? comparable?) #f]
+                     [nfx sequence?]
+                     [seq sequence?])
+         any/c]{
+
+ Finds the first occurrence of the subsequence @racket[nfx] in @racket[seq] and returns its index, if present, or @racket[#f] otherwise. The infixes are compared using the generic @racketlink[r:=]{@racket[=]} relation, and any provided @racket[key] for comparison is forwarded to it.
+
+@examples[
+    #:eval eval-for-docs
+    (find-infix "fox" "the quick brown fox jumps over the lazy dog")
+    (find-infix (range 3 5) (range 10))
+    (find-infix "fish" "the quick brown fox jumps over the lazy dog")
+  ]
+}
+
+@defproc[(replace-infix [#:key key (-> comparable? comparable?) #f]
+                        [#:how-many how-many exact-nonnegative-integer? #f]
+                        [nfx sequence?]
+                        [new-nfx sequence?]
+                        [seq sequence?])
+         any/c]{
+
+ Replaces the first @racket[how-many] occurrences of the subsequence @racket[nfx] in @racket[seq] with @racket[new-nfx]. The infixes are compared using the generic @racketlink[r:=]{@racket[=]} relation, and any provided @racket[key] for comparison is forwarded to it. If @racket[how-many] is not specified, all occurrences are replaced.
+
+@examples[
+    #:eval eval-for-docs
+    (replace-infix "fox" "bear" "the quick brown fox jumps over the lazy dog")
+    (->list (replace-infix (range 3 5) (range 13 21 2) (range 10)))
+  ]
+}
+
+@subsection{Variations}
+
+Derive sequences from an existing sequence.
+
+@defproc[(suffixes [seq sequence?])
+         sequence?]{
+
+ A sequence of all suffixes or "tails" of @racket[seq].
+
+@examples[
+    #:eval eval-for-docs
+    (->list (suffixes (list 1 2 3 4 5)))
+    (->list (map ->string (suffixes "echo")))
+    (define (fibs)
+      (stream-cons 1
+        (stream-cons 1
+          (apply zip-with + (take 2 (suffixes (fibs)))))))
+    (->list (take 10 (fibs)))
+  ]
+}
+
+@defproc[(prefixes [seq sequence?])
+         sequence?]{
+
+ A sequence of all prefixes of @racket[seq].
+
+@examples[
+    #:eval eval-for-docs
+    (->list (map ->string (prefixes "wild west")))
+    (->list (take 5 (map ->list (prefixes (naturals)))))
+  ]
+}
+
+@defproc[(infixes [len exact-positive-integer?] [seq sequence?])
+         sequence?]{
+
+ A sequence of all infixes of @racket[seq] of length @racket[len].
+
+@examples[
+    #:eval eval-for-docs
+    (->list (map ->string (infixes 4 "avocado")))
+    (->list (take 5 (map ->list (infixes 3 (naturals)))))
+  ]
+}
+
+@subsection{Predicates}
+
+Assert or deny properties of sequences.
+
+@defproc[(exists [pred (-> any/c boolean?)]
+                 [seq sequence?]
+                 ...)
+         boolean?]{
+
+ Similar to @hyperlink["https://docs.racket-lang.org/r6rs/r6rs-lib-std/r6rs-lib-Z-H-4.html#node_idx_206"]{exists} but generalized to all sequences rather than only lists, this checks if @emph{any} of the sequence values fulfill a provided predicate. @racket[pred] must accept a number of arguments equal to the number of provided sequences @racket[seq]. This is an alias for @racketlink[d:ormap]{ormap}.
+
+@examples[
+    #:eval eval-for-docs
+    (exists positive? (list -1 -3 0 -2 -5))
+    (exists positive? (list -1 -3 0 2 -5))
+    (exists < (list 1 2 3 4 5) (list 1 0 2 2 7))
+  ]
+}
+
+@defproc[(for-all [pred (-> any/c boolean?)]
+                  [seq sequence?]
+                  ...)
+         boolean?]{
+
+ Similar to @hyperlink["https://docs.racket-lang.org/r6rs/r6rs-lib-std/r6rs-lib-Z-H-4.html#node_idx_204"]{for-all} but generalized to all sequences rather than only lists, this checks if @emph{all} of the sequence values fulfill a provided predicate. @racket[pred] must accept a number of arguments equal to the number of provided sequences @racket[seq]. This is an alias for @racketlink[d:andmap]{andmap}.
+
+@examples[
+    #:eval eval-for-docs
+    (for-all positive? (list -1 3 0 2 5))
+    (for-all positive? (list 1 3 2 2 5))
+    (for-all < (list 1 2 3 4 5) (list 2 3 4 5 6))
+  ]
+}
+
+@deftogether[(
+@defproc[(prefix? [nfx sequence?]
+                  [seq sequence?]
+                  ...)
+         boolean?]
+@defproc[(starts-with? [nfx sequence?]
+                       [seq sequence?]
+                       ...)
+         boolean?]
+@defproc[(suffix? [nfx sequence?]
+                  [seq sequence?]
+                  ...)
+         boolean?]
+@defproc[(ends-with? [nfx sequence?]
+                     [seq sequence?]
+                     ...)
+         boolean?]
+@defproc[(infix? [nfx sequence?]
+                 [seq sequence?]
+                 ...)
+         boolean?]
+@defproc[(contains? [nfx sequence?]
+                    [seq sequence?]
+                    ...)
+         boolean?]
+)]{
+
+ @racket[prefix?] / @racket[starts-with?] checks if the sequence @racket[seq] contains @racket[nfx] at its head.
+ @racket[suffix?] / @racket[ends-with?] checks if the sequence @racket[seq] contains @racket[nfx] at its tail end.
+ @racket[infix?] / @racket[contains?] checks if the sequence @racket[seq] contains @racket[nfx].
+
+@examples[
+    #:eval eval-for-docs
+    (prefix? (list 1 3) (list 1 3 0 2 5))
+    (prefix? "ap" "apricot")
+    (suffix? (list 2 5) (list 1 3 0 2 5))
+    (suffix? "cot" "apricot")
+    (infix? (list 3 0) (list 1 3 0 2 5))
+    (infix? "rico" "apricot")
   ]
 }
 
@@ -829,52 +873,5 @@ Rearrange the elements of sequences.
     (->list (rotate-right 3 (range 1 8)))
     (->string (rotate-left 2 "avocado"))
     (->string (rotate-right 2 "avocado"))
-  ]
-}
-
-@subsection{Derived}
-
-@;{consider combining with "permuting", and these could be listed at the top as they are more elementary.}
-
-Derive sequences from an existing sequence.
-
-@defproc[(suffixes [seq sequence?])
-         sequence?]{
-
- A sequence of all suffixes or "tails" of @racket[seq].
-
-@examples[
-    #:eval eval-for-docs
-    (->list (suffixes (list 1 2 3 4 5)))
-    (->list (map ->string (suffixes "echo")))
-    (define (fibs)
-      (stream-cons 1
-        (stream-cons 1
-          (apply zip-with + (take 2 (suffixes (fibs)))))))
-    (->list (take 10 (fibs)))
-  ]
-}
-
-@defproc[(prefixes [seq sequence?])
-         sequence?]{
-
- A sequence of all prefixes of @racket[seq].
-
-@examples[
-    #:eval eval-for-docs
-    (->list (map ->string (prefixes "wild west")))
-    (->list (take 5 (map ->list (prefixes (naturals)))))
-  ]
-}
-
-@defproc[(infixes [len exact-positive-integer?] [seq sequence?])
-         sequence?]{
-
- A sequence of all infixes of @racket[seq] of length @racket[len].
-
-@examples[
-    #:eval eval-for-docs
-    (->list (map ->string (infixes 4 "avocado")))
-    (->list (take 5 (map ->list (infixes 3 (naturals)))))
   ]
 }
