@@ -631,24 +631,6 @@ Extract a subsequence.
 
 Construct new sequences from primitive elements and other sequences. Not to be confused with @seclink["Composing" #:doc '(lib "collection-util/scribblings/collection-util.scrbl")]{composing} sequences.
 
-@defproc[(: [elem any/c] ... [col collection?])
-          collection?]{
- An elementary collection constructor resembling @racket[cons], this constructs a new collection from any number of primitive elements @racket[elem] and an existing collection @racket[col]. The constructed collection is of the same type as @racket[col].
-
-@racket[:] is equivalent to @racket[(flip conj)] when two arguments are provided, and to @racket[(flip* conj*)] when multiple arguments are provided. In the special case where two arguments are provided and neither is a collection, @racket[:] is an alias for @racket[cons].
-
-@examples[
-    #:eval eval-for-docs
-    (: 4 null)
-    (: 1 2)
-    (: 4 (list 1 2 3))
-    (: 4 #(1 2 3))
-    (: '(c . 3) (hash 'a 1 'b 2))
-    (: 1 2 3 4 null)
-    (: 1 2 3 (list 4 5 6))
-  ]
-}
-
 @defproc[(multiples [elem any/c] [n natural-number/c 0])
          sequence?]{
 

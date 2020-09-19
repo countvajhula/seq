@@ -205,19 +205,7 @@
           [weave (-> any/c any/c sequence?
                      (or/c sequence?
                            procedure?))] ; procedure doesn't implement sequence
-          [interleave (-> sequence? sequence? ... sequence?)]
-          [: (case->
-              (any/c any/c . -> . (or/c collection? pair?))
-              (any/c #:rest list? . -> . (or/c collection? pair?)))]))
-
-(define :
-  (case-lambda
-    [(elem col)
-     (if (collection? col)
-         (conj col elem)
-         (cons elem col))]
-    [args
-     (apply conj* (reverse args))]))
+          [interleave (-> sequence? sequence? ... sequence?)]))
 
 (define take-when filter)
 
