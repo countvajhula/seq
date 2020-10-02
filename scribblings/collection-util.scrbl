@@ -7,6 +7,7 @@
          @for-label[(except-in racket
                                add-between
                                index-of
+							   index-where
                                sequence?
                                prefix
                                remove)
@@ -23,6 +24,7 @@
                              ^
                              flip
                              flip*
+							 power
                              comparable?)
                     collection-util
                     (prefix-in d: data/collection)
@@ -47,6 +49,7 @@
                                            (except-in data/collection
                                                       append
                                                       index-of
+													  index-where
                                                       foldl
                                                       foldl/steps)
                                            collection-util
@@ -156,6 +159,7 @@ Whenever a canonical name is used for a well-known interface, the more common na
 @itemize[
   @item{@bold{take} and @bold{drop} refer to elements, hence they return a sequence containing the relevant @emph{elements} in the original sequence.}
   @item{@bold{cut} and @bold{infix} refer to subsequences, hence they either accept or return subsequences of the original sequence conforming to the query. E.g. @racket[find-infix] searches for a @emph{subsequence} in the input, rather than an individual element. @racket[cut-when] returns a sequence of subsequences cut from the original. Most string-related operations are of this kind.}
+  @item{@bold{find} and @bold{remove} without additional qualification operate on individual elements.}
 ]
 
 @subsection{Suffixes}
@@ -214,6 +218,34 @@ Reason in terms of gestalt properties of sequences, such as index and length, as
     (index-of 3 (list 1 2 3 4 5))
     (index-of #:key string-upcase "cherry" (list "Apple" "CHERry" "BaNaNa"))
     (index-of " " "The quick brown fox")
+  ]
+}
+
+@defproc[(index-where [pred procedure?]
+                      [seq sequence?]
+					  ...)
+         sequence?]{
+
+ The first index where @racket[pred] is true. The predicate @racket[pred] must accept as many arguments as the number of input sequences @racket[seq].
+
+@examples[
+    #:eval eval-for-docs
+	(index-where positive? (list -3 -2 -1 0 1 2 3))
+	(index-where > (list 1 2 3 4) (list 2 3 1 4))
+  ]
+}
+
+@defproc[(remove-at [pos natural-number/c]
+                    [seq sequence?])
+         sequence?]{
+
+ Remove the element at index @racket[pos] from @racket[seq].
+
+@examples[
+    #:eval eval-for-docs
+    (->list (remove-at 3 (list 1 2 3 4 5)))
+    (->string (remove-at 3 "The quick brown fox"))
+    (->list (remove-at 1 (list "apple" "cherry" "banana")))
   ]
 }
 
@@ -702,6 +734,21 @@ Construct new sequences from primitive elements and other sequences. Not to be c
     (->list (take 10 (onto (powers add1) 0)))
     (define (double x) (* 2 x))
     (->list (take 10 (onto (powers double) 2)))
+  ]
+}
+
+@defproc[(iterate [f procedure?] [elem any/c])
+         sequence?]{
+
+ A sequence obtained by repeated application of @racket[f], starting with the seed value @racket[elem].
+
+@examples[
+    #:eval eval-for-docs
+    (->list (take 10 (iterate add1 3)))
+    (->list (take 10 (iterate (power add1 2) 3)))
+    (->list (take 5 (iterate sqr 2)))
+    (define (double x) (* 2 x))
+    (->list (take 10 (iterate double 2)))
   ]
 }
 

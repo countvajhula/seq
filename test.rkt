@@ -4,13 +4,15 @@
          rackunit/text-ui
          racket/stream
          racket/set
+         racket/math
          (only-in racket/function
                   thunk)
          (except-in data/collection
                     foldl
                     foldl/steps
                     append
-                    index-of)
+                    index-of
+                    index-where)
          relation
          collection-util)
 
@@ -265,6 +267,8 @@
      (check-equal? (->list (take 4 (powers 3 *))) '(1 3 9 27))
      (check-equal? (->list (take 4 (powers "abc"))) (list "" "abc" "abcabc" "abcabcabc"))
      (check-equal? (->list (take 4 (powers '(1 2 3)))) (list '() '(1 2 3) '(1 2 3 1 2 3) '(1 2 3 1 2 3 1 2 3)))
+     (check-equal? (->list (take 4 (iterate add1 3))) '(3 4 5 6))
+     (check-equal? (->list (take 4 (iterate sqr 2))) '(2 4 16 256))
      (check-equal? (->list (zip-with list (list 1 2 3) (list 1 2 3))) '((1 1) (2 2) (3 3)))
      (check-equal? (->list (zip-with list (list 1 2 3) (list 1 2 3) (list 1 2 3))) '((1 1 1) (2 2 2) (3 3 3)))
      (check-equal? (->list (zip-with list (list 1 2 3))) '((1) (2) (3)))
@@ -297,6 +301,19 @@
      (check-equal? (index-of 2 (stream 1 2 2 1)) 1)
      (check-equal? (index-of #:key even? 2 (list 1 4 2 3 6)) 1)
      (check-equal? (index-of #:key string-upcase "BANANA" (list "apple" "banana" "cherry")) 1)
+     (check-equal? (index-where positive? (list -1 0 1 2)) 2)
+     (check-equal? (index-where positive? (list 1 2)) 0)
+     (check-equal? (index-where positive? (list -1 2)) 1)
+     (check-equal? (index-where positive? (list -1)) #f)
+     (check-equal? (index-where positive? (list 1)) 0)
+     (check-equal? (index-where positive? (list -1 0 -1 -2)) #f)
+     (check-equal? (index-where positive? (list)) #f)
+     (check-equal? (index-where > (list 1 2 3 4) (list 1 3 2 3)) 2)
+     (check-equal? (index-where > (list 1 2) (list 1 3 2 3)) #f)
+     (check-equal? (index-where > (list 1 2 3 4) (list 1 2)) #f)
+     (check-equal? (index-where > (list 1 4) (list 1 3 2 3)) 1)
+     (check-equal? (index-where > (list 1 3 2 4) (list 1 2)) 1)
+     (check-equal? (index-where > null null) #f)
      (check-equal? (->list (remove 2 (list 2))) '())
      (check-equal? (->list (remove 2 (list 2 1))) (list 1))
      (check-equal? (->list (remove 2 (list 1 2))) (list 1))
@@ -310,6 +327,10 @@
      (check-equal? (remove "BANANA" (generic-set #:key string-upcase "apple" "banana" "cherry")) (generic-set #:key string-upcase "apple" "cherry"))
      (check-equal? (remove "a" "aaahai athaerea") "hi there")
      (check-equal? (remove #\a "aaahai athaerea") "hi there")
+     (check-equal? (->list (remove-at 0 (list 1 2 3))) (list 2 3))
+     (check-equal? (->list (remove-at 1 (list 1 2 3))) (list 1 3))
+     (check-equal? (->list (remove-at 2 (list 1 2 3))) (list 1 2))
+     (check-exn exn:fail:contract? (thunk (remove-at 3 (list 1 2 3))))
      (check-equal? (->list (drop-when odd? (list 2))) (list 2))
      (check-equal? (->list (drop-when even? (list 2))) '())
      (check-equal? (->list (drop-when even? (list 2 1))) (list 1))

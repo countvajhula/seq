@@ -12,9 +12,11 @@
                     foldl
                     foldl/steps
                     append
-                    index-of)
+                    index-of
+                    index-where)
          (only-in data/collection
                   (index-of d:index-of)
+                  (index-where d:index-where)
                   (append d:append))
          relation)
 
@@ -23,6 +25,7 @@
          suffix-at
          infix
          infix-at
+         index-where
          (contract-out
           [by (-> exact-positive-integer? sequence? sequence?)]
           [exists (->i ([pred (seqs)
@@ -102,6 +105,9 @@
                           sequence?)]
           [powers (->* (any/c)
                        (procedure?)
+                       sequence?)]
+          [iterate (-> procedure?
+                       any/c
                        sequence?)]
           [suffixes (-> sequence?
                         (sequenceof sequence?))]
@@ -184,6 +190,7 @@
                         #:how-many (or/c exact-nonnegative-integer?
                                          #f))
                        sequence?)]
+          [remove-at (-> natural-number/c sequence? sequence?)]
           [drop-when (->* ((-> any/c boolean?)
                            sequence?)
                           (#:how-many (or/c exact-nonnegative-integer?
@@ -269,6 +276,16 @@
           (if (singleton? result)
               (join result)
               result)))))
+
+(define (index-where pred . seqs)
+  (let loop ([seq (apply zip seqs)]
+             [idx 0])
+    (match seq
+      [(sequence) #f]
+      [(sequence v vs ...)
+       (if (apply pred v)
+           idx
+           (loop vs (add1 idx)))])))
 
 (define (choose pred . seqs)
   (map (curry find pred) seqs))
@@ -608,6 +625,10 @@
         (->string result)
         result)))
 
+(define (remove-at pos seq)
+  (.. (take pos seq)
+      (drop (add1 pos) seq)))
+
 (define (remove #:key [key #f]
                 #:how-many [how-many #f]
                 elem
@@ -641,11 +662,11 @@
            (stream-append wrapped-v
                           (wrap-each before after vs))))]))
 
-(define (join-with sep seq)
-  (join (intersperse sep seq)))
+(define join-with
+  (.. join intersperse))
 
-(define (weave to from seq)
-  (join (wrap-each to from seq)))
+(define weave
+  (.. join wrap-each))
 
 (define (multiples elem [n 0])
   (map (curry * elem) (naturals n)))
@@ -653,3 +674,6 @@
 (define (powers elem [op ..])
   (map (curryr (curry power elem) op)
        (naturals)))
+
+(define (iterate op elem)
+  (onto (powers op) elem))
