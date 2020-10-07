@@ -97,6 +97,8 @@
           [rotate-right (-> exact-nonnegative-integer?
                             sequence?
                             sequence?)]
+          [rotations (-> sequence?
+                         (sequenceof sequence?))]
           [deduplicate (->* (sequence?)
                             (#:key (or/c (-> comparable? comparable?)
                                          #f))
@@ -373,22 +375,34 @@
           (drop-when pred seq)))
 
 (define (rotate-left n seq)
-  (with-handlers ([exn:fail:contract?
-                   (λ (exn)
-                     (set! n (remainder n (length seq)))
-                     (append (drop n seq)
-                             (take n seq)))])
-    ;; attempt it lazily first; only rotate modulo length
-    ;; if it fails, since computing length is not lazy
-    (append (drop n seq)
-            (take n seq))))
+  (if (empty? seq)
+      seq
+      (with-handlers ([exn:fail:contract?
+                       (λ (exn)
+                         (set! n (remainder n (length seq)))
+                         (d:append (drop n seq)
+                                   (take n seq)))])
+        ;; attempt it lazily first; only rotate modulo length
+        ;; if it fails, since computing length is not lazy
+        (d:append (drop n seq)
+                  (take n seq)))))
 
 (define (rotate-right n seq)
   ;; this operation must compute sequence length and so it isn't lazy
-  (let* ([len (length seq)]
-         [n (remainder n len)])
-    (append (drop (- len n) seq)
-            (take (- len n) seq))))
+  (if (empty? seq)
+      seq
+      (let* ([len (length seq)]
+             [n (remainder n len)])
+        (d:append (drop (- len n) seq)
+                  (take (- len n) seq)))))
+
+(define (rotations seq)
+  ;; adapted from a comment on:
+  ;; https://stackoverflow.com/a/43507769/323874
+  (zip-with (arg 0)
+            (iterate (curry rotate-left 1)
+                     seq)
+            seq))
 
 (define (deduplicate seq #:key [key #f])
   (->list

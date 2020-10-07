@@ -923,8 +923,12 @@ Rearrange the elements of sequences.
 @defproc[(rotate-right [n exact-nonnegative-integer?]
                        [seq sequence?])
          sequence?]
+@defproc[(rotations [seq sequence?])
+         (sequenceof sequence?)]
 )]{
- Derive a new sequence by shifting the elements of @racket[seq] to the left or to the right, wrapping around the tail of the list.
+ Derive a new sequence by shifting the elements of @racket[seq] to the left or to the right, wrapping around the tail of the list. @racket[rotate-left] eagerly processes @racket[n] elements of @racket[seq] and otherwise lazily evaluates the result, while @racket[rotate-right] processes the entire list and therefore is @emph{not} lazy.
+
+ @racket[rotations] yields all distinct rotations of @racket[seq].
 
 @examples[
     #:eval eval-for-docs
@@ -934,5 +938,7 @@ Rearrange the elements of sequences.
     (->list (rotate-right 3 (range 1 8)))
     (->string (rotate-left 2 "avocado"))
     (->string (rotate-right 2 "avocado"))
+	(->list (map ->list (rotations '(1 2 3))))
+	(->list (map ->string (rotations "cherry")))
   ]
 }
