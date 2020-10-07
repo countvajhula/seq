@@ -682,4 +682,4 @@
        (naturals)))
 
 (define (iterate op elem)
-  (onto (powers op) elem))
+  (unfold (sequencer values op) elem))
