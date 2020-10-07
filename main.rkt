@@ -91,12 +91,17 @@
           [cut-with (-> (-> any/c boolean?)
                         sequence?
                         (values sequence? sequence?))]
+          [truncate (-> sequence?
+                        sequence?
+                        sequence?)]
           [rotate-left (-> exact-nonnegative-integer?
                            sequence?
                            sequence?)]
           [rotate-right (-> exact-nonnegative-integer?
                             sequence?
                             sequence?)]
+          [rotate (-> sequence?
+                      sequence?)]
           [rotations (-> sequence?
                          (sequenceof sequence?))]
           [deduplicate (->* (sequence?)
@@ -387,6 +392,8 @@
         (d:append (drop n seq)
                   (take n seq)))))
 
+(define rotate (curry rotate-left 1))
+
 (define (rotate-right n seq)
   ;; this operation must compute sequence length and so it isn't lazy
   (if (empty? seq)
@@ -396,12 +403,13 @@
         (d:append (drop (- len n) seq)
                   (take (- len n) seq)))))
 
+(define (truncate seq ref-seq)
+  (zip-with (arg 0) seq ref-seq))
+
 (define (rotations seq)
   ;; adapted from a comment on:
   ;; https://stackoverflow.com/a/43507769/323874
-  (zip-with (arg 0)
-            (iterate (curry rotate-left 1)
-                     seq)
+  (truncate (iterate rotate seq)
             seq))
 
 (define (deduplicate seq #:key [key #f])

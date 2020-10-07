@@ -9,6 +9,7 @@
                                index-of
 							   index-where
                                sequence?
+							   truncate
 							   init
                                prefix
                                remove)
@@ -23,6 +24,7 @@
                              onto
                              ..
                              ^
+							 arg
                              flip
                              flip*
 							 power
@@ -307,6 +309,21 @@ Reason in terms of gestalt properties of sequences, such as index and length, as
     (->list (remove-at 3 (list 1 2 3 4 5)))
     (->string (remove-at 3 "The quick brown fox"))
     (->list (remove-at 1 (list "apple" "cherry" "banana")))
+  ]
+}
+
+@defproc[(truncate [seq sequence?]
+                   [ref-seq sequence?])
+         sequence?]{
+
+ Truncate @racket[seq] so that its length does not exceed that of @racket[ref-seq]. Equivalent to @racket[(zip-with (arg 0))].
+
+@examples[
+    #:eval eval-for-docs
+	(->string (truncate "I wandered lonely as a cloud." "Max. tweet length."))
+	(->string (truncate "Nevermore." "Max. tweet length."))
+	(->list (truncate (repeat "apple") "apple"))
+	(->string (truncate (drop 2 (cycle "apple")) "apple"))
   ]
 }
 
@@ -923,10 +940,14 @@ Rearrange the elements of sequences.
 @defproc[(rotate-right [n exact-nonnegative-integer?]
                        [seq sequence?])
          sequence?]
+@defproc[(rotate [seq sequence?])
+         sequence?]
 @defproc[(rotations [seq sequence?])
          (sequenceof sequence?)]
 )]{
  Derive a new sequence by shifting the elements of @racket[seq] to the left or to the right, wrapping around the tail of the list. @racket[rotate-left] eagerly processes @racket[n] elements of @racket[seq] and otherwise lazily evaluates the result, while @racket[rotate-right] processes the entire list and therefore is @emph{not} lazy.
+
+ @racket[rotate] is equivalent to @racket[(curry rotate-left 1)].
 
  @racket[rotations] yields all distinct rotations of @racket[seq].
 
@@ -938,7 +959,10 @@ Rearrange the elements of sequences.
     (->list (rotate-right 3 (range 1 8)))
     (->string (rotate-left 2 "avocado"))
     (->string (rotate-right 2 "avocado"))
+    (->string (rotate "avocado"))
+    (->string ((power rotate 3) "avocado"))
 	(->list (map ->list (rotations '(1 2 3))))
 	(->list (map ->string (rotations "cherry")))
+	(->list (map ->string (truncate (iterate rotate "cherry") "cherry")))
   ]
 }
