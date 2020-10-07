@@ -9,6 +9,7 @@
                                index-of
 							   index-where
                                sequence?
+							   init
                                prefix
                                remove)
                     (only-in racket
@@ -200,6 +201,66 @@ Reason in terms of gestalt properties of sequences, such as index and length, as
   ]
 }
 
+@defproc[(init [seq sequence?])
+         sequence?]{
+
+ The opposite of @racket[rest], this produces a sequence containing all of the elements of @racket[seq] @emph{except} the last one. Like @racket[rest], this sequence is lazily generated.
+
+@examples[
+    #:eval eval-for-docs
+    (->list (init (list 1 2 3)))
+    (->string (init "apple"))
+    (->list (take 5 (init (naturals))))
+  ]
+}
+
+@deftogether[(
+@defproc[(prefix [n exact-nonnegative-integer?]
+                 [seq sequence?])
+         sequence?]
+@defproc[(suffix [n exact-nonnegative-integer?]
+                 [seq sequence?])
+         sequence?]
+@defproc[(suffix-at [n exact-nonnegative-integer?]
+                    [seq sequence?])
+         sequence?]
+)]{
+  @racket[prefix] returns the first @racket[n] elements of @racket[seq], i.e. a prefix of length @racket[n]; it is an alias for @racket[take]. @racket[suffix] analogously returns the last @racket[n] elements of @racket[seq], i.e. a suffix of length @racket[n]. @racket[suffix-at] is an alias for @racket[drop], returning the suffix at the @emph{index} @racket[n].
+
+@examples[
+    #:eval eval-for-docs
+    (->string (prefix 2 "apricot"))
+    (->string (suffix 2 "apricot"))
+    (->string (suffix-at 2 "apricot"))
+    (->string (.. (prefix 2 "apricot") (suffix-at 2 "apricot")))
+    (->list (prefix 2 (list "banana" "apple" "apricot" "cherry" "avocado")))
+    (->list (suffix 3 (list 1 2 3 4 5 6 7 8 9)))
+  ]
+}
+
+@deftogether[(
+@defproc[(infix [start exact-nonnegative-integer?]
+                [length exact-nonnegative-integer?]
+                [seq sequence?])
+         sequence?]
+@defproc[(infix-at [start exact-nonnegative-integer?]
+                   [end exact-nonnegative-integer?]
+                   [seq sequence?])
+         sequence?]
+)]{
+  @racket[infix] and @racket[infix-at] compose @racket[prefix] and @racket[suffix] to extract subsequences of seq. @racket[infix] expects a @racket[start] index along with the length of the subsequence to extract, while @racket[infix-at] expects @racket[start] and @racket[end] positions identifying the subsequence to be extracted. @racket[infix] is essentially an alias for @racket[subsequence*], while @racket[infix-at] is an alias for @racket[subsequence].
+
+@examples[
+    #:eval eval-for-docs
+    (->string (infix 4 5 "the quick brown fox"))
+    (->string (infix-at 4 9 "the quick brown fox"))
+    (->string (infix 10 5 "the quick brown fox"))
+    (->string (infix-at 10 15 "the quick brown fox"))
+    (->list (infix 64 5 (range 100)))
+    (->list (infix-at 64 69 (range 100)))
+  ]
+}
+
 @deftogether[(
 @defproc[(index-of [#:key key procedure? #f]
                    [elem any/c]
@@ -289,53 +350,6 @@ Refer to and reason in terms of specific elements contained in sequences.
 @subsection{Filtering}
 
 Extract a subsequence.
-
-@deftogether[(
-@defproc[(prefix [n exact-nonnegative-integer?]
-                 [seq sequence?])
-         sequence?]
-@defproc[(suffix [n exact-nonnegative-integer?]
-                 [seq sequence?])
-         sequence?]
-@defproc[(suffix-at [n exact-nonnegative-integer?]
-                    [seq sequence?])
-         sequence?]
-)]{
-  @racket[prefix] returns the first @racket[n] elements of @racket[seq], i.e. a prefix of length @racket[n]; it is an alias for @racket[take]. @racket[suffix] analogously returns the last @racket[n] elements of @racket[seq], i.e. a suffix of length @racket[n]. @racket[suffix-at] is an alias for @racket[drop], returning the suffix at the @emph{index} @racket[n].
-
-@examples[
-    #:eval eval-for-docs
-    (->string (prefix 2 "apricot"))
-    (->string (suffix 2 "apricot"))
-    (->string (suffix-at 2 "apricot"))
-    (->string (.. (prefix 2 "apricot") (suffix-at 2 "apricot")))
-    (->list (prefix 2 (list "banana" "apple" "apricot" "cherry" "avocado")))
-    (->list (suffix 3 (list 1 2 3 4 5 6 7 8 9)))
-  ]
-}
-
-@deftogether[(
-@defproc[(infix [start exact-nonnegative-integer?]
-                [length exact-nonnegative-integer?]
-                [seq sequence?])
-         sequence?]
-@defproc[(infix-at [start exact-nonnegative-integer?]
-                   [end exact-nonnegative-integer?]
-                   [seq sequence?])
-         sequence?]
-)]{
-  @racket[infix] and @racket[infix-at] compose @racket[prefix] and @racket[suffix] to extract subsequences of seq. @racket[infix] expects a @racket[start] index along with the length of the subsequence to extract, while @racket[infix-at] expects @racket[start] and @racket[end] positions identifying the subsequence to be extracted. @racket[infix] is essentially an alias for @racket[subsequence*], while @racket[infix-at] is an alias for @racket[subsequence].
-
-@examples[
-    #:eval eval-for-docs
-    (->string (infix 4 5 "the quick brown fox"))
-    (->string (infix-at 4 9 "the quick brown fox"))
-    (->string (infix 10 5 "the quick brown fox"))
-    (->string (infix-at 10 15 "the quick brown fox"))
-    (->list (infix 64 5 (range 100)))
-    (->list (infix-at 64 69 (range 100)))
-  ]
-}
 
 @deftogether[(
 @defproc[(take-when [pred procedure?]

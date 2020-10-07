@@ -28,6 +28,7 @@
          index-where
          (contract-out
           [by (-> exact-positive-integer? sequence? sequence?)]
+          [init (-> (and/c sequence? (not/c empty?)) sequence?)]
           [exists (->i ([pred (seqs)
                               (and/c (procedure-arity-includes/c (b:length seqs))
                                      (unconstrained-domain-> boolean?))])
@@ -219,6 +220,11 @@
 (define prefix take)
 
 (define suffix-at drop)
+
+(define (init seq)
+  (match seq
+    [(sequence v) empty-stream]
+    [(sequence v vs ...) (stream-cons v (init vs))]))
 
 (define (suffix n seq)
   (drop (- (length seq) n) seq))
