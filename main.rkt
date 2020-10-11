@@ -277,8 +277,7 @@
   ;; instead of traversing to compute the length
   (if (empty? seq)
       #f
-      (with-handlers ([exn:fail? (λ (exn) #t)])
-        (and (second seq) #f))))
+      (empty? (rest seq))))
 
 (define (find pred . seqs)
   (let ([vs (take-when (curry apply pred)
@@ -287,7 +286,7 @@
         #f
         (let ([result (first vs)])
           (if (singleton? result)
-              (join result)
+              (join result) ; collapse list for single input sequence
               result)))))
 
 (define (index-where pred . seqs)
