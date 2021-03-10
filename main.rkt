@@ -16,7 +16,6 @@
                     index-where)
          (only-in data/collection
                   (index-of d:index-of)
-                  (index-where d:index-where)
                   (append d:append))
          relation)
 
@@ -25,7 +24,6 @@
          suffix-at
          infix
          infix-at
-         index-where
          (contract-out
           [by (-> exact-positive-integer? sequence? sequence?)]
           [init (-> (and/c sequence? (not/c empty?)) sequence?)]
@@ -51,6 +49,11 @@
                                    (unconstrained-domain-> boolean?))])
                      #:rest [seqs (listof (sequenceof any/c))]
                      [result any/c])]
+          [index-where (->i ([pred (seqs)
+                                   (and/c (procedure-arity-includes/c (b:length seqs))
+                                          (unconstrained-domain-> boolean?))])
+                            #:rest [seqs (listof (sequenceof any/c))]
+                            [result any/c])]
           [choose (-> (-> any/c boolean?)
                       sequence?
                       ...
@@ -275,9 +278,8 @@
 (define (singleton? seq)
   ;; cheap check to see if a list is of length 1,
   ;; instead of traversing to compute the length
-  (if (empty? seq)
-      #f
-      (empty? (rest seq))))
+  (and (not (empty? seq))
+       (empty? (rest seq))))
 
 (define (find pred . seqs)
   (let ([vs (take-when (curry apply pred)
