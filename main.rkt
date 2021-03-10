@@ -505,7 +505,7 @@
     (if (and (~remain? how-many)
              found-index)
         (.. (take found-index seq)
-            new-subseq
+            (->stream new-subseq)
             (~replace-infix #:key key
                             orig-subseq
                             new-subseq
