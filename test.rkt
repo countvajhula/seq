@@ -14,7 +14,7 @@
                     index-of
                     index-where)
          relation
-         collection-util)
+         seq)
 
 (module+ test
 

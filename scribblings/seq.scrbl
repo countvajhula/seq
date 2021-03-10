@@ -29,7 +29,7 @@
                              flip*
 							 power
                              comparable?)
-                    collection-util
+                    seq
                     (prefix-in d: data/collection)
                     (only-in data/collection
                              conj
@@ -55,19 +55,19 @@
 													  index-where
                                                       foldl
                                                       foldl/steps)
-                                           collection-util
+                                           seq
                                            racket/set
                                            racket/math
                                            racket/stream))))
 
-@title{Collection Utilities}
+@title{Seq: A Sequence Library}
 @author{Siddhartha Kasivajhula}
 
-@defmodule[collection-util]
+@defmodule[seq]
 
-Standard and general-purpose collection utilities.
+Standard and general-purpose sequence utilities.
 
-These utilities build on top of the @other-doc['(lib "scribblings/data/collection/collections.scrbl")] foundation to provide a broad range of general-purpose utilities that work on all sequences.
+This library builds on top of the @other-doc['(lib "scribblings/data/collection/collections.scrbl")] foundation to provide a broad range of general-purpose utilities that work on all sequences.
 
 Some of these interfaces are either implementations of or are inspired by the Scheme @hyperlink["https://docs.racket-lang.org/r6rs/r6rs-lib-std/r6rs-lib-Z-H-4.html"]{specifications} for @hyperlink["https://docs.racket-lang.org/srfi/srfi-std/srfi-1.html"]{list utilities}, while others are similar in spirit. An attempt has been made to adhere to intuitive naming conventions and categories to minimize the need to lookup documentation and support the ability to "guess" the name of an unknown function rather than learn these (numerous) names purely through familiarity.
 
@@ -77,7 +77,7 @@ Some of these interfaces are either implementations of or are inspired by the Sc
 
 These naming conventions are intended to minimize the need to look up documentation while working with sequences.
 
-While some of the provided sequence utilities have standard names familiar from string or list contexts, others take their name from the Scheme specification or are borrowed from other functional languages such as Haskell. When the utilities don't take their name from one of these sources, they instead have a "canonical" name that is approximately expressed as:
+While some of the provided sequence utilities have standard names familiar from string or list contexts, others take their name from the Scheme specification or are borrowed from other functional languages such as Haskell. When the utilities don't take their name from one of these sources, they instead have a "prescriptive" name that is approximately expressed as:
 
 @(let ([open @litchar{(}]
        [close @litchar{)}]
@@ -155,7 +155,7 @@ While some of the provided sequence utilities have standard names familiar from 
           (list @nonterm{noun}
                 @elem{@litchar{sequence?}})])
 
-Whenever a canonical name is used for a well-known interface, the more common name is also usually provided as an alias. Not every interface here corresponds neatly to a naming convention, but in cases where they do, verbs and suffixes have the following meanings:
+Whenever a prescriptive name is used for a well-known interface, the more common name is also usually provided as an alias. Not every interface here corresponds neatly to a naming convention, but in cases where they do, verbs and suffixes have the following meanings:
 
 @subsection{Verbs}
 
@@ -736,7 +736,7 @@ Assert or deny properties of sequences.
 
 @subsection{Defining}
 
-Construct new sequences from primitive elements and other sequences. Not to be confused with @seclink["Composing" #:doc '(lib "collection-util/scribblings/collection-util.scrbl")]{composing} sequences.
+Construct new sequences from primitive elements and other sequences. Not to be confused with @seclink["Composing" #:doc '(lib "seq/scribblings/seq.scrbl")]{composing} sequences.
 
 @defproc[(multiples [elem any/c] [n natural-number/c 0])
          sequence?]{
@@ -862,7 +862,7 @@ Construct new sequences from primitive elements and other sequences. Not to be c
 
 @subsection{Composing}
 
-Compose new sequences from given sequences. Not to be confused with @seclink["Defining" #:doc '(lib "collection-util/scribblings/collection-util.scrbl")]{defining} sequences.
+Compose new sequences from given sequences. Not to be confused with @seclink["Defining" #:doc '(lib "seq/scribblings/seq.scrbl")]{defining} sequences.
 
 @deftogether[(
 @defproc[(zip [seq sequence?]

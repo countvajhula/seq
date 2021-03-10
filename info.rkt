@@ -1,5 +1,5 @@
 #lang info
-(define collection "collection-util")
+(define collection "seq")
 (define deps '("base"
                "collections-lib"
                "relation"))
@@ -12,7 +12,7 @@
                      "cover-coveralls"
                      "relation"
                      "sandbox-lib"))
-(define scribblings '(("scribblings/collection-util.scrbl" ())))
+(define scribblings '(("scribblings/seq.scrbl" ())))
 (define compile-omit-paths '("dev" "test.rkt" "coverage"))
 (define test-include-paths '("test.rkt"))
 (define clean '("compiled" "doc"))
