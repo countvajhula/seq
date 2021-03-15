@@ -1,3 +1,9 @@
+.. image:: https://travis-ci.com/countvajhula/seq.svg?branch=main
+    :target: https://travis-ci.com/countvajhula/seq
+
+.. image:: https://coveralls.io/repos/github/countvajhula/seq/badge.svg?branch=main
+    :target: https://coveralls.io/github/countvajhula/seq?branch=main
+
 seq
 ===
 A sequence library for Racket.
