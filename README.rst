@@ -6,7 +6,7 @@
 
 seq
 ===
-A sequence library for Racket.
+A generic sequence library for Racket exhibiting functional and lazy semantics.
 
 "License":
 ==========

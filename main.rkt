@@ -15,8 +15,8 @@
                     index-of
                     index-where)
          (only-in data/collection
-                  (index-of d:index-of)
-                  (append d:append))
+                  [index-of d:index-of]
+                  [append d:append])
          relation)
 
 (provide take-when

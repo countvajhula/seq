@@ -16,6 +16,6 @@
 (define compile-omit-paths '("dev" "test.rkt" "coverage"))
 (define test-include-paths '("test.rkt"))
 (define clean '("compiled" "doc"))
-(define pkg-desc "Useful utilities for collections")
+(define pkg-desc "A generic sequence library exhibiting functional and lazy semantics.")
 (define version "0.0")
 (define pkg-authors '(countvajhula))
