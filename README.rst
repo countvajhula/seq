@@ -1,5 +1,5 @@
-.. image:: https://travis-ci.com/countvajhula/seq.svg?branch=main
-    :target: https://travis-ci.com/countvajhula/seq
+.. image:: https://github.com/countvajhula/seq/actions/workflows/test.yml/badge.svg
+    :target: https://github.com/countvajhula/seq/actions/workflows/test.yml
 
 .. image:: https://coveralls.io/repos/github/countvajhula/seq/badge.svg?branch=main
     :target: https://coveralls.io/github/countvajhula/seq?branch=main
