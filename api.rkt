@@ -16,14 +16,12 @@
  suffix-at
  infix
  infix-at
- exists
- for-all
  init
  zip-with
  zip
- (rename-out [p:unzip-with unzip-with]
-             [p:unzip unzip]
-             [p:find find]
+ unzip-with
+ unzip
+ (rename-out [p:find find]
              [p:index-where index-where]
              [p:choose choose]
              [p:suffix suffix]
@@ -70,7 +68,9 @@
              [p:join-with join-with]
              [p:wrap-each wrap-each]
              [p:weave weave]
-             [p:interleave interleave]))
+             [p:interleave interleave]
+             [p:exists exists]
+             [p:for-all for-all]))
 
 (define-syntax-parser annotate
   [(_ intf)
@@ -117,6 +117,25 @@
          (let ([result (apply intf seqs)])
            (if (known-finite? seq)
                (finite-sequence result)
+               result))))]
+  [(_ intf (~datum AOS))
+   #'(lambda/arguments args
+       (let* ([pos-args (arguments-positional args)]
+              [arg (first pos-args)]
+              [seqs (second pos-args)]
+              [seq (and (not (empty? seqs)) (first seqs))])
+         (let ([result (intf arg seqs)])
+           (if (known-finite? seq)
+               (finite-sequence result)
+               result))))]
+  [(_ intf (~datum OS))
+   #'(lambda/arguments args
+       (let* ([pos-args (arguments-positional args)]
+              [seqs (first pos-args)]
+              [seq (and (not (empty? seqs)) (first seqs))])
+         (let ([result (intf seqs)])
+           (if (known-finite? seq)
+               (finite-sequence result)
                result))))])
 
 (define/arguments (range args)
@@ -135,12 +154,12 @@
 
 (define infix (annotate p:infix AAO))
 
-(define exists (annotate p:exists A-OS))
-
-(define for-all (annotate p:for-all A-OS))
-
 (define init (annotate p:init))
 
 (define zip-with (annotate p:zip-with A-OS))
 
 (define zip (annotate p:zip -OS))
+
+(define unzip-with (annotate p:unzip-with AOS))
+
+(define unzip (annotate p:unzip OS))

@@ -12,7 +12,8 @@
                     foldl/steps
                     append
                     index-of
-                    index-where)
+                    index-where
+                    range)
          relation
          seq)
 
