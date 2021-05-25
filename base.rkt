@@ -24,19 +24,11 @@
          suffix-at
          infix
          infix-at
+         exists
+         for-all
          (contract-out
           [by (-> exact-positive-integer? sequence? sequence?)]
           [init (-> (and/c sequence? (not/c empty?)) sequence?)]
-          [exists (->i ([pred (seqs)
-                              (and/c (procedure-arity-includes/c (b:length seqs))
-                                     (unconstrained-domain-> boolean?))])
-                       #:rest [seqs (listof (sequenceof any/c))]
-                       [result any/c])]
-          [for-all (->i ([pred (seqs)
-                               (and/c (procedure-arity-includes/c (b:length seqs))
-                                      (unconstrained-domain-> boolean?))])
-                        #:rest [seqs (listof (sequenceof any/c))]
-                        [result any/c])]
           [zip-with (->* (procedure? sequence?)
                          #:rest (listof sequence?)
                          sequence?)]
