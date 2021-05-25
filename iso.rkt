@@ -35,52 +35,52 @@ take-when
 (define-syntax-parser iso
   [(_ intf)
    #'(lambda/arguments args
-                       (let ([seq (first (arguments-positional args))])
-                         (let ([result (intf seq)])
-                           (cond [(and (list? seq) (known-finite? result)) (->list result)]
-                                 [(and (string? seq) (known-finite? result)) (->string result)]
-                                 [(and (vector? seq) (known-finite? result)) (->vector result)]
-                                 [(and (bytes? seq) (known-finite? result)) (->bytes result)]
-                                 [(and (set? seq) (known-finite? result)) (->set result)]
-                                 [(and (hash? seq) (known-finite? result)) (->hash result)]
-                                 [else result]))))]
+       (let ([seq (first (arguments-positional args))])
+         (let ([result (intf seq)])
+           (cond [(and (list? seq) (known-finite? result)) (->list result)]
+                 [(and (string? seq) (known-finite? result)) (->string result)]
+                 [(and (vector? seq) (known-finite? result)) (->vector result)]
+                 [(and (bytes? seq) (known-finite? result)) (->bytes result)]
+                 [(and (set? seq) (known-finite? result)) (->set result)]
+                 [(and (hash? seq) (known-finite? result)) (->hash result)]
+                 [else result]))))]
   [(_ intf (~datum VAO))
    #'(lambda/arguments args
-                       (let ([arg (first (arguments-positional args))]
-                             [seq (second (arguments-positional args))])
-                         (let ([result (intf arg seq)])
-                           (cond [(and (list? seq) (known-finite? result)) (->list result)]
-                                 [(and (string? seq) (known-finite? result)) (->string result)]
-                                 [(and (vector? seq) (known-finite? result)) (->vector result)]
-                                 [(and (bytes? seq) (known-finite? result)) (->bytes result)]
-                                 [(and (set? seq) (known-finite? result)) (->set result)]
-                                 [(and (hash? seq) (known-finite? result)) (->hash result)]
-                                 [else result]))))]
+       (let ([arg (first (arguments-positional args))]
+             [seq (second (arguments-positional args))])
+         (let ([result (intf arg seq)])
+           (cond [(and (list? seq) (known-finite? result)) (->list result)]
+                 [(and (string? seq) (known-finite? result)) (->string result)]
+                 [(and (vector? seq) (known-finite? result)) (->vector result)]
+                 [(and (bytes? seq) (known-finite? result)) (->bytes result)]
+                 [(and (set? seq) (known-finite? result)) (->set result)]
+                 [(and (hash? seq) (known-finite? result)) (->hash result)]
+                 [else result]))))]
   [(_ intf (~datum VAAO))
    #'(lambda/arguments args
-                       (let ([arg1 (first (arguments-positional args))]
-                             [arg2 (second (arguments-positional args))]
-                             [seq (third (arguments-positional args))])
-                         (let ([result (intf arg1 arg2 seq)])
-                           (cond [(and (list? seq) (known-finite? result)) (->list result)]
-                                 [(and (string? seq) (known-finite? result)) (->string result)]
-                                 [(and (vector? seq) (known-finite? result)) (->vector result)]
-                                 [(and (bytes? seq) (known-finite? result)) (->bytes result)]
-                                 [(and (set? seq) (known-finite? result)) (->set result)]
-                                 [(and (hash? seq) (known-finite? result)) (->hash result)]
-                                 [else result]))))]
+       (let ([arg1 (first (arguments-positional args))]
+             [arg2 (second (arguments-positional args))]
+             [seq (third (arguments-positional args))])
+         (let ([result (intf arg1 arg2 seq)])
+           (cond [(and (list? seq) (known-finite? result)) (->list result)]
+                 [(and (string? seq) (known-finite? result)) (->string result)]
+                 [(and (vector? seq) (known-finite? result)) (->vector result)]
+                 [(and (bytes? seq) (known-finite? result)) (->bytes result)]
+                 [(and (set? seq) (known-finite? result)) (->set result)]
+                 [(and (hash? seq) (known-finite? result)) (->hash result)]
+                 [else result]))))]
   [(_ intf (~datum V-OS))
    #'(lambda/arguments args
-                       (let* ([seqs (arguments-positional args)]
-                              [seq (and (not (empty? seqs)) (first seqs))])
-                         (let ([result (apply intf seqs)])
-                           (cond [(and seq (list? seq) (known-finite? result)) (->list result)]
-                                 [(and seq (string? seq) (known-finite? result)) (->string result)]
-                                 [(and seq (vector? seq) (known-finite? result)) (->vector result)]
-                                 [(and seq (bytes? seq) (known-finite? result)) (->bytes result)]
-                                 [(and seq (set? seq) (known-finite? result)) (->set result)]
-                                 [(and seq (hash? seq) (known-finite? result)) (->hash result)]
-                                 [else result]))))])
+       (let* ([seqs (arguments-positional args)]
+              [seq (and (not (empty? seqs)) (first seqs))])
+         (let ([result (apply intf seqs)])
+           (cond [(and seq (list? seq) (known-finite? result)) (->list result)]
+                 [(and seq (string? seq) (known-finite? result)) (->string result)]
+                 [(and seq (vector? seq) (known-finite? result)) (->vector result)]
+                 [(and seq (bytes? seq) (known-finite? result)) (->bytes result)]
+                 [(and seq (set? seq) (known-finite? result)) (->set result)]
+                 [(and seq (hash? seq) (known-finite? result)) (->hash result)]
+                 [else result]))))])
 
 (define take-when (iso s:take-when VAO))
 
