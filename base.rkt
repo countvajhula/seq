@@ -427,13 +427,14 @@
       empty-stream
       (stream-cons seq (suffixes (rest seq)))))
 
-(define (prefixes seq)
-  (define len (and (known-finite? seq) (length seq)))
-  (let loop ([n 1])
-    (cond [(empty? seq) empty-stream]
-          [(and len (> n len)) empty-stream]
-          [else (stream-cons (take n seq)
-                             (loop (add1 n)))])))
+(define (prefixes seq [n 1])
+  (if (empty? seq)
+      empty-stream
+      (let ([pfx (with-handlers ([exn:fail:contract? false.])
+                   (prefix n seq))])
+        (if pfx
+            (stream-cons pfx (prefixes seq (add1 n)))
+            empty-stream))))
 
 (define (infixes len seq)
   (if (empty? seq)
