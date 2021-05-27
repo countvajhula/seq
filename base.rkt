@@ -438,15 +438,13 @@
 (define (infixes len seq)
   (if (empty? seq)
       empty-stream
-      (let ([infix (with-handlers ([exn:fail:contract?
-                                    (λ (exn)
-                                      empty-stream)])
+      (let ([infix (with-handlers ([exn:fail:contract? false.])
                      ;; convert to list or the exception would
                      ;; be deferred here
                      (->list (prefix len seq)))])
-        (if (empty? infix)
-            empty-stream
-            (stream-cons infix (infixes len (rest seq)))))))
+        (if infix
+            (stream-cons infix (infixes len (rest seq)))
+            empty-stream))))
 
 (define (prefix? #:key [key #f] prefix seq)
   (cond [(empty? prefix) #t]
