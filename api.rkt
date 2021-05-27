@@ -96,9 +96,9 @@
                (values (finite-sequence a)
                        (finite-sequence b))))))])
 
-(define/arguments (range args)
+(define (range . args)
   ;; TODO: submit this fix to data/collection
-  (finite-sequence (apply/arguments in-range args)))
+  (finite-sequence (apply in-range args)))
 
 (define by (annotate p:by 1))
 

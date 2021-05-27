@@ -588,17 +588,17 @@
 
 (define (trim-by left right seq)
   (let ([len (length seq)])
-    (if (> (+ left right)
-           len)
+    (when (> (+ left right)
+             len)
         (raise-arguments-error 'trim-by
                                "Trimmed lengths exceed total length!"
                                "left" left
                                "right" right
-                               "sequence length" len)
-        (take (- len
-                 (+ left
-                    right))
-              (drop left seq)))))
+                               "sequence length" len))
+    (take (- len
+             (+ left
+                right))
+          (drop left seq))))
 
 (define (index-of #:key [key #f]
                   elem
@@ -615,25 +615,25 @@
 (define (~drop-when #:how-many [how-many #f]
                     pred
                     seq)
-  (if ((|| set? gset?) seq)
-      (raise-argument-error 'drop-when
-                            "sequence? that is not a pure set"
-                            seq)
-      (match seq
-        [(sequence) seq]
-        [(sequence v vs ...)
-         (if how-many
-             (if (> how-many 0)
-                 (if (pred v)
-                     (~drop-when #:how-many (sub1 how-many)
-                                 pred
-                                 vs)
-                     (stream-cons v
-                                  (~drop-when #:how-many how-many
-                                              pred
-                                              vs)))
-                 seq)
-             (take-when (!! pred) seq))])))
+  (when ((|| set? gset?) seq)
+    (raise-argument-error 'drop-when
+                          "sequence? that is not a pure set"
+                          seq))
+  (match seq
+    [(sequence) seq]
+    [(sequence v vs ...)
+     (if how-many
+         (if (> how-many 0)
+             (if (pred v)
+                 (~drop-when #:how-many (sub1 how-many)
+                             pred
+                             vs)
+                 (stream-cons v
+                              (~drop-when #:how-many how-many
+                                          pred
+                                          vs)))
+             seq)
+         (take-when (!! pred) seq))]))
 
 (define (drop-when #:how-many [how-many #f]
                    pred
