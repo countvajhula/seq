@@ -21,15 +21,13 @@
  zip
  unzip-with
  unzip
- (rename-out [p:find find]
-             [p:index-where index-where]
-             [p:choose choose]
-             [p:suffix suffix]
-             [p:take-while take-while]
-             [p:drop-while drop-while]
-             [p:take-until take-until]
-             [p:drop-until drop-until]
-             [p:cut-when cut-when]
+ choose
+ suffix
+ take-while
+ drop-while
+ take-until
+ drop-until
+ (rename-out [p:cut-when cut-when]
              [p:cut cut]
              [p:cut-at cut-at]
              [p:cut-where cut-where]
@@ -69,8 +67,11 @@
              [p:wrap-each wrap-each]
              [p:weave weave]
              [p:interleave interleave]
+
              [p:exists exists]
-             [p:for-all for-all]))
+             [p:for-all for-all]
+             [p:find find]
+             [p:index-where index-where]))
 
 (define-syntax-parser annotate
   [(_ intf)
@@ -163,3 +164,15 @@
 (define unzip-with (annotate p:unzip-with AOS))
 
 (define unzip (annotate p:unzip OS))
+
+(define choose (annotate p:choose A-OS))
+
+(define suffix (annotate p:suffix AO))
+
+(define take-while (annotate p:take-while AO))
+
+(define drop-while (annotate p:drop-while AO))
+
+(define take-until (annotate p:take-until AO))
+
+(define drop-until (annotate p:drop-until AO))
