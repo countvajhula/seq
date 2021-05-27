@@ -27,11 +27,11 @@
  drop-while
  take-until
  drop-until
- (rename-out [p:cut-when cut-when]
-             [p:cut cut]
-             [p:cut-at cut-at]
-             [p:cut-where cut-where]
-             [p:cut-by cut-by]
+ cut-when
+ cut
+ cut-at
+ cut-where
+ (rename-out [p:cut-by cut-by]
              [p:cut-with cut-with]
              [p:truncate truncate]
              [p:rotate-left rotate-left]
@@ -74,105 +74,70 @@
              [p:index-where index-where]))
 
 (define-syntax-parser annotate
-  [(_ intf)
+  [(_ intf (~optional position:number #:defaults ([position #'0])))
    #'(lambda/arguments args
-       (let* ([pos-args (arguments-positional args)]
-              [seq (first pos-args)])
-         (let ([result (intf seq)])
-           (if (known-finite? seq)
-               (finite-sequence result)
-               result))))]
-  [(_ intf (~datum AO))
+       (let ([seq (nth (arguments-positional args) position)]
+             [result (apply/arguments intf args)])
+         (if (known-finite? seq)
+             (finite-sequence result)
+             result)))]
+  [(_ intf (~datum LIST))
    #'(lambda/arguments args
-       (let* ([pos-args (arguments-positional args)]
-              [arg (first pos-args)]
-              [seq (second pos-args)])
-         (let ([result (intf arg seq)])
-           (if (known-finite? seq)
-               (finite-sequence result)
-               result))))]
-  [(_ intf (~datum AAO))
+       (let ([seq (first (first (arguments-positional args)))]
+             [result (apply/arguments intf args)])
+         (if (known-finite? seq)
+             (finite-sequence result)
+             result)))]
+  [(_ intf position:number (~datum VALUES))
    #'(lambda/arguments args
-       (let* ([pos-args (arguments-positional args)]
-              [arg1 (first pos-args)]
-              [arg2 (second pos-args)]
-              [seq (third pos-args)])
-         (let ([result (intf arg1 arg2 seq)])
+       (let ([seq (nth (arguments-positional args) position)])
+         (let-values ([(a b) (apply/arguments intf args)])
            (if (known-finite? seq)
-               (finite-sequence result)
-               result))))]
-  [(_ intf (~datum A-OS))
-   #'(lambda/arguments args
-       (let* ([pos-args (arguments-positional args)]
-              [arg (first pos-args)]
-              [seqs (rest pos-args)]
-              [seq (and (not (empty? seqs)) (first seqs))])
-         (let ([result (apply intf arg seqs)])
-           (if (known-finite? seq)
-               (finite-sequence result)
-               result))))]
-  [(_ intf (~datum -OS))
-   #'(lambda/arguments args
-       (let* ([seqs (arguments-positional args)]
-              [seq (and (not (empty? seqs)) (first seqs))])
-         (let ([result (apply intf seqs)])
-           (if (known-finite? seq)
-               (finite-sequence result)
-               result))))]
-  [(_ intf (~datum AOS))
-   #'(lambda/arguments args
-       (let* ([pos-args (arguments-positional args)]
-              [arg (first pos-args)]
-              [seqs (second pos-args)]
-              [seq (and (not (empty? seqs)) (first seqs))])
-         (let ([result (intf arg seqs)])
-           (if (known-finite? seq)
-               (finite-sequence result)
-               result))))]
-  [(_ intf (~datum OS))
-   #'(lambda/arguments args
-       (let* ([pos-args (arguments-positional args)]
-              [seqs (first pos-args)]
-              [seq (and (not (empty? seqs)) (first seqs))])
-         (let ([result (intf seqs)])
-           (if (known-finite? seq)
-               (finite-sequence result)
-               result))))])
+               (values (finite-sequence a)
+                       (finite-sequence b))))))])
 
 (define/arguments (range args)
   ;; TODO: submit this fix to data/collection
   (finite-sequence (apply/arguments in-range args)))
 
-(define by (annotate p:by AO))
+(define by (annotate p:by 1))
 
-(define take-when (annotate p:take-when AO))
+(define take-when (annotate p:take-when 1))
 
-(define prefix (annotate p:prefix AO))
+(define prefix (annotate p:prefix 1))
 
-(define suffix-at (annotate p:suffix-at AO))
+(define suffix-at (annotate p:suffix-at 1))
 
-(define infix-at (annotate p:infix-at AAO))
+(define infix-at (annotate p:infix-at 2))
 
-(define infix (annotate p:infix AAO))
+(define infix (annotate p:infix 2))
 
 (define init (annotate p:init))
 
-(define zip-with (annotate p:zip-with A-OS))
+(define zip-with (annotate p:zip-with 1))
 
-(define zip (annotate p:zip -OS))
+(define zip (annotate p:zip 0))
 
-(define unzip-with (annotate p:unzip-with AOS))
+(define unzip-with (annotate p:unzip-with LIST))
 
-(define unzip (annotate p:unzip OS))
+(define unzip (annotate p:unzip LIST))
 
-(define choose (annotate p:choose A-OS))
+(define choose (annotate p:choose 1))
 
-(define suffix (annotate p:suffix AO))
+(define suffix (annotate p:suffix 1))
 
-(define take-while (annotate p:take-while AO))
+(define take-while (annotate p:take-while 1))
 
-(define drop-while (annotate p:drop-while AO))
+(define drop-while (annotate p:drop-while 1))
 
-(define take-until (annotate p:take-until AO))
+(define take-until (annotate p:take-until 1))
 
-(define drop-until (annotate p:drop-until AO))
+(define drop-until (annotate p:drop-until 1))
+
+(define cut-when (annotate p:cut-when 1))
+
+(define cut (annotate p:cut 1))
+
+(define cut-at (annotate p:cut-at 1 VALUES))
+
+(define cut-where (annotate p:cut-where 1 VALUES))
