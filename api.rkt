@@ -31,47 +31,46 @@
  cut
  cut-at
  cut-where
- (rename-out [p:cut-by cut-by]
-             [p:cut-with cut-with]
-             [p:truncate truncate]
-             [p:rotate-left rotate-left]
-             [p:rotate-right rotate-right]
-             [p:rotate rotate]
-             [p:rotations rotations]
+ cut-by
+ cut-with
+ truncate
+ rotate-left
+ rotate-right
+ rotate
+ rotations
+ suffixes
+ prefixes
+ infixes
+ replace-infix
+ trim-if
+ trim
+ trim-by
+ remove
+ remove-at
+ drop-when
+ intersperse
+ add-between
+ wrap-each
+ interleave
+ (rename-out [p:exists exists]
+             [p:for-all for-all]
+             [p:find find]
+             [p:index-where index-where]
              [p:deduplicate deduplicate]
              [p:multiples multiples]
              [p:powers powers]
              [p:iterate iterate]
-             [p:suffixes suffixes]
-             [p:prefixes prefixes]
-             [p:infixes infixes]
              [p:prefix? prefix?]
              [p:starts-with? starts-with?]
              [p:suffix? suffix?]
              [p:ends-with? ends-with?]
              [p:find-infix find-infix]
-             [p:replace-infix replace-infix]
              [p:infix? infix?]
              [p:contains? contains?]
-             [p:trim-if trim-if]
-             [p:trim trim]
-             [p:trim-by trim-by]
              [p:index-of index-of]
              [p:index index]
-             [p:remove remove]
-             [p:remove-at remove-at]
-             [p:drop-when drop-when]
-             [p:intersperse intersperse]
-             [p:add-between add-between]
              [p:join-with join-with]
-             [p:wrap-each wrap-each]
-             [p:weave weave]
-             [p:interleave interleave]
-
-             [p:exists exists]
-             [p:for-all for-all]
-             [p:find find]
-             [p:index-where index-where]))
+             [p:weave weave]))
 
 (define-syntax-parser annotate
   [(_ intf (~optional position:number #:defaults ([position #'0])))
@@ -94,10 +93,17 @@
          (let-values ([(a b) (apply/arguments intf args)])
            (if (known-finite? seq)
                (values (finite-sequence a)
-                       (finite-sequence b))))))])
+                       (finite-sequence b))
+               (values a b)))))]
+  [(_ intf position:number (~datum SEQS))
+   #'(lambda/arguments args
+       (let ([seq (nth (arguments-positional args) position)]
+             [result (apply/arguments intf args)])
+         (if (known-finite? seq)
+             (map finite-sequence result)
+             result)))])
 
 (define (range . args)
-  ;; TODO: submit this fix to data/collection
   (finite-sequence (apply in-range args)))
 
 (define by (annotate p:by 1))
@@ -141,3 +147,47 @@
 (define cut-at (annotate p:cut-at 1 VALUES))
 
 (define cut-where (annotate p:cut-where 1 VALUES))
+
+(define cut-by (annotate p:cut-by 1 SEQS))
+
+(define cut-with (annotate p:cut-with 1 VALUES))
+
+(define truncate (annotate p:truncate 1))
+
+(define rotate-left (annotate p:rotate-left 1))
+
+(define rotate-right (annotate p:rotate-right 1))
+
+(define rotate (annotate p:rotate))
+
+(define rotations (annotate p:rotations 0 SEQS))
+
+(define prefixes (annotate p:prefixes 0 SEQS))
+
+(define suffixes (annotate p:suffixes 0 SEQS))
+
+(define infixes (annotate p:infixes 1 SEQS))
+
+;; not sure about this one
+(define replace-infix (annotate p:replace-infix 2))
+
+(define trim-if (annotate p:trim-if 1))
+
+(define trim (annotate p:trim 1))
+
+(define trim-by (annotate p:trim-by 2))
+
+(define remove (annotate p:remove 1))
+
+(define remove-at (annotate p:remove-at 1))
+
+(define drop-when (annotate p:drop-when 1))
+
+(define intersperse (annotate p:intersperse 1))
+
+(define add-between (annotate p:add-between 1))
+
+(define wrap-each (annotate p:wrap-each 2))
+
+;; really it's if _any_ of the input sequences is finite
+(define interleave (annotate p:interleave 0))

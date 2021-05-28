@@ -184,8 +184,7 @@
           [index (->* (any/c sequence?)
                       (#:key (or/c (-> comparable? comparable?)
                                    #f))
-                      (or/c (and/c integer?
-                                   (>=/c 0))
+                      (or/c exact-nonnegative-integer?
                             #f))]
           [remove (->* (any/c sequence?)
                        (#:key (or/c (-> comparable? comparable?)
