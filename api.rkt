@@ -77,21 +77,23 @@
    #'(lambda/arguments args
        (let ([seq (nth (arguments-positional args) position)]
              [result (apply/arguments intf args)])
-         (if (known-finite? seq)
+         (if (and (known-finite? seq) (not (known-finite? result)))
              (finite-sequence result)
              result)))]
   [(_ intf (~datum LIST))
    #'(lambda/arguments args
        (let ([seq (first (first (arguments-positional args)))]
              [result (apply/arguments intf args)])
-         (if (known-finite? seq)
+         (if (and (known-finite? seq) (not (known-finite? result)))
              (finite-sequence result)
              result)))]
   [(_ intf position:number (~datum VALUES))
    #'(lambda/arguments args
        (let ([seq (nth (arguments-positional args) position)])
          (let-values ([(a b) (apply/arguments intf args)])
-           (if (known-finite? seq)
+           (if (and (known-finite? seq)
+                    (or (not (known-finite? a))
+                        (not (known-finite? b))))
                (values (finite-sequence a)
                        (finite-sequence b))
                (values a b)))))]
@@ -99,7 +101,9 @@
    #'(lambda/arguments args
        (let ([seq (nth (arguments-positional args) position)]
              [result (apply/arguments intf args)])
-         (if (known-finite? seq)
+         (if (and (known-finite? seq)
+                  (not (empty? result))
+                  (not (known-finite? (first result))))
              (map finite-sequence result)
              result)))])
 
