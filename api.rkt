@@ -8,6 +8,8 @@
          (prefix-in p: "base.rkt")
          "types.rkt")
 
+;; TODO: confirm line count at the end
+;; TODO: organize the interfaces - maybe follow the docs order?
 (provide
  range
  by
