@@ -397,6 +397,9 @@
        (check-equal? (->list (take 4 (iterate add1 3))) '(3 4 5 6))
        (check-equal? (->list (take 4 (iterate sqr 2))) '(2 4 16 256)))
      (test-case
+         "zip"
+       (check-equal? (->list (zip (list 'a 'b 'c) (list 1 2 3))) (list (list 'a 1) (list 'b 2) (list 'c 3))))
+     (test-case
          "zip-with"
        (check-equal? (->list (zip-with list (list 1 2 3) (list 1 2 3))) '((1 1) (2 2) (3 3)))
        (check-equal? (->list (zip-with list (list 1 2 3) (list 1 2 3) (list 1 2 3))) '((1 1 1) (2 2 2) (3 3 3)))
