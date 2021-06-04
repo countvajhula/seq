@@ -103,9 +103,9 @@
                                [(and seq (set? seq) (known-finite? result)) (->set result)]
                                [(and seq (hash? seq) (known-finite? result)) (->hash result)]
                                [else result])))]
-  [(_ intf (~datum LIST))
+  [(_ intf position:number (~datum LIST))
    #'(lambda/arguments args
-                       (let ([seq (first (first (arguments-positional args)))]
+                       (let ([seq (first (nth (arguments-positional args) position))]
                              [result (apply/arguments intf args)])
                          (cond [(and seq (list? seq) (known-finite? result)) (->list result)]
                                [(and seq (string? seq) (known-finite? result)) (->string result)]
@@ -161,11 +161,11 @@
 
 (define zip (iso p:zip 0))
 
-(define unzip-with (iso p:unzip-with LIST))
+(define unzip-with (iso p:unzip-with 1 LIST))
 
-(define unzip (iso p:unzip LIST))
+(define unzip (iso p:unzip 0 LIST))
 
-(define choose (iso p:choose 1))
+(define choose (iso p:choose 1 VARIADIC))
 
 (define suffix (iso p:suffix 1))
 

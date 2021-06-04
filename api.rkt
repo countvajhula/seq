@@ -139,11 +139,11 @@
 
 (define zip (annotate p:zip 0))
 
-(define unzip-with (annotate p:unzip-with LIST))
+(define unzip-with (annotate p:unzip-with 1 LIST))
 
-(define unzip (annotate p:unzip LIST))
+(define unzip (annotate p:unzip 0 LIST))
 
-(define choose (annotate p:choose 1))
+(define choose (annotate p:choose 1 VARIADIC))
 
 (define suffix (annotate p:suffix 1))
 
