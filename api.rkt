@@ -5,6 +5,7 @@
          syntax/parse/define
          (for-syntax racket/base)
          arguments
+         (only-in relation false.)
          (prefix-in p: "base.rkt")
          "types.rkt")
 
@@ -82,9 +83,17 @@
          (if (and (known-finite? seq) (not (known-finite? result)))
              (finite-sequence result)
              result)))]
-  [(_ intf (~datum LIST))
+  [(_ intf (~optional position:number #:defaults ([position #'0])) (~datum VARIADIC))
    #'(lambda/arguments args
-       (let ([seq (first (first (arguments-positional args)))]
+       (let ([seq (with-handlers ([exn:fail? false.])
+                    (nth (arguments-positional args) position))]
+             [result (apply/arguments intf args)])
+         (if (and seq (known-finite? seq) (not (known-finite? result)))
+             (finite-sequence result)
+             result)))]
+  [(_ intf position:number (~datum LIST))
+   #'(lambda/arguments args
+       (let ([seq (first (nth (arguments-positional args) position))]
              [result (apply/arguments intf args)])
          (if (and (known-finite? seq) (not (known-finite? result)))
              (finite-sequence result)

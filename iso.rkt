@@ -11,6 +11,7 @@
                   known-finite?
                   nth)
          relation/type
+         (only-in relation false.)
          (prefix-in p: "api.rkt")
          syntax/parse/define)
 
@@ -82,6 +83,18 @@
   [(_ intf (~optional position:number #:defaults ([position #'0])))
    #'(lambda/arguments args
                        (let ([seq (nth (arguments-positional args) position)]
+                             [result (apply/arguments intf args)])
+                         (cond [(and seq (list? seq) (known-finite? result)) (->list result)]
+                               [(and seq (string? seq) (known-finite? result)) (->string result)]
+                               [(and seq (vector? seq) (known-finite? result)) (->vector result)]
+                               [(and seq (bytes? seq) (known-finite? result)) (->bytes result)]
+                               [(and seq (set? seq) (known-finite? result)) (->set result)]
+                               [(and seq (hash? seq) (known-finite? result)) (->hash result)]
+                               [else result])))]
+  [(_ intf (~optional position:number #:defaults ([position #'0])) (~datum VARIADIC))
+   #'(lambda/arguments args
+                       (let ([seq (with-handlers ([exn:fail? false.])
+                                    (nth (arguments-positional args) position))]
                              [result (apply/arguments intf args)])
                          (cond [(and seq (list? seq) (known-finite? result)) (->list result)]
                                [(and seq (string? seq) (known-finite? result)) (->string result)]
