@@ -93,31 +93,31 @@
 (define-syntax-parser iso
   [(_ intf (~optional position:number #:defaults ([position #'0])))
    #'(lambda/arguments args
-                       (let ([seq (nth (arguments-positional args) position)]
-                             [result (apply/arguments intf args)])
-                         (transform-to-source-type seq result)))]
+       (let ([seq (nth (arguments-positional args) position)]
+             [result (apply/arguments intf args)])
+         (transform-to-source-type seq result)))]
   [(_ intf (~optional position:number #:defaults ([position #'0])) (~datum VARIADIC))
    #'(lambda/arguments args
-                       (let ([seq (with-handlers ([exn:fail? false.])
-                                    (nth (arguments-positional args) position))]
-                             [result (apply/arguments intf args)])
-                         (transform-to-source-type seq result)))]
+       (let ([seq (with-handlers ([exn:fail? false.])
+                    (nth (arguments-positional args) position))]
+             [result (apply/arguments intf args)])
+         (transform-to-source-type seq result)))]
   [(_ intf position:number (~datum LIST))
    #'(lambda/arguments args
-                       (let ([seq (first (nth (arguments-positional args) position))]
-                             [result (apply/arguments intf args)])
-                         (transform-to-source-type seq result)))]
+       (let ([seq (first (nth (arguments-positional args) position))]
+             [result (apply/arguments intf args)])
+         (transform-to-source-type seq result)))]
   [(_ intf position:number (~datum VALUES))
    #'(lambda/arguments args
-                       (let ([seq (nth (arguments-positional args) position)])
-                         (let-values ([(a b) (apply/arguments intf args)])
-                           (values (transform-to-source-type seq a)
-                                   (transform-to-source-type seq b)))))]
+       (let ([seq (nth (arguments-positional args) position)])
+         (let-values ([(a b) (apply/arguments intf args)])
+           (values (transform-to-source-type seq a)
+                   (transform-to-source-type seq b)))))]
   [(_ intf position:number (~datum SEQS))
    #'(lambda/arguments args
-                       (let ([seq (nth (arguments-positional args) position)]
-                             [result (apply/arguments intf args)])
-                         (map (curry transform-to-source-type seq) result)))])
+       (let ([seq (nth (arguments-positional args) position)]
+             [result (apply/arguments intf args)])
+         (map (curry transform-to-source-type seq) result)))])
 
 (define by (iso p:by 1))
 
