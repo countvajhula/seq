@@ -78,6 +78,7 @@
 
 (define (annotate-result source result)
   (if (and source
+           (countable? source)
            (known-finite? source)
            (not (known-finite? result)))
       (finite-sequence result)
