@@ -3,11 +3,13 @@
 (require racket/set
          racket/list
          arguments
+         (only-in racket/function curry)
          (for-syntax racket/base
                      arguments)
          (only-in data/collection
                   sequence->list
                   apply
+                  map
                   known-finite?
                   nth)
          relation/type
@@ -79,69 +81,43 @@
              [p:join-with join-with]
              [p:weave weave]))
 
+(define (transform-to-source-type source result)
+  (cond [(and source (list? source) (known-finite? result)) (->list result)]
+        [(and source (string? source) (known-finite? result)) (->string result)]
+        [(and source (vector? source) (known-finite? result)) (->vector result)]
+        [(and source (bytes? source) (known-finite? result)) (->bytes result)]
+        [(and source (set? source) (known-finite? result)) (->set result)]
+        [(and source (hash? source) (known-finite? result)) (->hash result)]
+        [else result]))
+
 (define-syntax-parser iso
   [(_ intf (~optional position:number #:defaults ([position #'0])))
    #'(lambda/arguments args
                        (let ([seq (nth (arguments-positional args) position)]
                              [result (apply/arguments intf args)])
-                         (cond [(and seq (list? seq) (known-finite? result)) (->list result)]
-                               [(and seq (string? seq) (known-finite? result)) (->string result)]
-                               [(and seq (vector? seq) (known-finite? result)) (->vector result)]
-                               [(and seq (bytes? seq) (known-finite? result)) (->bytes result)]
-                               [(and seq (set? seq) (known-finite? result)) (->set result)]
-                               [(and seq (hash? seq) (known-finite? result)) (->hash result)]
-                               [else result])))]
+                         (transform-to-source-type seq result)))]
   [(_ intf (~optional position:number #:defaults ([position #'0])) (~datum VARIADIC))
    #'(lambda/arguments args
                        (let ([seq (with-handlers ([exn:fail? false.])
                                     (nth (arguments-positional args) position))]
                              [result (apply/arguments intf args)])
-                         (cond [(and seq (list? seq) (known-finite? result)) (->list result)]
-                               [(and seq (string? seq) (known-finite? result)) (->string result)]
-                               [(and seq (vector? seq) (known-finite? result)) (->vector result)]
-                               [(and seq (bytes? seq) (known-finite? result)) (->bytes result)]
-                               [(and seq (set? seq) (known-finite? result)) (->set result)]
-                               [(and seq (hash? seq) (known-finite? result)) (->hash result)]
-                               [else result])))]
+                         (transform-to-source-type seq result)))]
   [(_ intf position:number (~datum LIST))
    #'(lambda/arguments args
                        (let ([seq (first (nth (arguments-positional args) position))]
                              [result (apply/arguments intf args)])
-                         (cond [(and seq (list? seq) (known-finite? result)) (->list result)]
-                               [(and seq (string? seq) (known-finite? result)) (->string result)]
-                               [(and seq (vector? seq) (known-finite? result)) (->vector result)]
-                               [(and seq (bytes? seq) (known-finite? result)) (->bytes result)]
-                               [(and seq (set? seq) (known-finite? result)) (->set result)]
-                               [(and seq (hash? seq) (known-finite? result)) (->hash result)]
-                               [else result])))]
+                         (transform-to-source-type seq result)))]
   [(_ intf position:number (~datum VALUES))
    #'(lambda/arguments args
                        (let ([seq (nth (arguments-positional args) position)])
                          (let-values ([(a b) (apply/arguments intf args)])
-                           (cond [(and seq (list? seq) (known-finite? a) (known-finite? b))
-                                  (values (->list a) (->list b))]
-                                 [(and seq (string? seq) (known-finite? a) (known-finite? b))
-                                  (values (->string a) (->string b))]
-                                 [(and seq (vector? seq) (known-finite? a) (known-finite? b))
-                                  (values (->vector a) (->vector b))]
-                                 [(and seq (bytes? seq) (known-finite? a) (known-finite? b))
-                                  (values (->bytes a) (->bytes b))]
-                                 [(and seq (set? seq) (known-finite? a) (known-finite? b))
-                                  (values (->set a) (->set b))]
-                                 [(and seq (hash? seq) (known-finite? a) (known-finite? b))
-                                  (values (->hash a) (->hash b))]
-                                 [else (values a b)]))))]
+                           (values (transform-to-source-type seq a)
+                                   (transform-to-source-type seq b)))))]
   [(_ intf position:number (~datum SEQS))
    #'(lambda/arguments args
                        (let ([seq (nth (arguments-positional args) position)]
                              [result (apply/arguments intf args)])
-                         (cond [(and seq (list? seq) (known-finite? result)) (map ->list result)]
-                               [(and seq (string? seq) (known-finite? result)) (map ->string result)]
-                               [(and seq (vector? seq) (known-finite? result)) (map ->vector result)]
-                               [(and seq (bytes? seq) (known-finite? result)) (map ->bytes result)]
-                               [(and seq (set? seq) (known-finite? result)) (map ->set result)]
-                               [(and seq (hash? seq) (known-finite? result)) (map ->hash result)]
-                               [else result])))])
+                         (map (curry transform-to-source-type seq) result)))])
 
 (define by (iso p:by 1))
 

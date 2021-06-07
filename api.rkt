@@ -1,6 +1,7 @@
 #lang racket/base
 
-(require (except-in data/collection
+(require (only-in racket/function curry)
+         (except-in data/collection
                     range)
          syntax/parse/define
          (for-syntax racket/base)
@@ -75,48 +76,41 @@
              [p:join-with join-with]
              [p:weave weave]))
 
+(define (annotate-result source result)
+  (if (and source
+           (known-finite? source)
+           (not (known-finite? result)))
+      (finite-sequence result)
+      result))
+
 (define-syntax-parser annotate
   [(_ intf (~optional position:number #:defaults ([position #'0])))
    #'(lambda/arguments args
        (let ([seq (nth (arguments-positional args) position)]
              [result (apply/arguments intf args)])
-         (if (and (known-finite? seq) (not (known-finite? result)))
-             (finite-sequence result)
-             result)))]
+         (annotate-result seq result)))]
   [(_ intf (~optional position:number #:defaults ([position #'0])) (~datum VARIADIC))
    #'(lambda/arguments args
        (let ([seq (with-handlers ([exn:fail? false.])
                     (nth (arguments-positional args) position))]
              [result (apply/arguments intf args)])
-         (if (and seq (known-finite? seq) (not (known-finite? result)))
-             (finite-sequence result)
-             result)))]
+         (annotate-result seq result)))]
   [(_ intf position:number (~datum LIST))
    #'(lambda/arguments args
        (let ([seq (first (nth (arguments-positional args) position))]
              [result (apply/arguments intf args)])
-         (if (and (known-finite? seq) (not (known-finite? result)))
-             (finite-sequence result)
-             result)))]
+         (annotate-result seq result)))]
   [(_ intf position:number (~datum VALUES))
    #'(lambda/arguments args
        (let ([seq (nth (arguments-positional args) position)])
          (let-values ([(a b) (apply/arguments intf args)])
-           (if (and (known-finite? seq)
-                    (or (not (known-finite? a))
-                        (not (known-finite? b))))
-               (values (finite-sequence a)
-                       (finite-sequence b))
-               (values a b)))))]
+           (values (annotate-result seq a)
+                   (annotate-result seq b)))))]
   [(_ intf position:number (~datum SEQS))
    #'(lambda/arguments args
        (let ([seq (nth (arguments-positional args) position)]
              [result (apply/arguments intf args)])
-         (if (and (known-finite? seq)
-                  (not (empty? result))
-                  (not (known-finite? (first result))))
-             (map finite-sequence result)
-             result)))])
+         (map (curry annotate-result seq) result)))])
 
 (define (range . args)
   (finite-sequence (apply in-range args)))
