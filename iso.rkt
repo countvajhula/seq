@@ -11,9 +11,13 @@
                   apply
                   map
                   known-finite?
-                  nth)
+                  nth
+                  extend
+                  collection?)
          relation/type
-         (only-in relation false.)
+         (only-in relation
+                  false.
+                  appendable-identity)
          (prefix-in p: "api.rkt")
          syntax/parse/define)
 
@@ -81,13 +85,20 @@
              [p:join-with join-with]
              [p:weave weave]))
 
-(define (transform-to-source-type source result)
+;; HERE: also add the char string conversions at this level and remove from base
+
+;; TODO: document that custom types must implement gen:collection with
+;; consideration to ordering, and also gen:appendable
+(define (return source result)
   (cond [(and source (list? source) (known-finite? result)) (->list result)]
         [(and source (string? source) (known-finite? result)) (->string result)]
         [(and source (vector? source) (known-finite? result)) (->vector result)]
         [(and source (bytes? source) (known-finite? result)) (->bytes result)]
         [(and source (set? source) (known-finite? result)) (->set result)]
         [(and source (hash? source) (known-finite? result)) (->hash result)]
+        [(and source (collection? source) (known-finite? result))
+         (let ([null-cons (appendable-identity source)])
+           (extend null-cons result))]
         [else result]))
 
 (define-syntax-parser iso
@@ -95,29 +106,29 @@
    #'(lambda/arguments args
        (let ([seq (nth (arguments-positional args) position)]
              [result (apply/arguments intf args)])
-         (transform-to-source-type seq result)))]
+         (return seq result)))]
   [(_ intf (~optional position:number #:defaults ([position #'0])) (~datum VARIADIC))
    #'(lambda/arguments args
        (let ([seq (with-handlers ([exn:fail? false.])
                     (nth (arguments-positional args) position))]
              [result (apply/arguments intf args)])
-         (transform-to-source-type seq result)))]
+         (return seq result)))]
   [(_ intf position:number (~datum LIST))
    #'(lambda/arguments args
        (let ([seq (first (nth (arguments-positional args) position))]
              [result (apply/arguments intf args)])
-         (transform-to-source-type seq result)))]
+         (return seq result)))]
   [(_ intf position:number (~datum VALUES))
    #'(lambda/arguments args
        (let ([seq (nth (arguments-positional args) position)])
          (let-values ([(a b) (apply/arguments intf args)])
-           (values (transform-to-source-type seq a)
-                   (transform-to-source-type seq b)))))]
+           (values (return seq a)
+                   (return seq b)))))]
   [(_ intf position:number (~datum SEQS))
    #'(lambda/arguments args
        (let ([seq (nth (arguments-positional args) position)]
              [result (apply/arguments intf args)])
-         (map (curry transform-to-source-type seq) result)))])
+         (map (curry return seq) result)))])
 
 (define by (iso p:by 1))
 
