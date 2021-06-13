@@ -175,7 +175,7 @@
 
 (define cut-when (iso p:cut-when 1))
 
-(define cut (iso p:cut 1))
+(define cut (string-helper (iso p:cut 1 SEQS)))
 
 (define cut-at (iso p:cut-at 1 VALUES))
 

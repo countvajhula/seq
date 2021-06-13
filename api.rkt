@@ -152,7 +152,7 @@
 
 (define cut-when (annotate p:cut-when 1))
 
-(define cut (annotate p:cut 1))
+(define cut (annotate p:cut 1 SEQS))
 
 (define cut-at (annotate p:cut-at 1 VALUES))
 
