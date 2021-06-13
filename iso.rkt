@@ -89,12 +89,12 @@
 (define-syntax-parser string-helper
   [(_ intf (~optional position:number #:defaults ([position #'0])))
    #'(lambda/arguments args
-                       (let* ([pos-args (arguments-positional args)]
-                              [kw-args (arguments-keyword args)]
-                              [elem (nth pos-args position)]
-                              [pos-args (set-nth pos-args position (->char elem))]
-                              [args (make-arguments pos-args kw-args)])
-                         (apply/arguments intf args)))])
+       (let* ([pos-args (arguments-positional args)]
+              [kw-args (arguments-keyword args)]
+              [elem (nth pos-args position)]
+              [pos-args (set-nth pos-args position (->char elem))]
+              [args (make-arguments pos-args kw-args)])
+         (apply/arguments intf args)))])
 
 ;; TODO: document that custom types must implement gen:collection with
 ;; consideration to ordering, and also gen:appendable
