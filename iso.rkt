@@ -12,6 +12,7 @@
                   map
                   known-finite?
                   nth
+                  set-nth
                   extend
                   collection?)
          relation/type
@@ -64,6 +65,7 @@
  add-between
  wrap-each
  interleave
+ index-of
  (rename-out [p:range range]
              [p:exists exists]
              [p:for-all for-all]
@@ -80,12 +82,19 @@
              [p:find-infix find-infix]
              [p:infix? infix?]
              [p:contains? contains?]
-             [p:index-of index-of]
              [p:index index]
              [p:join-with join-with]
              [p:weave weave]))
 
-;; HERE: also add the char string conversions at this level and remove from base
+(define-syntax-parser string-helper
+  [(_ intf (~optional position:number #:defaults ([position #'0])))
+   #'(lambda/arguments args
+                       (let* ([pos-args (arguments-positional args)]
+                              [kw-args (arguments-keyword args)]
+                              [elem (nth pos-args position)]
+                              [pos-args (set-nth pos-args position (->char elem))]
+                              [args (make-arguments pos-args kw-args)])
+                         (apply/arguments intf args)))])
 
 ;; TODO: document that custom types must implement gen:collection with
 ;; consideration to ordering, and also gen:appendable
@@ -197,11 +206,11 @@
 
 (define trim-if (iso p:trim-if 1))
 
-(define trim (iso p:trim 1))
+(define trim (string-helper (iso p:trim 1)))
 
 (define trim-by (iso p:trim-by 2))
 
-(define remove (iso p:remove 1))
+(define remove (string-helper (iso p:remove 1)))
 
 (define remove-at (iso p:remove-at 1))
 
@@ -215,3 +224,5 @@
 
 ;; really it's if _any_ of the input sequences is finite
 (define interleave (iso p:interleave 0))
+
+(define index-of (string-helper p:index-of))
