@@ -80,7 +80,11 @@
   (if (and source
            (countable? source)
            (known-finite? source)
-           (not (known-finite? result)))
+           (not (and (countable? result)
+                     (known-finite? result))))
+      ;; should we extend composition-identity
+      ;; with a sequence-specific type that implements
+      ;; gen:countable?
       (finite-sequence result)
       result))
 

@@ -343,12 +343,9 @@
              #:trim? [trim? #t]
              elem
              seq)
-  (let ([elem (if (string? seq)
-                  (->char elem)
-                  elem)])
-    (cut-when #:trim? trim?
-              (curry = #:key key elem)
-              seq)))
+  (cut-when #:trim? trim?
+            (curry = #:key key elem)
+            seq))
 
 (define (cut-at pos seq)
   (let ([left (take pos seq)]
@@ -577,13 +574,10 @@
               #:key [key #f]
               #:side [side 'both]
               #:how-many [how-many #f])
-  (let ([elem (if (string? seq)
-                  (->char elem)
-                  elem)])
-    (trim-if (curry = #:key key elem)
-             seq
-             #:side side
-             #:how-many how-many)))
+  (trim-if (curry = #:key key elem)
+           seq
+           #:side side
+           #:how-many how-many))
 
 (define (trim-by left right seq)
   (let ([len (length seq)])
@@ -602,12 +596,9 @@
 (define (index-of #:key [key #f]
                   elem
                   seq)
-  (let ([elem (if (string? seq)
-                  (->char elem)
-                  elem)])
-    (d:index-of seq
-                elem
-                (curry = #:key key))))
+  (d:index-of seq
+              elem
+              (curry = #:key key)))
 
 (define index index-of)
 
@@ -654,12 +645,9 @@
                 seq)
   (if ((|| set? gset?) seq)
       (set-remove seq elem)
-      (let ([elem (if (string? seq)
-                      (->char elem)
-                      elem)])
-        (drop-when #:how-many how-many
-                   (curry = #:key key elem)
-                   seq))))
+      (drop-when #:how-many how-many
+                 (curry = #:key key elem)
+                 seq)))
 
 (define (intersperse sep seq)
   (match seq

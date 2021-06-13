@@ -283,8 +283,6 @@
        (check-equal? (trim 0 #:side 'left (list 0 1 2 3 0 0)) (list 1 2 3 0 0))
        (check-equal? (trim 0 #:side 'right (list 0 1 2 3 0 0)) (list 0 1 2 3))
        (check-equal? (trim #\space "   \thello\n  ") "\thello\n")
-       (check-equal? (trim " " "   \thello\n  ") "\thello\n")
-       (check-equal? (trim "h" "hellohhh") "ello")
        (check-equal? (trim #\h "hellohhh") "ello"))
      (test-case
          "trim-by"
@@ -318,7 +316,7 @@
        (check-equal? (->list (map ->list (cut #:trim? #t 5 (list 5 5 5 1 2 5 5 2 3 5 6 5 7 8 5 5 5)))) '((1 2) () (2 3) (6) (7 8)))
        (check-equal? (->list (map ->list (cut 5 (list 1 2 5 2 3 5 6 5)))) '((1 2) (2 3) (6)))
        (check-equal? (->list (map ->list (cut #:trim? #f 5 (list 1 2 5 2 3 5 6 5)))) '((1 2) (2 3) (6) ()))
-       (check-equal? (->list (cut "\n" "hello\n there")) (list "hello" " there") "cut string handles string separator as char"))
+       (check-equal? (->list (cut #\newline "hello\n there")) (list "hello" " there") "cut string handles string separator as char"))
      (test-case
          "cut-at"
        (check-equal? (let-values ([(a b)
@@ -468,7 +466,6 @@
        (check-equal? (->list (remove #:key even? #:how-many 2 2 (list 1 2 4 3 6))) (list 1 3 6))
        (check-equal? (remove "banana" (set "apple" "banana" "cherry")) (set "apple" "cherry"))
        (check-equal? (remove "BANANA" (generic-set #:key string-upcase "apple" "banana" "cherry")) (generic-set #:key string-upcase "apple" "cherry"))
-       (check-equal? (remove "a" "aaahai athaerea") "hi there")
        (check-equal? (remove #\a "aaahai athaerea") "hi there"))
      (test-case
          "remove-at"
