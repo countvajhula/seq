@@ -242,15 +242,15 @@
        (check-equal? (find-infix #:key (.. string-upcase ->string) "Ello" "hello there") 1))
      (test-case
          "replace-infix"
-       (check-equal? (replace-infix "ello" "blah" "hello there") "hblah there")
-       (check-equal? (replace-infix " " ", " "hello there") "hello, there")
-       (check-equal? (replace-infix "elo" "boop" "hello there") "hello there")
-       (check-equal? (replace-infix "Ello" "blah" "hello there") "hello there")
-       (check-equal? (replace-infix "Hello" "Hi" "") "")
+       (check-equal? (->string (replace-infix "ello" "blah" "hello there")) "hblah there")
+       (check-equal? (->string (replace-infix " " ", " "hello there")) "hello, there")
+       (check-equal? (->string (replace-infix "elo" "boop" "hello there")) "hello there")
+       (check-equal? (->string (replace-infix "Ello" "blah" "hello there")) "hello there")
+       (check-equal? (->string (replace-infix "Hello" "Hi" "")) "")
        ;; (check-equal? (->string (replace-infix "Hello" "" "Hi")) "HiHello") ; contractually exclude this
        (check-equal? (->list (replace-infix (list 1 2) (list 9 10) (list 1 2 3 4 5))) (list 9 10 3 4 5))
        (check-equal? (replace-infix (list 2 1) (list 9 10) (list 1 2 3 4 5)) (list 1 2 3 4 5))
-       (check-equal? (replace-infix #:key (.. string-upcase ->string) "Ello" "blah" "hello there") "hblah there"))
+       (check-equal? (->string (replace-infix #:key (.. string-upcase ->string) "Ello" "blah" "hello there")) "hblah there"))
      (test-case
          "contains?"
        (check-equal? (contains? "ello" "hello there") #t)
@@ -271,10 +271,10 @@
        (check-equal? (trim-if negative? #:side 'right (list -1 -2 1 2 3 -3)) (list -1 -2 1 2 3))
        (check-equal? (trim-if (curry = 5) (list 1 2 3 4 5)) (list 1 2 3 4))
        (check-equal? (trim-if (curry = 5) (list 5 5 1 2 3 4 5 5 5)) (list 1 2 3 4))
-       (check-equal? (trim-if char-whitespace? "   \thello\n  ") "hello")
-       (check-equal? (trim-if char-whitespace? "   \thello\n  " #:how-many #f) "hello")
-       (check-equal? (trim-if char-whitespace? "  \thello\n  " #:how-many 1) " \thello\n ")
-       (check-equal? (trim-if char-whitespace? "   \thello\n   " #:how-many 2) " \thello\n "))
+       (check-equal? (->string (trim-if char-whitespace? "   \thello\n  ")) "hello")
+       (check-equal? (->string (trim-if char-whitespace? "   \thello\n  " #:how-many #f)) "hello")
+       (check-equal? (->string (trim-if char-whitespace? "  \thello\n  " #:how-many 1)) " \thello\n ")
+       (check-equal? (->string (trim-if char-whitespace? "   \thello\n   " #:how-many 2)) " \thello\n "))
      (test-case
          "trim"
        (check-equal? (trim 0 (list)) (list))
@@ -282,8 +282,8 @@
        (check-equal? (trim 0 (list 0 1 2 3 0 0)) (list 1 2 3))
        (check-equal? (trim 0 #:side 'left (list 0 1 2 3 0 0)) (list 1 2 3 0 0))
        (check-equal? (trim 0 #:side 'right (list 0 1 2 3 0 0)) (list 0 1 2 3))
-       (check-equal? (trim #\space "   \thello\n  ") "\thello\n")
-       (check-equal? (trim #\h "hellohhh") "ello"))
+       (check-equal? (->string (trim #\space "   \thello\n  ")) "\thello\n")
+       (check-equal? (->string (trim #\h "hellohhh")) "ello"))
      (test-case
          "trim-by"
        (check-equal? (->list (trim-by 1 1 '(1 2 3))) '(2))
@@ -295,11 +295,11 @@
                   (thunk (trim-by 2 2 '(1 2 3)))))
      (test-case
          "cut-when"
-       (check-equal? (->list (cut-when (curry = #\space) "hello there")) (list "hello" "there"))
-       (check-equal? (->list (cut-when (curry = #\space) "hello there old friend")) (list "hello" "there" "old" "friend"))
-       (check-equal? (->list (cut-when (curry = #\space) " ")) (list ""))
-       (check-equal? (->list (cut-when #:trim? #f (curry = #\space) " ")) (list "" ""))
-       (check-equal? (->list (cut-when (curry = #\space) "")) (list ""))
+       (check-equal? (->list (map ->string (cut-when (curry = #\space) "hello there"))) (list "hello" "there"))
+       (check-equal? (->list (map ->string (cut-when (curry = #\space) "hello there old friend"))) (list "hello" "there" "old" "friend"))
+       (check-equal? (->list (map ->string (cut-when (curry = #\space) " "))) (list ""))
+       (check-equal? (->list (map ->string (cut-when #:trim? #f (curry = #\space) " "))) (list "" ""))
+       (check-equal? (->list (map ->string (cut-when (curry = #\space) ""))) (list ""))
        (check-equal? (->list (map ->list (cut-when (curry = 1) (list 2 1 2)))) '((2) (2)))
        (check-equal? (->list (map ->list (cut-when (curry = 1) (list 2)))) '((2)))
        (check-equal? (->list (cut-when (curry = 1) (list))) (list ID)))
@@ -316,7 +316,7 @@
        (check-equal? (->list (map ->list (cut #:trim? #t 5 (list 5 5 5 1 2 5 5 2 3 5 6 5 7 8 5 5 5)))) '((1 2) () (2 3) (6) (7 8)))
        (check-equal? (->list (map ->list (cut 5 (list 1 2 5 2 3 5 6 5)))) '((1 2) (2 3) (6)))
        (check-equal? (->list (map ->list (cut #:trim? #f 5 (list 1 2 5 2 3 5 6 5)))) '((1 2) (2 3) (6) ()))
-       (check-equal? (->list (cut #\newline "hello\n there")) (list "hello" " there") "cut string handles string separator as char"))
+       (check-equal? (->list (map ->string (cut #\newline "hello\n there"))) (list "hello" " there")))
      (test-case
          "cut-at"
        (check-equal? (let-values ([(a b)
@@ -325,7 +325,7 @@
                      (list '(1 3) '(5 2 4)))
        (check-equal? (let-values ([(a b)
                                    (cut-at 5 "hellothere")])
-                       (list a b))
+                       (->list (map ->string (list a b))))
                      (list "hello" "there")))
      (test-case
          "cut-where"
@@ -466,7 +466,7 @@
        (check-equal? (->list (remove #:key even? #:how-many 2 2 (list 1 2 4 3 6))) (list 1 3 6))
        (check-equal? (remove "banana" (set "apple" "banana" "cherry")) (set "apple" "cherry"))
        (check-equal? (remove "BANANA" (generic-set #:key string-upcase "apple" "banana" "cherry")) (generic-set #:key string-upcase "apple" "cherry"))
-       (check-equal? (remove #\a "aaahai athaerea") "hi there"))
+       (check-equal? (->string (remove #\a "aaahai athaerea")) "hi there"))
      (test-case
          "remove-at"
        (check-equal? (->list (remove-at 0 (list 1 2 3))) (list 2 3))
