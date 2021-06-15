@@ -154,7 +154,7 @@
 
 (define drop-until (annotate p:drop-until 1))
 
-(define cut-when (annotate p:cut-when 1))
+(define cut-when (annotate p:cut-when 1 SEQS))
 
 (define cut (annotate p:cut 1 SEQS))
 

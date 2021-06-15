@@ -173,7 +173,7 @@
 
 (define drop-until (iso p:drop-until 1))
 
-(define cut-when (iso p:cut-when 1))
+(define cut-when (iso p:cut-when 1 SEQS))
 
 (define cut (string-helper (iso p:cut 1 SEQS)))
 
