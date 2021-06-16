@@ -12,10 +12,9 @@
                     foldl/steps
                     append
                     index-of
-                    index-where
-                    range)
+                    index-where)
          relation
-         seq)
+         seq/base)
 
 (require "private/util.rkt")
 
@@ -23,7 +22,7 @@
 
   (define tests
     (test-suite
-     "seq tests"
+     "base tests"
 
      (test-case
          "by"
