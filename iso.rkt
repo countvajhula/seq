@@ -87,12 +87,18 @@
              [p:weave weave]))
 
 (define-syntax-parser string-helper
-  [(_ intf (~optional position:number #:defaults ([position #'0])))
+  [(_ intf)
+   #'(string-helper intf 1 0)] ; default to most common sequence and element positions
+  [(_ intf seq-position:number elem-position:number)
    #'(lambda/arguments args
        (let* ([pos-args (arguments-positional args)]
               [kw-args (arguments-keyword args)]
-              [elem (nth pos-args position)]
-              [pos-args (set-nth pos-args position (->char elem))]
+              [elem (nth pos-args elem-position)]
+              [seq (nth pos-args seq-position)]
+              [pos-args (set-nth pos-args elem-position
+                                 (if (string? seq)
+                                     (->char elem)
+                                     elem))]
               [args (make-arguments pos-args kw-args)])
          (apply/arguments intf args)))])
 
