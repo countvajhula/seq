@@ -114,7 +114,9 @@
        (check-equal? (trim-if negative? (list -1 -2 1 2 3 -3)) (list 1 2 3)))
      (test-case
          "trim"
-       (check-equal? (trim 0 (list 0 1 2 3 0 0)) (list 1 2 3)))
+       (check-equal? (trim 0 (list 0 1 2 3 0 0)) (list 1 2 3))
+       (check-equal? (trim " " "   \thello\n  ") "\thello\n")
+       (check-equal? (trim "h" "hellohhh") "ello"))
      (test-case
          "trim-by"
        (check-equal? (->list (trim-by 1 1 '(1 2 3))) '(2)))
@@ -123,7 +125,8 @@
        (check-equal? (->list (map ->string (cut-when (curry = #\space) "hello there old friend"))) (list "hello" "there" "old" "friend")))
      (test-case
          "cut"
-       (check-equal? (->list (map ->list (cut 5 (list 1 2 5 2 3 5 6 5 7 8)))) '((1 2) (2 3) (6) (7 8))))
+       (check-equal? (->list (map ->list (cut 5 (list 1 2 5 2 3 5 6 5 7 8)))) '((1 2) (2 3) (6) (7 8)))
+       (check-equal? (->list (cut "\n" "hello\n there")) (list "hello" " there") "cut string handles string separator as char"))
      (test-case
          "cut-at"
        (check-equal? (let-values ([(a b)
