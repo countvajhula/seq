@@ -94,7 +94,7 @@
        (let ([seq (nth (arguments-positional args) position)]
              [result (apply/arguments intf args)])
          (annotate-result seq result)))]
-  [(_ intf (~optional position:number #:defaults ([position #'0])) (~datum VARIADIC))
+  [(_ intf position:number (~datum VARIADIC))
    #'(lambda/arguments args
        (let ([seq (with-handlers ([exn:fail? false.])
                     (nth (arguments-positional args) position))]
