@@ -15,7 +15,7 @@
 (define scribblings '(("scribblings/seq.scrbl" ())))
 (define compile-omit-paths '("dev" "tests" "coverage"))
 (define test-include-paths '("tests"))
-(define clean '("compiled" "doc"))
+(define clean '("compiled" "doc" "doc/seq" "tests/compiled" "tests/private/compiled"))
 (define pkg-desc "A generic sequence library exhibiting functional and lazy semantics.")
 (define version "0.0")
 (define pkg-authors '(countvajhula))

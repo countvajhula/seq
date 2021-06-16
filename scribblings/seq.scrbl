@@ -7,10 +7,11 @@
          @for-label[(except-in racket
                                add-between
                                index-of
-							   index-where
+                               index-where
+                               range
                                sequence?
-							   truncate
-							   init
+                               truncate
+                               init
                                prefix
                                remove)
                     (only-in racket
@@ -24,10 +25,10 @@
                              onto
                              ..
                              ^
-							 arg
+                             arg
                              flip
                              flip*
-							 power
+                             power
                              comparable?)
                     seq
                     (prefix-in d: data/collection)
@@ -52,7 +53,7 @@
                                            (except-in data/collection
                                                       append
                                                       index-of
-													  index-where
+                                                      index-where
                                                       foldl
                                                       foldl/steps)
                                            seq
