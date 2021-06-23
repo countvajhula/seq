@@ -10,6 +10,11 @@
          (prefix-in p: "base.rkt")
          "types.rkt")
 
+(module+ test
+  (require rackunit
+           rackunit/text-ui
+           "tests/private/util.rkt"))
+
 ;; TODO: confirm line count at the end
 ;; TODO: organize the interfaces - maybe follow the docs order?
 (provide
@@ -82,9 +87,6 @@
            (known-finite? source)
            (not (and (countable? result)
                      (known-finite? result))))
-      ;; should we extend composition-identity
-      ;; with a sequence-specific type that implements
-      ;; gen:countable?
       (finite-sequence result)
       result))
 
@@ -116,6 +118,68 @@
        (let ([seq (nth (arguments-positional args) position)]
              [result (apply/arguments intf args)])
          (map (curry annotate-result seq) result)))])
+
+(module+ test
+
+  ;; the main test module for this is tests/api.rkt
+  ;; but we use a test submodule here to avoid providing
+  ;; the `annotate` macro outside this module since it's an
+  ;; internal implementation detail
+
+  (struct opaque-sequence ()
+    #:transparent
+    #:methods gen:sequence
+    [(define (first this)
+       (void))
+     (define (rest this)
+       (opaque-sequence))
+     (define (empty? this)
+       #f)]
+    #:methods gen:countable
+    [(define (known-finite? this)
+       #f)
+     (define (length this)
+       1)])
+
+  (struct finite-sequence ()
+    #:transparent
+    #:methods gen:sequence
+    [(define (first this)
+       (void))
+     (define (rest this)
+       (opaque-sequence))
+     (define (empty? this)
+       #f)]
+    #:methods gen:countable
+    [(define (known-finite? this)
+       #t)
+     (define (length this)
+       1)])
+
+  (define tests
+    (test-suite
+     "annotate macro tests"
+     (test-case
+         "no position indicated"
+       (define (g seq)
+         (opaque-sequence))
+       (check-true (known-finite? ((annotate g) (finite-sequence))))
+       (check-false (known-finite? ((annotate g) (opaque-sequence)))))
+     (test-case
+         "position indicated"
+       (define (g elem seq)
+         (opaque-sequence))
+       (check-true (known-finite? ((annotate g 1) 3 (finite-sequence))))
+       (check-false (known-finite? ((annotate g) 3 (opaque-sequence)))))
+     ;; TODO
+     (test-case
+         "variadic")
+     (test-case
+         "list")
+     (test-case
+         "values")
+     (test-case
+         "seqs"))))
 
 (define (range . args)
   (finite-sequence (apply in-range args)))
@@ -205,3 +269,7 @@
 
 ;; really it's if _any_ of the input sequences is finite
 (define interleave (annotate p:interleave 0))
+
+(module+ test
+  (just-do
+   (run-tests tests)))
