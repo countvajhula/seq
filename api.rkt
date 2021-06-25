@@ -141,7 +141,7 @@
      (define (length this)
        1)])
 
-  (struct finite-sequence ()
+  (struct known-finite-sequence ()
     #:transparent
     #:methods gen:sequence
     [(define (first this)
@@ -163,17 +163,21 @@
          "no position indicated"
        (define (g seq)
          (opaque-sequence))
-       (check-true (known-finite? ((annotate g) (finite-sequence))))
+       (check-true (known-finite? ((annotate g) (known-finite-sequence))))
        (check-false (known-finite? ((annotate g) (opaque-sequence)))))
      (test-case
          "position indicated"
        (define (g elem seq)
          (opaque-sequence))
-       (check-true (known-finite? ((annotate g 1) 3 (finite-sequence))))
-       (check-false (known-finite? ((annotate g) 3 (opaque-sequence)))))
-     ;; TODO
+       (check-true (known-finite? ((annotate g 1) 3 (known-finite-sequence))))
+       (check-false (known-finite? ((annotate g 1) 3 (opaque-sequence)))))
      (test-case
-         "variadic")
+         "variadic"
+       (define (g elem . seqs)
+         (opaque-sequence))
+       (check-true (known-finite? ((annotate g 1) 3 (known-finite-sequence) (known-finite-sequence))))
+       (check-false (known-finite? ((annotate g 1) 3 (opaque-sequence) (opaque-sequence)))))
+     ;; TODO
      (test-case
          "list")
      (test-case
@@ -206,7 +210,7 @@
 
 (define unzip (annotate p:unzip 0 LIST))
 
-(define choose (annotate p:choose 1 VARIADIC))
+(define choose (annotate p:choose 1 VARIADIC)) ; choose always returns a finite result
 
 (define suffix (annotate p:suffix 1))
 
