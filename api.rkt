@@ -90,6 +90,10 @@
       (finite-sequence result)
       result))
 
+;; annotate the result with whether it is known to be finite,
+;; conditioned on the finiteness of the input
+;; use this in interfaces where the finiteness of the result
+;; is implied by the finiteness of the input(s)
 (define-syntax-parser annotate
   [(_ intf (~optional position:number #:defaults ([position #'0])))
    #'(lambda/arguments args
@@ -118,6 +122,20 @@
        (let ([seq (nth (arguments-positional args) position)]
              [result (apply/arguments intf args)])
          (map (curry annotate-result seq) result)))])
+
+;; always annotate result, indepdently of input.
+;; use this for interfaces where the result is always going
+;; to be finite, irrespective of the input.
+;; this could support additional patterns like `annotate`,
+;; if needed, but this is only used in `choose` at the moment
+(define-syntax-parser annotate-naively
+  [(_ intf)
+   #'(lambda/arguments args
+       (let ([result (apply/arguments intf args)])
+         (if (and (countable? result)
+                  (known-finite? result))
+             result
+             (finite-sequence result))))])
 
 (module+ test
 
@@ -158,32 +176,42 @@
 
   (define tests
     (test-suite
-     "annotate macro tests"
-     (test-case
-         "no position indicated"
-       (define (g seq)
-         (opaque-sequence))
-       (check-true (known-finite? ((annotate g) (known-finite-sequence))))
-       (check-false (known-finite? ((annotate g) (opaque-sequence)))))
-     (test-case
-         "position indicated"
-       (define (g elem seq)
-         (opaque-sequence))
-       (check-true (known-finite? ((annotate g 1) 3 (known-finite-sequence))))
-       (check-false (known-finite? ((annotate g 1) 3 (opaque-sequence)))))
-     (test-case
-         "variadic"
-       (define (g elem . seqs)
-         (opaque-sequence))
-       (check-true (known-finite? ((annotate g 1) 3 (known-finite-sequence) (known-finite-sequence))))
-       (check-false (known-finite? ((annotate g 1) 3 (opaque-sequence) (opaque-sequence)))))
-     ;; TODO
-     (test-case
-         "list")
-     (test-case
-         "values")
-     (test-case
-         "seqs"))))
+     "finiteness annotation"
+     (test-suite
+      "annotate conditionally"
+      (test-case
+          "no position indicated"
+        (define (g seq)
+          (opaque-sequence))
+        (check-true (known-finite? ((annotate g) (known-finite-sequence))))
+        (check-false (known-finite? ((annotate g) (opaque-sequence)))))
+      (test-case
+          "position indicated"
+        (define (g elem seq)
+          (opaque-sequence))
+        (check-true (known-finite? ((annotate g 1) 3 (known-finite-sequence))))
+        (check-false (known-finite? ((annotate g 1) 3 (opaque-sequence)))))
+      (test-case
+          "variadic"
+        (define (g elem . seqs)
+          (opaque-sequence))
+        (check-true (known-finite? ((annotate g 1) 3 (known-finite-sequence) (known-finite-sequence))))
+        (check-false (known-finite? ((annotate g 1) 3 (opaque-sequence) (opaque-sequence)))))
+      ;; TODO
+      (test-case
+          "list")
+      (test-case
+          "values")
+      (test-case
+          "seqs"))
+     (test-suite
+      "annotate-naively"
+      (test-case
+          "no position indicated"
+        (define (g seq)
+          (opaque-sequence))
+        (check-true (known-finite? ((annotate-naively g) (known-finite-sequence))))
+        (check-true (known-finite? ((annotate-naively g) (opaque-sequence)))))))))
 
 (define (range . args)
   (finite-sequence (apply in-range args)))
@@ -210,7 +238,7 @@
 
 (define unzip (annotate p:unzip 0 LIST))
 
-(define choose (annotate p:choose 1 VARIADIC)) ; choose always returns a finite result
+(define choose (annotate-naively p:choose))
 
 (define suffix (annotate p:suffix 1))
 
