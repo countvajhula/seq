@@ -122,24 +122,24 @@
        (let ([seq (nth (arguments-positional args) position)]
              [result (apply/arguments intf args)])
          (return seq result)))]
-  [(_ intf position:number (~datum VARIADIC))
+  [(_ intf position:number (~datum VARIADIC-INPUT))
    #'(lambda/arguments args
        (let ([seq (with-handlers ([exn:fail? false.])
                     (nth (arguments-positional args) position))]
              [result (apply/arguments intf args)])
          (return seq result)))]
-  [(_ intf position:number (~datum LIST))
+  [(_ intf position:number (~datum LIST-INPUT))
    #'(lambda/arguments args
        (let ([seq (first (nth (arguments-positional args) position))]
              [result (apply/arguments intf args)])
          (return seq result)))]
-  [(_ intf position:number (~datum VALUES))
+  [(_ intf position:number (~datum TWO-VALUE-RESULT))
    #'(lambda/arguments args
        (let ([seq (nth (arguments-positional args) position)])
          (let-values ([(a b) (apply/arguments intf args)])
            (values (return seq a)
                    (return seq b)))))]
-  [(_ intf position:number (~datum SEQS))
+  [(_ intf position:number (~datum SEQUENCE-RESULT))
    #'(lambda/arguments args
        (let ([seq (nth (arguments-positional args) position)]
              [result (apply/arguments intf args)])
@@ -163,11 +163,11 @@
 
 (define zip (iso p:zip 0))
 
-(define unzip-with (iso p:unzip-with 1 LIST))
+(define unzip-with (iso p:unzip-with 1 LIST-INPUT))
 
-(define unzip (iso p:unzip 0 LIST))
+(define unzip (iso p:unzip 0 LIST-INPUT))
 
-(define choose (iso p:choose 1 VARIADIC))
+(define choose (iso p:choose 1 VARIADIC-INPUT))
 
 (define suffix (iso p:suffix 1))
 
@@ -179,17 +179,17 @@
 
 (define drop-until (iso p:drop-until 1))
 
-(define cut-when (iso p:cut-when 1 SEQS))
+(define cut-when (iso p:cut-when 1 SEQUENCE-RESULT))
 
-(define cut (string-helper (iso p:cut 1 SEQS)))
+(define cut (string-helper (iso p:cut 1 SEQUENCE-RESULT)))
 
-(define cut-at (iso p:cut-at 1 VALUES))
+(define cut-at (iso p:cut-at 1 TWO-VALUE-RESULT))
 
-(define cut-where (iso p:cut-where 1 VALUES))
+(define cut-where (iso p:cut-where 1 TWO-VALUE-RESULT))
 
-(define cut-by (iso p:cut-by 1 SEQS))
+(define cut-by (iso p:cut-by 1 SEQUENCE-RESULT))
 
-(define cut-with (iso p:cut-with 1 VALUES))
+(define cut-with (iso p:cut-with 1 TWO-VALUE-RESULT))
 
 (define truncate (iso p:truncate 1))
 
@@ -199,13 +199,13 @@
 
 (define rotate (iso p:rotate))
 
-(define rotations (iso p:rotations 0 SEQS))
+(define rotations (iso p:rotations 0 SEQUENCE-RESULT))
 
-(define prefixes (iso p:prefixes 0 SEQS))
+(define prefixes (iso p:prefixes 0 SEQUENCE-RESULT))
 
-(define suffixes (iso p:suffixes 0 SEQS))
+(define suffixes (iso p:suffixes 0 SEQUENCE-RESULT))
 
-(define infixes (iso p:infixes 1 SEQS))
+(define infixes (iso p:infixes 1 SEQUENCE-RESULT))
 
 ;; not sure about this one
 (define replace-infix (iso p:replace-infix 2))

@@ -100,24 +100,24 @@
        (let ([seq (nth (arguments-positional args) position)]
              [result (apply/arguments intf args)])
          (annotate-result seq result)))]
-  [(_ intf position:number (~datum VARIADIC))
+  [(_ intf position:number (~datum VARIADIC-INPUT))
    #'(lambda/arguments args
        (let ([seq (with-handlers ([exn:fail? false.])
                     (nth (arguments-positional args) position))]
              [result (apply/arguments intf args)])
          (annotate-result seq result)))]
-  [(_ intf position:number (~datum LIST))
+  [(_ intf position:number (~datum LIST-INPUT))
    #'(lambda/arguments args
        (let ([seq (first (nth (arguments-positional args) position))]
              [result (apply/arguments intf args)])
          (annotate-result seq result)))]
-  [(_ intf position:number (~datum VALUES))
+  [(_ intf position:number (~datum TWO-VALUE-RESULT))
    #'(lambda/arguments args
        (let ([seq (nth (arguments-positional args) position)])
          (let-values ([(a b) (apply/arguments intf args)])
            (values (annotate-result seq a)
                    (annotate-result seq b)))))]
-  [(_ intf position:number (~datum SEQS))
+  [(_ intf position:number (~datum SEQUENCE-RESULT))
    #'(lambda/arguments args
        (let ([seq (nth (arguments-positional args) position)]
              [result (apply/arguments intf args)])
@@ -192,18 +192,44 @@
         (check-true (known-finite? ((annotate g 1) 3 (known-finite-sequence))))
         (check-false (known-finite? ((annotate g 1) 3 (opaque-sequence)))))
       (test-case
-          "variadic"
+          "variadic input"
         (define (g elem . seqs)
           (opaque-sequence))
-        (check-true (known-finite? ((annotate g 1) 3 (known-finite-sequence) (known-finite-sequence))))
-        (check-false (known-finite? ((annotate g 1) 3 (opaque-sequence) (opaque-sequence)))))
-      ;; TODO
+        (check-true (known-finite? ((annotate g 1 VARIADIC-INPUT) 3
+                                                                  (known-finite-sequence)
+                                                                  (known-finite-sequence))))
+        (check-false (known-finite? ((annotate g 1 VARIADIC-INPUT) 3
+                                                                   (opaque-sequence)
+                                                                   (opaque-sequence)))))
       (test-case
-          "list")
+          "list input"
+        (define (g elem seqs)
+          (opaque-sequence))
+        (check-true
+         (known-finite? ((annotate g 1 LIST-INPUT) 3
+                                                   (list (known-finite-sequence)
+                                                         (known-finite-sequence)))))
+        (check-false
+         (known-finite? ((annotate g 1 LIST-INPUT) 3
+                                                   (list (opaque-sequence)
+                                                         (opaque-sequence))))))
       (test-case
-          "values")
+          "two value result"
+        (define (g elem seq)
+          (values (opaque-sequence) (opaque-sequence)))
+        (let-values ([(a b) ((annotate g 1 TWO-VALUE-RESULT) 3 (known-finite-sequence))])
+          (check-true (known-finite? a))
+          (check-true (known-finite? b)))
+        (let-values ([(a b) ((annotate g 1 TWO-VALUE-RESULT) 3 (opaque-sequence))])
+          (check-false (known-finite? a))
+          (check-false (known-finite? b))))
       (test-case
-          "seqs"))
+          "sequence result"
+        (define (g elem seq)
+          (list (opaque-sequence) (opaque-sequence)))
+        (check-true (andmap known-finite? ((annotate g 1 SEQUENCE-RESULT) 3 (known-finite-sequence))))
+        (check-false (andmap known-finite? ((annotate g 1 SEQUENCE-RESULT) 3 (opaque-sequence))))))
+
      (test-suite
       "annotate-naively"
       (test-case
@@ -234,9 +260,9 @@
 
 (define zip (annotate p:zip 0))
 
-(define unzip-with (annotate p:unzip-with 1 LIST))
+(define unzip-with (annotate p:unzip-with 1 LIST-INPUT))
 
-(define unzip (annotate p:unzip 0 LIST))
+(define unzip (annotate p:unzip 0 LIST-INPUT))
 
 (define choose (annotate-naively p:choose))
 
@@ -250,17 +276,17 @@
 
 (define drop-until (annotate p:drop-until 1))
 
-(define cut-when (annotate p:cut-when 1 SEQS))
+(define cut-when (annotate p:cut-when 1 SEQUENCE-RESULT))
 
-(define cut (annotate p:cut 1 SEQS))
+(define cut (annotate p:cut 1 SEQUENCE-RESULT))
 
-(define cut-at (annotate p:cut-at 1 VALUES))
+(define cut-at (annotate p:cut-at 1 TWO-VALUE-RESULT))
 
-(define cut-where (annotate p:cut-where 1 VALUES))
+(define cut-where (annotate p:cut-where 1 TWO-VALUE-RESULT))
 
-(define cut-by (annotate p:cut-by 1 SEQS))
+(define cut-by (annotate p:cut-by 1 SEQUENCE-RESULT))
 
-(define cut-with (annotate p:cut-with 1 VALUES))
+(define cut-with (annotate p:cut-with 1 TWO-VALUE-RESULT))
 
 (define truncate (annotate p:truncate 1))
 
@@ -270,13 +296,13 @@
 
 (define rotate (annotate p:rotate))
 
-(define rotations (annotate p:rotations 0 SEQS))
+(define rotations (annotate p:rotations 0 SEQUENCE-RESULT))
 
-(define prefixes (annotate p:prefixes 0 SEQS))
+(define prefixes (annotate p:prefixes 0 SEQUENCE-RESULT))
 
-(define suffixes (annotate p:suffixes 0 SEQS))
+(define suffixes (annotate p:suffixes 0 SEQUENCE-RESULT))
 
-(define infixes (annotate p:infixes 1 SEQS))
+(define infixes (annotate p:infixes 1 SEQUENCE-RESULT))
 
 ;; not sure about this one
 (define replace-infix (annotate p:replace-infix 2))
