@@ -30,7 +30,7 @@
            rackunit/text-ui
            racket/generic
            racket/stream
-           "tests/private/util.rkt"))
+           "private/util.rkt"))
 
 (provide
  by

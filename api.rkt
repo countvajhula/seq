@@ -13,7 +13,7 @@
 (module+ test
   (require rackunit
            rackunit/text-ui
-           "tests/private/util.rkt"))
+           "private/util.rkt"))
 
 ;; TODO: confirm line count at the end
 ;; TODO: organize the interfaces - maybe follow the docs order?
