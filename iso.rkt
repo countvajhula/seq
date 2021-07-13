@@ -10,17 +10,27 @@
                   sequence->list
                   apply
                   map
+                  andmap
                   known-finite?
                   nth
                   set-nth
                   extend
-                  collection?)
+                  collection?
+                  gen:sequence
+                  gen:countable)
          relation/type
          (only-in relation
                   false.
                   appendable-identity)
          (prefix-in p: "api.rkt")
          syntax/parse/define)
+
+(module+ test
+  (require rackunit
+           rackunit/text-ui
+           racket/generic
+           racket/stream
+           "tests/private/util.rkt"))
 
 (provide
  by
@@ -145,6 +155,235 @@
              [result (apply/arguments intf args)])
          (map (curry return seq) result)))])
 
+(module+ test
+
+  ;; the main test module for this is tests/iso.rkt
+  ;; but we use a test submodule here to avoid providing
+  ;; the `iso` and `string-helper` macros outside this module
+  ;; since they're an internal implementation detail
+
+  (struct opaque-sequence (contents)
+    #:transparent
+    #:methods gen:sequence
+    [(define/generic -empty? empty?)
+     (define/generic -first first)
+     (define/generic -rest rest)
+     (define (first this)
+       (-first (opaque-sequence-contents this)))
+     (define (rest this)
+       (-rest (opaque-sequence-contents this)))
+     (define (empty? this)
+       (-empty? (opaque-sequence-contents this)))]
+    #:methods gen:countable
+    [(define/generic -length length)
+     (define (known-finite? this)
+       #f)
+     (define (length this)
+       (-length (opaque-sequence-contents this)))])
+
+  (struct known-finite-sequence (contents)
+    #:transparent
+    #:methods gen:sequence
+    [(define/generic -empty? empty?)
+     (define/generic -first first)
+     (define/generic -rest rest)
+     (define (first this)
+       (-first (known-finite-sequence-contents this)))
+     (define (rest this)
+       (-rest (known-finite-sequence-contents this)))
+     (define (empty? this)
+       (-empty? (known-finite-sequence-contents this)))]
+    #:methods gen:countable
+    [(define/generic -length length)
+     (define (known-finite? this)
+       #t)
+     (define (length this)
+       (-length (known-finite-sequence-contents this)))])
+
+  (define tests
+    (test-suite
+     "isomorphic interfaces"
+
+     (test-suite
+      "iso"
+      (test-suite
+       "basic"
+       (test-case
+           "known finite result"
+         (define (g seq)
+           (known-finite-sequence (list 1 2 3)))
+         (check-true (list? ((iso g) (list 1))))
+         (check-true (vector? ((iso g) #(1))))
+         (check-true (known-finite-sequence?
+                      ((iso g) (known-finite-sequence (list 1 2 3)))) "custom type")
+         (check-true (known-finite-sequence?
+                      ((iso g) (opaque-sequence (list 1 2 3))))
+                     "output type is unchanged if input is opaque"))
+       (test-case
+           "opaque result"
+         (define (g seq)
+           (opaque-sequence (list 1 2 3)))
+         (check-false (list? ((iso g) (list 1))))
+         (check-false (vector? ((iso g) #(1))))
+         (check-false (known-finite-sequence?
+                       ((iso g) (known-finite-sequence (list 1 2 3))))
+                      "custom type")))
+      (test-suite
+       "position indicated"
+       (test-case
+           "known finite result"
+         (define (g elem seq)
+           (known-finite-sequence (list 1 2 3)))
+         (check-true (list? ((iso g 1) 1 (list 1))))
+         (check-true (vector? ((iso g 1) 1 #(1))))
+         (check-true (known-finite-sequence?
+                      ((iso g) 1 (known-finite-sequence (list 1 2 3))))
+                     "custom type")
+         (check-true (known-finite-sequence?
+                      ((iso g) 1 (opaque-sequence (list 1 2 3))))
+                     "output type is unchanged if input is opaque"))
+       (test-case
+           "opaque result"
+         (define (g elem seq)
+           (opaque-sequence (list 1 2 3)))
+         (check-false (list? ((iso g 1) 1 (list 1))))
+         (check-false (vector? ((iso g 1) 1 #(1))))
+         (check-false (known-finite-sequence?
+                       ((iso g) 1 (known-finite-sequence (list 1 2 3))))
+                      "custom type")))
+      (test-suite
+       "variadic input"
+       (test-case
+           "known finite result"
+         (define (g elem . seqs)
+           (known-finite-sequence (list 1 2 3)))
+         (check-true (list? ((iso g 1 VARIADIC-INPUT) 1 (list 1) (list 1))))
+         (check-true (vector? ((iso g 1 VARIADIC-INPUT) 1 #(1) #(1))))
+         (check-true (known-finite-sequence?
+                      ((iso g 1 VARIADIC-INPUT) 1
+                                                (known-finite-sequence (list 1 2 3))
+                                                (known-finite-sequence (list 1 2 3))))
+                     "custom type")
+         (check-true (known-finite-sequence?
+                      ((iso g 1 VARIADIC-INPUT) 1
+                                                (opaque-sequence (list 1 2 3))
+                                                (opaque-sequence (list 1 2 3))))
+                     "output type is unchanged if input is opaque"))
+       (test-case
+           "opaque result"
+         (define (g elem . seqs)
+           (opaque-sequence (list 1 2 3)))
+         (check-false (list? ((iso g 1 VARIADIC-INPUT) 1 (list 1))))
+         (check-false (vector? ((iso g 1 VARIADIC-INPUT) 1 #(1))))
+         (check-false (known-finite-sequence?
+                       ((iso g 1 VARIADIC-INPUT) 1
+                                                 (known-finite-sequence (list 1 2 3))
+                                                 (known-finite-sequence (list 1 2 3))))
+                      "custom type")))
+      (test-suite
+       "list input"
+       (test-case
+           "known finite result"
+         (define (g elem seqs)
+           (known-finite-sequence (list 1 2 3)))
+         (check-true (list? ((iso g 1 LIST-INPUT) 1 (list (list 1)))))
+         (check-true (vector? ((iso g 1 LIST-INPUT) 1 (list #(1) #(1)))))
+         (check-true (known-finite-sequence?
+                      ((iso g 1 LIST-INPUT) 1 (list (known-finite-sequence (list 1 2 3))
+                                                    (known-finite-sequence (list 1 2 3)))))
+                     "custom type")
+         (check-true (known-finite-sequence?
+                      ((iso g 1 LIST-INPUT) 1 (list (opaque-sequence (list 1 2 3))
+                                                    (opaque-sequence (list 1 2 3)))))
+                     "output type is unchanged if input is opaque"))
+       (test-case
+           "opaque result"
+         (define (g elem seqs)
+           (opaque-sequence (list 1 2 3)))
+         (check-false (list? ((iso g 1 LIST-INPUT) 1 (list (list 1)))))
+         (check-false (vector? ((iso g 1 LIST-INPUT) 1 (list #(1)))))
+         (check-false (known-finite-sequence?
+                       ((iso g 1 LIST-INPUT) 1
+                                             (list (known-finite-sequence (list 1 2 3))
+                                                   (known-finite-sequence (list 1 2 3)))))
+                      "custom type")))
+      (test-suite
+       "two value result"
+       (test-case
+           "known finite result"
+         (define (g elem seq)
+           (values (known-finite-sequence (list 1 2 3))
+                   (known-finite-sequence (list 1 2 3))))
+         (let-values ([(a b) ((iso g 1 TWO-VALUE-RESULT) 1 (list 1))])
+           (check-true (list? a))
+           (check-true (list? b)))
+         (let-values ([(a b) ((iso g 1 TWO-VALUE-RESULT) 1 #(1))])
+           (check-true (vector? a))
+           (check-true (vector? b)))
+         (let-values ([(a b) ((iso g 1 TWO-VALUE-RESULT) 1 (known-finite-sequence (list 1 2 3)))])
+           (check-true (known-finite-sequence? a) "custom type")
+           (check-true (known-finite-sequence? b) "custom type"))
+         (let-values ([(a b) ((iso g 1 TWO-VALUE-RESULT) 1 (opaque-sequence (list 1 2 3)))])
+           (check-true (known-finite-sequence? a) "output type is unchanged if input is opaque")
+           (check-true (known-finite-sequence? b) "output type is unchanged if input is opaque")))
+       (test-case
+           "opaque result"
+         (define (g elem seq)
+           (values (opaque-sequence (list 1 2 3))
+                   (opaque-sequence (list 1 2 3))))
+         (let-values ([(a b) ((iso g 1 TWO-VALUE-RESULT) 1 (list 1 2 3))])
+           (check-false (list? a))
+           (check-false (list? b)))
+         (let-values ([(a b) ((iso g 1 TWO-VALUE-RESULT) 1 #(1))])
+           (check-false (vector? a))
+           (check-false (vector? b)))
+         (let-values ([(a b) ((iso g 1 TWO-VALUE-RESULT) 1 (known-finite-sequence (list 1 2 3)))])
+           (check-false (known-finite-sequence? a))
+           (check-false (known-finite-sequence? b)))))
+      (test-suite
+       "sequence result"
+       (test-case
+           "known finite result"
+         (define (g elem seq)
+           (list (known-finite-sequence (list 1 2 3))
+                 (known-finite-sequence (list 1 2 3))))
+         (check-true (andmap list? ((iso g 1 SEQUENCE-RESULT) 1 (list 1))))
+         (check-true (andmap vector? ((iso g 1 SEQUENCE-RESULT) 1 #(1))))
+         (check-true (andmap known-finite-sequence?
+                             ((iso g 1 SEQUENCE-RESULT) 1 (known-finite-sequence (list 1 2 3))))
+                     "custom type")
+         (check-true (andmap known-finite-sequence?
+                             ((iso g 1 SEQUENCE-RESULT) 1 (opaque-sequence (list 1 2 3))))
+                     "output type is unchanged if input is opaque"))
+       (test-case
+           "opaque result"
+         (define (g elem seq)
+           (list (opaque-sequence (list 1 2 3))
+                 (opaque-sequence (list 1 2 3))))
+         (check-false (andmap list? ((iso g 1 SEQUENCE-RESULT) 1 (list 1))))
+         (check-false (andmap vector? ((iso g 1 SEQUENCE-RESULT) 1 #(1))))
+         (check-false (andmap known-finite-sequence?
+                       ((iso g 1 SEQUENCE-RESULT) 1 (known-finite-sequence (list 1 2 3))))
+                      "custom type"))))
+
+     ;; if the sequence is a string then elem is converted to a char
+     ;; and is otherwise left alone
+     (test-suite
+      "string-helper"
+      ;; (intf seq-position elem-position)
+      (test-case
+          "no position indicated"
+        (define (g elem seq)
+          (char? elem))
+        (check-true ((string-helper g) "a" "abc"))
+        (check-false ((string-helper g) "a" (list 1))))
+      (test-case
+          "position indicated"
+        (define (g elem seq)
+          (char? elem))
+        (check-true ((string-helper g 1 0) "a" "abc"))
+        (check-false ((string-helper g 1 0) "a" (list 1))))))))
+
 (define by (iso p:by 1))
 
 (define take-when (iso p:take-when 1))
@@ -232,3 +471,7 @@
 (define interleave (iso p:interleave 0))
 
 (define index-of (string-helper p:index-of))
+
+(module+ test
+  (just-do
+   (run-tests tests)))

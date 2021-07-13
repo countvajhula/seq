@@ -165,7 +165,7 @@
     [(define (first this)
        (void))
      (define (rest this)
-       (opaque-sequence))
+       (known-finite-sequence))
      (define (empty? this)
        #f)]
     #:methods gen:countable
@@ -177,6 +177,7 @@
   (define tests
     (test-suite
      "finiteness annotation"
+
      (test-suite
       "annotate conditionally"
       (test-case
