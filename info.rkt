@@ -2,6 +2,7 @@
 (define collection "seq")
 (define deps '("base"
                "collections-lib"
+               "arguments"
                "relation"))
 (define build-deps '("scribble-lib"
                      "scribble-abbrevs"
