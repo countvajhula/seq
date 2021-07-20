@@ -32,69 +32,68 @@
            racket/stream
            "private/util.rkt"))
 
-(provide
- by
- take-when
- prefix
- suffix-at
- infix
- infix-at
- init
- zip-with
- zip
- unzip-with
- unzip
- choose
- suffix
- take-while
- drop-while
- take-until
- drop-until
- cut-when
- cut
- cut-at
- cut-where
- cut-by
- cut-with
- truncate
- rotate-left
- rotate-right
- rotate
- rotations
- suffixes
- prefixes
- infixes
- replace-infix
- trim-if
- trim
- trim-by
- remove
- remove-at
- drop-when
- intersperse
- add-between
- wrap-each
- interleave
- index-of
- (rename-out [p:range range]
-             [p:exists exists]
-             [p:for-all for-all]
-             [p:find find]
-             [p:index-where index-where]
-             [p:deduplicate deduplicate]
-             [p:multiples multiples]
-             [p:powers powers]
-             [p:iterate iterate]
-             [p:prefix? prefix?]
-             [p:starts-with? starts-with?]
-             [p:suffix? suffix?]
-             [p:ends-with? ends-with?]
-             [p:find-infix find-infix]
-             [p:infix? infix?]
-             [p:contains? contains?]
-             [p:index index]
-             [p:join-with join-with]
-             [p:weave weave]))
+(provide by
+         take-when
+         prefix
+         suffix-at
+         infix
+         infix-at
+         init
+         zip-with
+         zip
+         unzip-with
+         unzip
+         choose
+         suffix
+         take-while
+         drop-while
+         take-until
+         drop-until
+         cut-when
+         cut
+         cut-at
+         cut-where
+         cut-by
+         cut-with
+         truncate
+         rotate-left
+         rotate-right
+         rotate
+         rotations
+         suffixes
+         prefixes
+         infixes
+         replace-infix
+         trim-if
+         trim
+         trim-by
+         remove
+         remove-at
+         drop-when
+         intersperse
+         add-between
+         wrap-each
+         interleave
+         index-of
+         (rename-out [p:range range]
+                     [p:exists exists]
+                     [p:for-all for-all]
+                     [p:find find]
+                     [p:index-where index-where]
+                     [p:deduplicate deduplicate]
+                     [p:multiples multiples]
+                     [p:powers powers]
+                     [p:iterate iterate]
+                     [p:prefix? prefix?]
+                     [p:starts-with? starts-with?]
+                     [p:suffix? suffix?]
+                     [p:ends-with? ends-with?]
+                     [p:find-infix find-infix]
+                     [p:infix? infix?]
+                     [p:contains? contains?]
+                     [p:index index]
+                     [p:join-with join-with]
+                     [p:weave weave]))
 
 (define-syntax-parser string-helper
   [(_ intf)
@@ -370,7 +369,6 @@
      ;; and is otherwise left alone
      (test-suite
       "string-helper"
-      ;; (intf seq-position elem-position)
       (test-case
           "no position indicated"
         (define (g elem seq)

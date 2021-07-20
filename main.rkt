@@ -1,5 +1,5 @@
 #lang racket/base
 
-(require "api.rkt")
+(require seq/api)
 
-(provide (all-from-out "api.rkt"))
+(provide (all-from-out seq/api))
