@@ -21,6 +21,7 @@
                              ->list
                              ->string
                              ->number
+                             gen:appendable
                              join
                              onto
                              ..
@@ -35,6 +36,9 @@
                     (only-in data/collection
                              conj
                              conj*
+                             extend
+                             gen:collection
+                             gen:sequence
                              sequence?
                              collection?
                              sequenceof
@@ -54,6 +58,7 @@
                                                       append
                                                       index-of
                                                       index-where
+                                                      range
                                                       foldl
                                                       foldl/steps)
                                            seq
@@ -68,11 +73,25 @@
 
 Standard and general-purpose sequence utilities.
 
-This library builds on top of the @other-doc['(lib "scribblings/data/collection/collections.scrbl")] foundation to provide a broad range of general-purpose utilities that work on all sequences.
+This library builds on top of the @other-doc['(lib "scribblings/data/collection/collections.scrbl")] foundation to provide a broad range of general-purpose utilities that work on all sequences. It also includes an optional "isomorphic" layer that ensures symmetry of input and output types while using these interfaces.
 
-Some of these interfaces are either implementations of or are inspired by the Scheme @hyperlink["https://docs.racket-lang.org/r6rs/r6rs-lib-std/r6rs-lib-Z-H-4.html"]{specifications} for @hyperlink["https://docs.racket-lang.org/srfi/srfi-std/srfi-1.html"]{list utilities}, while others are similar in spirit. An attempt has been made to adhere to intuitive naming conventions and categories to minimize the need to lookup documentation and support the ability to "guess" the name of an unknown function rather than learn these (numerous) names purely through familiarity.
+Some of these interfaces are either implementations of or are inspired by the Scheme @hyperlink["https://docs.racket-lang.org/r6rs/r6rs-lib-std/r6rs-lib-Z-H-4.html"]{specifications} for @hyperlink["https://docs.racket-lang.org/srfi/srfi-std/srfi-1.html"]{list utilities}, while others are similar in spirit. An attempt has been made to adhere to intuitive naming conventions and categories to minimize the need to lookup documentation and support the ability to guess the name of an unknown function rather than learn these (numerous) names purely through familiarity.
 
 @table-of-contents[]
+
+@section{Modules}
+
+@defmodule*/no-declare[(seq/base)]
+
+The core set of APIs, exhibiting functional, generic, and lazy semantics (like the interfaces in @racket[data/collection]). This is an internal module and generally should not be used directly.
+
+@defmodule*/no-declare[(seq/api)]
+
+The default module that is imported via @racket[(require seq)]. It simply annotates the interfaces in @racket[seq/base], as well as a few from @racket[data/collection], with known finiteness information, which may be leveraged by applications for whatever purpose. In particular, this information is used in the @racket[seq/iso] layer to determine whether preserving type symmetry is possible.
+
+@defmodule*/no-declare[(seq/iso)]
+
+This module provides all of the APIs from @racket[seq/api] in "isomorphic" form, so that output types will match input types where it makes sense. In particular, output types will match input types for all finite @techlink[#:doc '(lib "scribblings/data/collection/collections.scrbl") #:key "generic sequence"]{sequences} that are either (a) a known built-in type such as a @tech/reference{list}, or (b) a custom type implementing both @racket[gen:collection] as well as @racket[gen:appendable] (in addition to @racket[gen:sequence]). Note that in order for these isomorphic APIs to function correctly for custom types, the implementation of @racket[extend] for @racket[gen:collection] in the custom type must preserve the order of elements (for example, unlike the @racketlink[extend]{default implementation for lists}, which reverses the order of elements).
 
 @section{Naming Conventions}
 

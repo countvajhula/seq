@@ -111,8 +111,6 @@
               [args (make-arguments pos-args kw-args)])
          (apply/arguments intf args)))])
 
-;; TODO: document that custom types must implement gen:collection with
-;; consideration to ordering, and also gen:appendable
 (define (return source result)
   (cond [(and source (list? source) (known-finite? result)) (->list result)]
         [(and source (string? source) (known-finite? result)) (->string result)]
