@@ -75,12 +75,12 @@
          wrap-each
          interleave
          index-of
+         deduplicate
          (rename-out [p:range range]
                      [p:exists exists]
                      [p:for-all for-all]
                      [p:find find]
                      [p:index-where index-where]
-                     [p:deduplicate deduplicate]
                      [p:multiples multiples]
                      [p:powers powers]
                      [p:iterate iterate]
@@ -467,6 +467,8 @@
 (define interleave (iso p:interleave 0))
 
 (define index-of (string-helper p:index-of))
+
+(define deduplicate (iso p:deduplicate 0))
 
 (module+ test
   (just-do
