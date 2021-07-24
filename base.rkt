@@ -413,10 +413,10 @@
 
 (define (suffixes seq)
   (if (empty? seq)
-      empty-stream
+      (stream empty-stream)
       (stream-cons seq (suffixes (rest seq)))))
 
-(define (prefixes seq [n 1])
+(define (prefixes seq [n 0])
   (if (empty? seq)
       empty-stream
       (let ([pfx (with-handlers ([exn:fail:contract? false.])
