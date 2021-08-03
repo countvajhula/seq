@@ -2,7 +2,10 @@
 
 (require (only-in racket/function curry)
          (except-in data/collection
-                    range)
+                    range
+                    map)
+         (only-in data/collection
+                  [map d:map])
          syntax/parse/define
          (for-syntax racket/base)
          arguments
@@ -16,6 +19,7 @@
            "private/util.rkt"))
 
 (provide range
+         map
          by
          take-when
          prefix
@@ -118,7 +122,7 @@
    #'(lambda/arguments args
        (let ([seq (nth (arguments-positional args) position)]
              [result (apply/arguments intf args)])
-         (map (curry annotate-result seq) result)))])
+         (d:map (curry annotate-result seq) result)))])
 
 ;; always annotate result, indepdently of input.
 ;; use this for interfaces where the result is always going
@@ -237,9 +241,14 @@
         (check-true (known-finite? ((annotate-naively g) (known-finite-sequence))))
         (check-true (known-finite? ((annotate-naively g) (opaque-sequence)))))))))
 
+;;; data/collection / built-in
 (define (range . args)
   (finite-sequence (apply in-range args)))
 
+;; really it's if _any_ of the input sequences are finite
+(define map (annotate d:map 1))
+
+;;; seq
 (define by (annotate p:by 1))
 
 (define take-when (annotate p:take-when 1))
@@ -254,6 +263,7 @@
 
 (define init (annotate p:init))
 
+;; really it's if _any_ of the input sequences are finite
 (define zip-with (annotate p:zip-with 1))
 
 (define zip (annotate p:zip 0))
@@ -323,7 +333,7 @@
 
 (define wrap-each (annotate p:wrap-each 2))
 
-;; really it's if _any_ of the input sequences is finite
+;; really it's if _any_ of the input sequences are finite
 (define interleave (annotate p:interleave 0))
 
 (module+ test

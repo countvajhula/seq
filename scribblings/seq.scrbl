@@ -97,7 +97,7 @@ This module provides all of the APIs from @racket[seq/api] in "isomorphic" form,
 
 These naming conventions are intended to minimize the need to look up documentation while working with sequences.
 
-While some of the provided sequence utilities have standard names familiar from string or list contexts, others take their name from the Scheme specification or are borrowed from other functional languages such as Haskell. When the utilities don't take their name from one of these sources, they instead have a "prescriptive" name that is approximately expressed as:
+While some of the provided sequence utilities have standard names familiar from string or list contexts, others take their name from the Scheme specification or are borrowed from other functional languages such as Haskell. When the utilities don't take their name from one of these sources, they instead have a formulaic name that is approximately expressed as:
 
 @(let ([open @litchar{(}]
        [close @litchar{)}]
@@ -175,7 +175,7 @@ While some of the provided sequence utilities have standard names familiar from 
           (list @nonterm{noun}
                 @elem{@litchar{sequence?}})])
 
-Whenever a prescriptive name is used for a well-known interface, the more common name is also usually provided as an alias. Not every interface here corresponds neatly to a naming convention, but in cases where they do, verbs and suffixes have the following meanings:
+Whenever a formulaic name is used for a well-known interface, the more common name is also usually provided as an alias. Not every interface here corresponds neatly to a naming convention, but in cases where they do, verbs and suffixes have the following meanings:
 
 @subsection{Verbs}
 

@@ -380,6 +380,10 @@
         (check-true ((string-helper g 1 0) "a" "abc"))
         (check-false ((string-helper g 1 0) "a" (list 1))))))))
 
+;;; data/collection / built-in
+(define map (iso p:map 1))
+
+;;; seq
 (define by (iso p:by 1))
 
 (define take-when (iso p:take-when 1))
@@ -463,7 +467,6 @@
 
 (define wrap-each (iso p:wrap-each 2))
 
-;; really it's if _any_ of the input sequences is finite
 (define interleave (iso p:interleave 0))
 
 (define index-of (string-helper p:index-of))
