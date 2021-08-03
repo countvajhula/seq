@@ -60,8 +60,27 @@ check-deps:
 test:
 	raco test -x -p $(PACKAGE-NAME)
 
-test-with-errortrace:
-	racket -l errortrace -l racket -e '(require (submod "test.rkt" test))'
+test-base:
+	raco test -x tests/base.rkt
+
+test-api:
+	raco test -x tests/api.rkt
+
+test-iso:
+	raco test -x tests/iso.rkt
+
+build+test: build test
+
+errortrace-base:
+	racket -l errortrace -l racket -e '(require (submod "tests/base.rkt" test))'
+
+errortrace-api:
+	racket -l errortrace -l racket -e '(require (submod "tests/api.rkt" test))'
+
+errortrace-iso:
+	racket -l errortrace -l racket -e '(require (submod "tests/iso.rkt" test))'
+
+test-with-errortrace: errortrace-base errortrace-api errortrace-iso
 
 errortrace: test-with-errortrace
 
@@ -79,4 +98,4 @@ cover: coverage-check coverage-report
 cover-coveralls:
 	raco cover -b -n dev -n test.rkt -f coveralls -p $(PACKAGE-NAME)
 
-.PHONY:	help install remove build build-docs build-all test clean check-deps test test-with-errortrace errortrace docs coverage-check coverage-report cover cover-coveralls
+.PHONY:	help install remove build build-docs build-all test clean check-deps test test-base test-api test-iso build+test errortrace-base errortrace-api errortrace-iso test-with-errortrace errortrace docs coverage-check coverage-report cover cover-coveralls
