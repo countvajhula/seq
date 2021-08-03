@@ -187,20 +187,20 @@
        (check-exn exn:fail:contract? (thunk (suffix 3 (list 1)))))
      (test-case
          "suffixes"
-       (check-equal? (->list (suffixes (list 1 2 3))) '((1 2 3) (2 3) (3)))
-       (check-equal? (->list (by 2 (suffixes (list 1 2 3 4 5)))) '((1 2 3 4 5) (3 4 5) (5)))
-       (check-equal? (->list (suffixes (list))) '())
-       (check-equal? (->list (suffixes (list 1))) '((1)))
-       (check-equal? (->list (by 3 (suffixes (list 1 2)))) '((1 2)))
-       (check-equal? (->list (map ->string (suffixes "hello"))) '("hello" "ello" "llo" "lo" "o")))
+       (check-equal? (->list (map ->list (suffixes (list 1 2 3)))) '((1 2 3) (2 3) (3) ()))
+       (check-equal? (->list (map ->list (by 2 (suffixes (list 1 2 3 4 5))))) '((1 2 3 4 5) (3 4 5) (5)))
+       (check-equal? (->list (map ->list (suffixes (list)))) '(()))
+       (check-equal? (->list (map ->list (suffixes (list 1)))) '((1) ()))
+       (check-equal? (->list (map ->list (by 3 (suffixes (list 1 2))))) '((1 2)))
+       (check-equal? (->list (map ->string (suffixes "hello"))) '("hello" "ello" "llo" "lo" "o" "")))
      (test-case
          "prefixes"
-       (check-equal? (->list (map ->list (prefixes (list 1 2 3)))) '((1) (1 2) (1 2 3)))
-       (check-equal? (->list (map ->list (by 2 (prefixes (list 1 2 3 4 5))))) '((1) (1 2 3) (1 2 3 4 5)))
-       (check-equal? (->list (prefixes (list))) '())
-       (check-equal? (->list (map ->list (prefixes (list 1)))) '((1)))
-       (check-equal? (->list (map ->list (by 3 (prefixes (list 1 2))))) '((1)))
-       (check-equal? (->list (map ->string (prefixes "hello"))) '("h" "he" "hel" "hell" "hello")))
+       (check-equal? (->list (map ->list (prefixes (list 1 2 3)))) '(() (1) (1 2) (1 2 3)))
+       (check-equal? (->list (map ->list (by 2 (prefixes (list 1 2 3 4 5))))) '(() (1 2) (1 2 3 4)))
+       (check-equal? (->list (map ->list (prefixes (list)))) '(()))
+       (check-equal? (->list (map ->list (prefixes (list 1)))) '(() (1)))
+       (check-equal? (->list (map ->list (by 3 (prefixes (list 1 2))))) '(()))
+       (check-equal? (->list (map ->string (prefixes "hello"))) '("" "h" "he" "hel" "hell" "hello")))
      (test-case
          "infixes"
        (check-equal? (->list (map ->list (infixes 3 (list 1 2 3 4 5)))) '((1 2 3) (2 3 4) (3 4 5)))

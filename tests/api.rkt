@@ -13,7 +13,8 @@
                     append
                     index-of
                     index-where
-                    range)
+                    range
+                    map)
          relation
          seq/api)
 
@@ -89,10 +90,10 @@
         (check-equal? (->string (suffix 3 "hello")) "llo"))
       (test-case
           "suffixes"
-        (check-equal? (->list (suffixes (list 1 2 3))) '((1 2 3) (2 3) (3))))
+        (check-equal? (->list (map ->list (suffixes (list 1 2 3)))) '((1 2 3) (2 3) (3) ())))
       (test-case
           "prefixes"
-        (check-equal? (->list (map ->list (prefixes (list 1 2 3)))) '((1) (1 2) (1 2 3))))
+        (check-equal? (->list (map ->list (prefixes (list 1 2 3)))) '(() (1) (1 2) (1 2 3))))
       (test-case
           "infixes"
         (check-equal? (->list (map ->list (infixes 3 (list 1 2 3 4 5)))) '((1 2 3) (2 3 4) (3 4 5))))

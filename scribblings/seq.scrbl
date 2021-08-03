@@ -9,13 +9,15 @@
                                index-of
                                index-where
                                range
+                               map
                                sequence?
                                truncate
                                init
                                prefix
                                remove)
                     (only-in racket
-                             (add-between b:add-between))
+                             (add-between b:add-between)
+                             (range b:range))
                     (prefix-in r: relation)
                     (only-in relation
                              ->list
@@ -59,6 +61,7 @@
                                                       index-of
                                                       index-where
                                                       range
+                                                      map
                                                       foldl
                                                       foldl/steps)
                                            seq
@@ -878,6 +881,25 @@ Construct new sequences from primitive elements and other sequences. Not to be c
     (weave "fresh " " and " '("apples" "bananas" "cherries"))
     ((weave ->string ->number (list add1 sqr)) "3")
   ]
+}
+
+@defproc[(map [proc procedure?] [seq sequence?] ...+)
+         sequence?]{
+
+ Identical to @racketlink[d:map]{@racket[map]} from @racket[data/collection], except that it includes additional compile-time annotations to support isomorphic behavior.
+
+@examples[
+    #:eval eval-for-docs
+    (->list (map sqr (list 1 2 3)))
+    (->list (map sqr #(1 2 3)))
+  ]
+}
+
+@defproc*[([(range [end number?]) stream?]
+           [(range [start number?]
+                   [end number?]
+                   [step number? 1]) stream?])]{
+ Identical to @racketlink[b:range]{@racket[range]}, except that it includes additional compile-time annotations to support isomorphic behavior.
 }
 
 @subsection{Composing}

@@ -8,6 +8,7 @@
                      "scribble-abbrevs"
                      "racket-doc"
                      "collections-doc"
+                     "functional-doc"
                      "rackunit-lib"
                      "cover"
                      "cover-coveralls"

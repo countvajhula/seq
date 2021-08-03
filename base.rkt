@@ -114,8 +114,9 @@
                        sequence?)]
           [suffixes (-> sequence?
                         (sequenceof sequence?))]
-          [prefixes (-> sequence?
-                        (sequenceof sequence?))]
+          [prefixes (->* (sequence?)
+                         (exact-positive-integer?) ; the optional int is internal
+                         (sequenceof sequence?))]
           [infixes (-> exact-positive-integer?
                        sequence?
                        (sequenceof sequence?))]
@@ -418,7 +419,7 @@
 
 (define (prefixes seq [n 0])
   (if (empty? seq)
-      empty-stream
+      (stream empty-stream)
       (let ([pfx (with-handlers ([exn:fail:contract? false.])
                    (prefix n seq))])
         (if pfx
