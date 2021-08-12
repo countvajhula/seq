@@ -32,7 +32,9 @@
            racket/stream
            "private/util.rkt"))
 
-(provide by
+(provide map
+         filter
+         by
          take-when
          prefix
          suffix-at
@@ -380,8 +382,10 @@
         (check-true ((string-helper g 1 0) "a" "abc"))
         (check-false ((string-helper g 1 0) "a" (list 1))))))))
 
-;;; data/collection / built-in
+;;; built-in or data/collection sequences
 (define map (iso p:map 1))
+
+(define filter (iso p:filter 1))
 
 ;;; seq
 (define by (iso p:by 1))

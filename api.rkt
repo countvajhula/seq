@@ -5,7 +5,8 @@
                     range
                     map)
          (only-in data/collection
-                  [map d:map])
+                  [map d:map]
+                  [filter d:filter])
          syntax/parse/define
          (for-syntax racket/base)
          arguments
@@ -20,6 +21,7 @@
 
 (provide range
          map
+         filter
          by
          take-when
          prefix
@@ -241,12 +243,14 @@
         (check-true (known-finite? ((annotate-naively g) (known-finite-sequence))))
         (check-true (known-finite? ((annotate-naively g) (opaque-sequence)))))))))
 
-;;; data/collection / built-in
+;;; built-in or data/collection sequences
 (define (range . args)
   (finite-sequence (apply in-range args)))
 
 ;; really it's if _any_ of the input sequences are finite
 (define map (annotate d:map 1))
+
+(define filter (annotate d:filter 1))
 
 ;;; seq
 (define by (annotate p:by 1))

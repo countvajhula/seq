@@ -10,6 +10,7 @@
                                index-where
                                range
                                map
+                               filter
                                sequence?
                                truncate
                                init
@@ -62,6 +63,7 @@
                                                       index-where
                                                       range
                                                       map
+                                                      filter
                                                       foldl
                                                       foldl/steps)
                                            seq
@@ -883,6 +885,13 @@ Construct new sequences from primitive elements and other sequences. Not to be c
   ]
 }
 
+@defproc*[([(range [end number?]) stream?]
+           [(range [start number?]
+                   [end number?]
+                   [step number? 1]) stream?])]{
+ Identical to @racketlink[b:range]{@racket[range]}, except that it includes additional compile-time annotations to support isomorphic behavior.
+}
+
 @defproc[(map [proc procedure?] [seq sequence?] ...+)
          sequence?]{
 
@@ -895,11 +904,16 @@ Construct new sequences from primitive elements and other sequences. Not to be c
   ]
 }
 
-@defproc*[([(range [end number?]) stream?]
-           [(range [start number?]
-                   [end number?]
-                   [step number? 1]) stream?])]{
- Identical to @racketlink[b:range]{@racket[range]}, except that it includes additional compile-time annotations to support isomorphic behavior.
+@defproc[(filter [pred (any/c . -> . any/c)] [seq sequence?])
+         sequence?]{
+
+ Identical to @racketlink[d:filter]{@racket[filter]} from @racket[data/collection], except that it includes additional compile-time annotations to support isomorphic behavior.
+
+@examples[
+    #:eval eval-for-docs
+    (->list (filter positive? (list 1 -2 3)))
+    (->list (filter positive? #(1 -2 3)))
+  ]
 }
 
 @subsection{Composing}

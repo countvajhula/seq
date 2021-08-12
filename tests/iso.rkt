@@ -13,7 +13,9 @@
                     append
                     index-of
                     index-where
-                    range)
+                    range
+                    map
+                    filter)
          relation
          seq/iso)
 
