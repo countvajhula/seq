@@ -96,7 +96,8 @@
         (check-equal? (->list (suffixes (list 1 2 3))) '((1 2 3) (2 3) (3) ())))
       (test-case
           "prefixes"
-        (check-equal? (->list (prefixes (list 1 2 3))) '(() (1) (1 2) (1 2 3))))
+        (check-equal? (->list (prefixes (list 1 2 3))) '(() (1) (1 2) (1 2 3)))
+        (check-equal? (->list (take 4 (map ->list (prefixes (naturals 1))))) '(() (1) (1 2) (1 2 3))))
       (test-case
           "infixes"
         (check-equal? (->list (infixes 3 (list 1 2 3 4 5))) '((1 2 3) (2 3 4) (3 4 5))))

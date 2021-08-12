@@ -4,6 +4,7 @@
          racket/list
          arguments
          (only-in racket/function curry)
+         (only-in racket/stream stream?)
          (for-syntax racket/base
                      arguments)
          (only-in data/collection
@@ -120,6 +121,7 @@
         [(and source (bytes? source) (known-finite? result)) (->bytes result)]
         [(and source (set? source) (known-finite? result)) (->set result)]
         [(and source (hash? source) (known-finite? result)) (->hash result)]
+        [(and source (stream? source) (known-finite? result)) (->stream result)]
         [(and source (collection? source) (known-finite? result))
          (let ([null-cons (appendable-identity source)])
            (extend null-cons result))]
