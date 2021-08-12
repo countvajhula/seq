@@ -434,7 +434,7 @@
 
 (define cut-with (iso p:cut-with 1 TWO-VALUE-RESULT))
 
-(define truncate (iso p:truncate 1))
+(define truncate (iso p:truncate 0))
 
 (define rotate-left (iso p:rotate-left 1))
 

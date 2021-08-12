@@ -69,7 +69,7 @@
         (check-equal? (interleave (list 1 2 3) (list 'a 'b 'c) (list 'A 'B 'C)) '(1 a A 2 b B 3 c C)))
       (test-case
           "truncate"
-        (check-equal? (truncate '(a b c) '(1 2)) '(a b)))
+        (check-equal? (truncate '(a b c) "ab") '(a b)))
       (test-case
           "rotate-left"
         (check-equal? (rotate-left 1 '(1 2 3)) '(2 3 1)))
