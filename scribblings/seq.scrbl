@@ -12,6 +12,8 @@
                                map
                                filter
                                rest
+                               take
+                               drop
                                sequence?
                                truncate
                                init
@@ -66,6 +68,8 @@
                                                       map
                                                       filter
                                                       rest
+                                                      take
+                                                      drop
                                                       foldl
                                                       foldl/steps)
                                            seq/iso
@@ -261,17 +265,23 @@ Reason in terms of gestalt properties of sequences, such as index and length, as
 }
 
 @deftogether[(
+@defproc[(take [n exact-nonnegative-integer?]
+               [seq sequence?])
+         sequence?]
 @defproc[(prefix [n exact-nonnegative-integer?]
                  [seq sequence?])
          sequence?]
 @defproc[(suffix [n exact-nonnegative-integer?]
                  [seq sequence?])
          sequence?]
+@defproc[(drop [n exact-nonnegative-integer?]
+               [seq sequence?])
+         sequence?]
 @defproc[(suffix-at [n exact-nonnegative-integer?]
                     [seq sequence?])
          sequence?]
 )]{
-  @racket[prefix] returns the first @racket[n] elements of @racket[seq], i.e. a prefix of length @racket[n]; it is an alias for @racket[take]. @racket[suffix] analogously returns the last @racket[n] elements of @racket[seq], i.e. a suffix of length @racket[n]. @racket[suffix-at] is an alias for @racket[drop], returning the suffix at the @emph{index} @racket[n].
+  @racket[prefix] returns the first @racket[n] elements of @racket[seq], i.e. a prefix of length @racket[n]; it is an alias for @racket[take]. @racket[suffix] analogously returns the last @racket[n] elements of @racket[seq], i.e. a suffix of length @racket[n]. @racket[suffix-at] is an alias for @racket[drop], returning the suffix at the @emph{index} @racket[n]. @racket[take] and @racket[drop] are identical to @racketlink[d:take]{@racket[take]} and @racketlink[d:drop]{@racket[drop]} from @racket[data/collection] except that they include additional compile-time annotations to support isomorphic behavior.
 
 @examples[
     #:eval eval-for-docs

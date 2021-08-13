@@ -12,6 +12,7 @@
                   apply
                   andmap
                   [map d:map]
+                  [take d:take]
                   known-finite?
                   nth
                   set-nth
@@ -36,6 +37,8 @@
 (provide map
          filter
          rest
+         take
+         drop
          by
          take-when
          prefix
@@ -391,6 +394,10 @@
 (define filter (iso p:filter 1))
 
 (define rest (iso p:rest 0))
+
+(define take (iso d:take 1))
+
+(define drop (iso p:drop 1))
 
 ;;; seq
 (define by (iso p:by 1))

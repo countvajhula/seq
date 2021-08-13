@@ -5,11 +5,15 @@
                     range
                     map
                     filter
-                    rest)
+                    rest
+                    take
+                    drop)
          (only-in data/collection
                   [map d:map]
                   [filter d:filter]
-                  [rest d:rest])
+                  [rest d:rest]
+                  [take d:take]
+                  [drop d:drop])
          syntax/parse/define
          (for-syntax racket/base)
          arguments
@@ -26,6 +30,7 @@
          map
          filter
          rest
+         drop
          by
          take-when
          prefix
@@ -68,7 +73,8 @@
          add-between
          wrap-each
          interleave
-         (rename-out [p:exists exists]
+         (rename-out [d:take take] ; so scribble can find it in `(for-label seq)`
+                     [p:exists exists]
                      [p:for-all for-all]
                      [p:find find]
                      [p:index-where index-where]
@@ -257,6 +263,8 @@
 (define filter (annotate d:filter 1))
 
 (define rest (annotate d:rest 0))
+
+(define drop (annotate d:drop 1))
 
 ;;; seq
 (define by (annotate p:by 1))

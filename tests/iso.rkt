@@ -16,6 +16,8 @@
                     range
                     map
                     filter
+                    take
+                    drop
                     rest)
          relation
          seq/iso)
@@ -38,6 +40,12 @@
       (test-case
           "filter"
         (check-equal? (filter positive? #(1 -2 3)) #(1 3)))
+      (test-case
+          "take"
+        (check-equal? (take 3 "hello") "hel"))
+      (test-case
+          "drop"
+        (check-equal? (drop 3 "hello") "lo"))
       (test-case
           "rest"
         (check-equal? (rest "hello") "ello"))
