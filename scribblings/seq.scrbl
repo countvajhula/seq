@@ -11,6 +11,7 @@
                                range
                                map
                                filter
+                               reverse
                                rest
                                take
                                drop
@@ -67,6 +68,7 @@
                                                       range
                                                       map
                                                       filter
+                                                      reverse
                                                       rest
                                                       take
                                                       drop
@@ -1041,5 +1043,17 @@ Rearrange the elements of sequences.
 	(->list (rotations '(1 2 3)))
 	(->list (rotations "cherry"))
 	(->list (truncate (iterate rotate "cherry") "cherry"))
+  ]
+}
+
+@defproc[(reverse [seq sequence?])
+         sequence?]{
+
+ Identical to @racketlink[d:reverse]{@racket[reverse]} from @racket[data/collection], except that it includes additional compile-time annotations to support isomorphic behavior.
+
+@examples[
+    #:eval eval-for-docs
+    (reverse "apple")
+    (reverse #(1 2 3))
   ]
 }

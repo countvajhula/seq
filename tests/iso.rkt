@@ -16,6 +16,7 @@
                     range
                     map
                     filter
+                    reverse
                     take
                     drop
                     rest)
@@ -40,6 +41,9 @@
       (test-case
           "filter"
         (check-equal? (filter positive? #(1 -2 3)) #(1 3)))
+      (test-case
+          "reverse"
+        (check-equal? (reverse #(1 2 3)) #(3 2 1)))
       (test-case
           "take"
         (check-equal? (take 3 "hello") "hel"))

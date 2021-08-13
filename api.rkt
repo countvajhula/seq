@@ -5,12 +5,14 @@
                     range
                     map
                     filter
+                    reverse
                     rest
                     take
                     drop)
          (only-in data/collection
                   [map d:map]
                   [filter d:filter]
+                  [reverse d:reverse]
                   [rest d:rest]
                   [take d:take]
                   [drop d:drop])
@@ -29,6 +31,7 @@
 (provide range
          map
          filter
+         reverse
          rest
          drop
          by
@@ -261,6 +264,8 @@
 (define map (annotate d:map 1))
 
 (define filter (annotate d:filter 1))
+
+(define reverse (annotate d:reverse 0))
 
 (define rest (annotate d:rest 0))
 

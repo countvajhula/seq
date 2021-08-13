@@ -16,6 +16,9 @@
                     range
                     map
                     filter
+                    reverse
+                    take
+                    drop
                     rest)
          relation
          seq/api)

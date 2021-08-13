@@ -36,6 +36,7 @@
 
 (provide map
          filter
+         reverse
          rest
          take
          drop
@@ -392,6 +393,8 @@
 (define map (iso p:map 1))
 
 (define filter (iso p:filter 1))
+
+(define reverse (iso p:reverse 0))
 
 (define rest (iso p:rest 0))
 
