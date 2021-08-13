@@ -15,7 +15,8 @@
                     index-where
                     range
                     map
-                    filter)
+                    filter
+                    rest)
          relation
          seq/iso)
 
@@ -31,6 +32,15 @@
      (test-suite
       "smoke integration tests"
 
+      (test-case
+          "map"
+        (check-equal? (map add1 #(1 2 3)) #(2 3 4)))
+      (test-case
+          "filter"
+        (check-equal? (filter positive? #(1 -2 3)) #(1 3)))
+      (test-case
+          "rest"
+        (check-equal? (rest "hello") "ello"))
       (test-case
           "by"
         (check-equal? (by 3 (list 1 2 3 4 5 6 7 8)) '(1 4 7)))

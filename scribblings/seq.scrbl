@@ -11,6 +11,7 @@
                                range
                                map
                                filter
+                               rest
                                sequence?
                                truncate
                                init
@@ -64,6 +65,7 @@
                                                       range
                                                       map
                                                       filter
+                                                      rest
                                                       foldl
                                                       foldl/steps)
                                            seq/iso
@@ -229,6 +231,19 @@ Reason in terms of gestalt properties of sequences, such as index and length, as
     (->list (take 10 (by 7 (drop 100 (naturals)))))
     (->list (by 3 (subsequence (naturals) 10 20)))
     (->list (by 3 #(1 2 3 4 5 6 7 8 9 10)))
+  ]
+}
+
+@defproc[(rest [seq sequence?])
+         sequence?]{
+
+ Identical to @racketlink[d:rest]{@racket[rest]} from @racket[data/collection], except that it includes additional compile-time annotations to support isomorphic behavior.
+
+@examples[
+    #:eval eval-for-docs
+    (rest (list 1 2 3))
+    (rest "apple")
+    (->list (take 5 (rest (naturals))))
   ]
 }
 
@@ -398,6 +413,9 @@ Refer to and reason in terms of specific elements contained in sequences.
 Extract a subsequence.
 
 @deftogether[(
+@defproc[(filter [pred procedure?]
+                 [seq sequence?])
+         sequence?]
 @defproc[(take-when [pred procedure?]
                     [seq sequence?])
          sequence?]
@@ -406,10 +424,11 @@ Extract a subsequence.
          sequence?]
 )]{
 
- An alias for @racketlink[d:filter]{@racket[filter]}, @racket[take-when] selects all elements from @racket[seq] that satisfy @racket[pred], while @racket[drop-when] selects those elements that do not satisfy @racket[pred].
+ An alias for @racketlink[d:filter]{@racket[filter]}, @racket[take-when] selects all elements from @racket[seq] that satisfy @racket[pred], while @racket[drop-when] selects those elements that do not satisfy @racket[pred]. @racket[filter] and @racket[take-when] are identical to @racketlink[d:filter]{@racket[filter]} from @racket[data/collection], except that they include additional compile-time annotations to support isomorphic behavior.
 
 @examples[
     #:eval eval-for-docs
+    (filter positive? #(1 -2 3))
     (take-when positive? (list 1 -4 -1 3))
     (drop-when positive? (list 1 -4 -1 3))
     (take-when (curry prefix? "ap") (list "banana" "apple" "apricot" "cherry"))
@@ -905,18 +924,6 @@ Construct new sequences from primitive elements and other sequences. Not to be c
     #:eval eval-for-docs
     (map sqr (list 1 2 3))
     (map sqr #(1 2 3))
-  ]
-}
-
-@defproc[(filter [pred (any/c . -> . any/c)] [seq sequence?])
-         sequence?]{
-
- Identical to @racketlink[d:filter]{@racket[filter]} from @racket[data/collection], except that it includes additional compile-time annotations to support isomorphic behavior.
-
-@examples[
-    #:eval eval-for-docs
-    (filter positive? (list 1 -2 3))
-    (filter positive? #(1 -2 3))
   ]
 }
 

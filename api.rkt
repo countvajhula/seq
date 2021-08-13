@@ -3,10 +3,13 @@
 (require (only-in racket/function curry)
          (except-in data/collection
                     range
-                    map)
+                    map
+                    filter
+                    rest)
          (only-in data/collection
                   [map d:map]
-                  [filter d:filter])
+                  [filter d:filter]
+                  [rest d:rest])
          syntax/parse/define
          (for-syntax racket/base)
          arguments
@@ -22,6 +25,7 @@
 (provide range
          map
          filter
+         rest
          by
          take-when
          prefix
@@ -251,6 +255,8 @@
 (define map (annotate d:map 1))
 
 (define filter (annotate d:filter 1))
+
+(define rest (annotate d:rest 0))
 
 ;;; seq
 (define by (annotate p:by 1))

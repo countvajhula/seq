@@ -10,8 +10,8 @@
          (only-in data/collection
                   sequence->list
                   apply
-                  map
                   andmap
+                  [map d:map]
                   known-finite?
                   nth
                   set-nth
@@ -35,6 +35,7 @@
 
 (provide map
          filter
+         rest
          by
          take-when
          prefix
@@ -154,7 +155,7 @@
    #'(lambda/arguments args
        (let ([seq (nth (arguments-positional args) position)]
              [result (apply/arguments intf args)])
-         (map (curry return seq) result)))])
+         (d:map (curry return seq) result)))])
 
 (module+ test
 
@@ -388,6 +389,8 @@
 (define map (iso p:map 1))
 
 (define filter (iso p:filter 1))
+
+(define rest (iso p:rest 0))
 
 ;;; seq
 (define by (iso p:by 1))

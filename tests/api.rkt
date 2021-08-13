@@ -14,7 +14,9 @@
                     index-of
                     index-where
                     range
-                    map)
+                    map
+                    filter
+                    rest)
          relation
          seq/api)
 
