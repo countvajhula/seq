@@ -63,7 +63,8 @@
       ;;   (check-equal? (reverse #(1 2 3)) #(3 2 1)))
       (test-case
           "take"
-        (check-equal? (take 3 "hello") "hel"))
+        (check-equal? (take 3 "hello") "hel")
+        (check-true (stream? (take 3 (stream 1 2 3 4 5))) "streams are passed through"))
       (test-case
           "drop"
         (check-equal? (drop 3 "hello") "lo"))
@@ -72,7 +73,8 @@
         (check-equal? (rest "hello") "ello"))
       (test-case
           "by"
-        (check-equal? (by 3 (list 1 2 3 4 5 6 7 8)) '(1 4 7)))
+        (check-equal? (by 3 (list 1 2 3 4 5 6 7 8)) '(1 4 7))
+        (check-true (stream? (by 3 (stream 1 2 3 4 5))) "streams are passed through"))
       (test-case
           "init"
         (check-equal? (init (list 1 2 3)) '(1 2)))
