@@ -7,33 +7,45 @@
          @for-label[(except-in racket
                                add-between
                                index-of
-							   index-where
+                               index-where
+                               range
+                               map
+                               filter
+                               reverse
+                               rest
+                               take
+                               drop
                                sequence?
-							   truncate
-							   init
+                               truncate
+                               init
                                prefix
                                remove)
                     (only-in racket
-                             (add-between b:add-between))
+                             (add-between b:add-between)
+                             (range b:range))
                     (prefix-in r: relation)
                     (only-in relation
                              ->list
                              ->string
                              ->number
+                             gen:appendable
                              join
                              onto
                              ..
                              ^
-							 arg
+                             arg
                              flip
                              flip*
-							 power
+                             power
                              comparable?)
                     seq
                     (prefix-in d: data/collection)
                     (only-in data/collection
                              conj
                              conj*
+                             extend
+                             gen:collection
+                             gen:sequence
                              sequence?
                              collection?
                              sequenceof
@@ -52,10 +64,17 @@
                                            (except-in data/collection
                                                       append
                                                       index-of
-													  index-where
+                                                      index-where
+                                                      range
+                                                      map
+                                                      filter
+                                                      reverse
+                                                      rest
+                                                      take
+                                                      drop
                                                       foldl
                                                       foldl/steps)
-                                           seq
+                                           seq/iso
                                            racket/set
                                            racket/math
                                            racket/stream))))
@@ -67,17 +86,33 @@
 
 Standard and general-purpose sequence utilities.
 
-This library builds on top of the @other-doc['(lib "scribblings/data/collection/collections.scrbl")] foundation to provide a broad range of general-purpose utilities that work on all sequences.
+This library builds on top of the @other-doc['(lib "scribblings/data/collection/collections.scrbl")] foundation to provide a broad range of general-purpose utilities that work on all sequences. It also includes an optional "isomorphic" layer that ensures symmetry of input and output types while using these interfaces.
 
-Some of these interfaces are either implementations of or are inspired by the Scheme @hyperlink["https://docs.racket-lang.org/r6rs/r6rs-lib-std/r6rs-lib-Z-H-4.html"]{specifications} for @hyperlink["https://docs.racket-lang.org/srfi/srfi-std/srfi-1.html"]{list utilities}, while others are similar in spirit. An attempt has been made to adhere to intuitive naming conventions and categories to minimize the need to lookup documentation and support the ability to "guess" the name of an unknown function rather than learn these (numerous) names purely through familiarity.
+Some of these interfaces are either implementations of or are inspired by the Scheme @hyperlink["https://docs.racket-lang.org/r6rs/r6rs-lib-std/r6rs-lib-Z-H-4.html"]{specifications} for @hyperlink["https://docs.racket-lang.org/srfi/srfi-std/srfi-1.html"]{list utilities}, while others are similar in spirit. An attempt has been made to adhere to intuitive naming conventions and categories to minimize the need to lookup documentation and support the ability to guess the name of an unknown function rather than learn these (numerous) names purely through familiarity.
 
 @table-of-contents[]
+
+@section{Modules}
+
+@defmodule*/no-declare[(seq/base)]
+
+The core set of APIs, exhibiting functional, generic, and lazy semantics (like the interfaces in @racket[data/collection]). This is an internal module and generally should not be used directly.
+
+@defmodule*/no-declare[(seq/api)]
+
+The default module that is imported via @racket[(require seq)]. It simply annotates the interfaces in @racket[seq/base], as well as a few from @racket[data/collection], with known finiteness information, which may be leveraged by applications for whatever purpose. In particular, this information is used in the @racket[seq/iso] layer to determine whether preserving type symmetry is possible.
+
+@defmodule*/no-declare[(seq/iso)]
+
+This module provides all of the APIs from @racket[seq/api] in "isomorphic" form, so that output types will match input types where it makes sense. In general, therefore, the interfaces in this module are @emph{not} lazy.
+
+In particular, output types will match input types for all finite @techlink[#:doc '(lib "scribblings/data/collection/collections.scrbl") #:key "generic sequence"]{sequences} that are either (a) a known built-in type such as a @tech/reference{list}, or (b) a custom type implementing both @racket[gen:collection] as well as @racket[gen:appendable] (in addition to @racket[gen:sequence]). Note that in order for these isomorphic APIs to function correctly for custom types, the implementation of @racket[extend] for @racket[gen:collection] in the custom type must preserve the order of elements (for example, unlike the @racketlink[extend]{default implementation for lists}, which reverses the order of elements).
 
 @section{Naming Conventions}
 
 These naming conventions are intended to minimize the need to look up documentation while working with sequences.
 
-While some of the provided sequence utilities have standard names familiar from string or list contexts, others take their name from the Scheme specification or are borrowed from other functional languages such as Haskell. When the utilities don't take their name from one of these sources, they instead have a "prescriptive" name that is approximately expressed as:
+While some of the provided sequence utilities have standard names familiar from string or list contexts, others take their name from the Scheme specification or are borrowed from other functional languages such as Haskell. When the utilities don't take their name from one of these sources, they instead have a formulaic name that is approximately expressed as:
 
 @(let ([open @litchar{(}]
        [close @litchar{)}]
@@ -155,7 +190,7 @@ While some of the provided sequence utilities have standard names familiar from 
           (list @nonterm{noun}
                 @elem{@litchar{sequence?}})])
 
-Whenever a prescriptive name is used for a well-known interface, the more common name is also usually provided as an alias. Not every interface here corresponds neatly to a naming convention, but in cases where they do, verbs and suffixes have the following meanings:
+Whenever a formulaic name is used for a well-known interface, the more common name is also usually provided as an alias. Not every interface here corresponds neatly to a naming convention, but in cases where they do, verbs and suffixes have the following meanings:
 
 @subsection{Verbs}
 
@@ -182,6 +217,8 @@ Whenever a prescriptive name is used for a well-known interface, the more common
 
 @section{APIs}
 
+The API documentation here applies to all of the @seclink["Modules" #:doc '(lib "seq/scribblings/seq.scrbl")]{seq modules}, but the examples use @racket[seq/iso] for convenience.
+
 @subsection{Index and Length-based}
 
 Reason in terms of gestalt properties of sequences, such as index and length, as opposed to their contents.
@@ -203,6 +240,19 @@ Reason in terms of gestalt properties of sequences, such as index and length, as
   ]
 }
 
+@defproc[(rest [seq sequence?])
+         sequence?]{
+
+ Identical to @racketlink[d:rest]{@racket[rest]} from @racket[data/collection], except that it includes additional compile-time annotations to support isomorphic behavior.
+
+@examples[
+    #:eval eval-for-docs
+    (rest (list 1 2 3))
+    (rest "apple")
+    (->list (take 5 (rest (naturals))))
+  ]
+}
+
 @defproc[(init [seq sequence?])
          sequence?]{
 
@@ -210,33 +260,39 @@ Reason in terms of gestalt properties of sequences, such as index and length, as
 
 @examples[
     #:eval eval-for-docs
-    (->list (init (list 1 2 3)))
-    (->string (init "apple"))
+    (init (list 1 2 3))
+    (init "apple")
     (->list (take 5 (init (naturals))))
   ]
 }
 
 @deftogether[(
+@defproc[(take [n exact-nonnegative-integer?]
+               [seq sequence?])
+         sequence?]
 @defproc[(prefix [n exact-nonnegative-integer?]
                  [seq sequence?])
          sequence?]
 @defproc[(suffix [n exact-nonnegative-integer?]
                  [seq sequence?])
          sequence?]
+@defproc[(drop [n exact-nonnegative-integer?]
+               [seq sequence?])
+         sequence?]
 @defproc[(suffix-at [n exact-nonnegative-integer?]
                     [seq sequence?])
          sequence?]
 )]{
-  @racket[prefix] returns the first @racket[n] elements of @racket[seq], i.e. a prefix of length @racket[n]; it is an alias for @racket[take]. @racket[suffix] analogously returns the last @racket[n] elements of @racket[seq], i.e. a suffix of length @racket[n]. @racket[suffix-at] is an alias for @racket[drop], returning the suffix at the @emph{index} @racket[n].
+  @racket[prefix] returns the first @racket[n] elements of @racket[seq], i.e. a prefix of length @racket[n]; it is an alias for @racket[take]. @racket[suffix] analogously returns the last @racket[n] elements of @racket[seq], i.e. a suffix of length @racket[n]. @racket[suffix-at] is an alias for @racket[drop], returning the suffix at the @emph{index} @racket[n]. @racket[take] and @racket[drop] are identical to @racketlink[d:take]{@racket[take]} and @racketlink[d:drop]{@racket[drop]} from @racket[data/collection] except that they include additional compile-time annotations to support isomorphic behavior.
 
 @examples[
     #:eval eval-for-docs
-    (->string (prefix 2 "apricot"))
-    (->string (suffix 2 "apricot"))
-    (->string (suffix-at 2 "apricot"))
-    (->string (.. (prefix 2 "apricot") (suffix-at 2 "apricot")))
-    (->list (prefix 2 (list "banana" "apple" "apricot" "cherry" "avocado")))
-    (->list (suffix 3 (list 1 2 3 4 5 6 7 8 9)))
+    (prefix 2 "apricot")
+    (suffix 2 "apricot")
+    (suffix-at 2 "apricot")
+    (.. (prefix 2 "apricot") (suffix-at 2 "apricot"))
+    (prefix 2 (list "banana" "apple" "apricot" "cherry" "avocado"))
+    (suffix 3 (list 1 2 3 4 5 6 7 8 9))
   ]
 }
 
@@ -254,10 +310,10 @@ Reason in terms of gestalt properties of sequences, such as index and length, as
 
 @examples[
     #:eval eval-for-docs
-    (->string (infix 4 5 "the quick brown fox"))
-    (->string (infix-at 4 9 "the quick brown fox"))
-    (->string (infix 10 5 "the quick brown fox"))
-    (->string (infix-at 10 15 "the quick brown fox"))
+    (infix 4 5 "the quick brown fox")
+    (infix-at 4 9 "the quick brown fox")
+    (infix 10 5 "the quick brown fox")
+    (infix-at 10 15 "the quick brown fox")
     (->list (infix 64 5 (range 100)))
     (->list (infix-at 64 69 (range 100)))
   ]
@@ -306,9 +362,9 @@ Reason in terms of gestalt properties of sequences, such as index and length, as
 
 @examples[
     #:eval eval-for-docs
-    (->list (remove-at 3 (list 1 2 3 4 5)))
-    (->string (remove-at 3 "The quick brown fox"))
-    (->list (remove-at 1 (list "apple" "cherry" "banana")))
+    (remove-at 3 (list 1 2 3 4 5))
+    (remove-at 3 "The quick brown fox")
+    (remove-at 1 (list "apple" "cherry" "banana"))
   ]
 }
 
@@ -320,10 +376,10 @@ Reason in terms of gestalt properties of sequences, such as index and length, as
 
 @examples[
     #:eval eval-for-docs
-	(->string (truncate "I wandered lonely as a cloud." "Max. tweet length."))
-	(->string (truncate "Nevermore." "Max. tweet length."))
-	(->list (truncate (repeat "apple") "apple"))
-	(->string (truncate (drop 2 (cycle "apple")) "apple"))
+    (truncate "I wandered lonely as a cloud." "Max. tweet length.")
+    (truncate "Nevermore." "Max. tweet length.")
+    (->list (truncate (repeat "apple") "apple"))
+    (->string (truncate (drop 2 (cycle "apple")) "apple"))
   ]
 }
 
@@ -357,9 +413,9 @@ Refer to and reason in terms of specific elements contained in sequences.
 
 @examples[
     #:eval eval-for-docs
-    (->list (remove 3 (list 1 2 3 4 5)))
+    (remove 3 (list 1 2 3 4 5))
     (remove " " "The quick brown fox")
-    (->list (remove #:key string-upcase "cherry" (list "Apple" "CHERry" "BaNaNa")))
+    (remove #:key string-upcase "cherry" (list "Apple" "CHERry" "BaNaNa"))
     (->list (remove #:key (curryr remainder 3) 1 #:how-many 2 (range 10)))
   ]
 }
@@ -369,6 +425,9 @@ Refer to and reason in terms of specific elements contained in sequences.
 Extract a subsequence.
 
 @deftogether[(
+@defproc[(filter [pred procedure?]
+                 [seq sequence?])
+         sequence?]
 @defproc[(take-when [pred procedure?]
                     [seq sequence?])
          sequence?]
@@ -377,13 +436,14 @@ Extract a subsequence.
          sequence?]
 )]{
 
- An alias for @racketlink[d:filter]{@racket[filter]}, @racket[take-when] selects all elements from @racket[seq] that satisfy @racket[pred], while @racket[drop-when] selects those elements that do not satisfy @racket[pred].
+ An alias for @racketlink[d:filter]{@racket[filter]}, @racket[take-when] selects all elements from @racket[seq] that satisfy @racket[pred], while @racket[drop-when] selects those elements that do not satisfy @racket[pred]. @racket[filter] and @racket[take-when] are identical to @racketlink[d:filter]{@racket[filter]} from @racket[data/collection], except that they include additional compile-time annotations to support isomorphic behavior.
 
 @examples[
     #:eval eval-for-docs
-    (->list (take-when positive? (list 1 -4 -1 3)))
-    (->list (drop-when positive? (list 1 -4 -1 3)))
-    (->list (take-when (curry prefix? "ap") (list "banana" "apple" "apricot" "cherry")))
+    (filter positive? #(1 -2 3))
+    (take-when positive? (list 1 -4 -1 3))
+    (drop-when positive? (list 1 -4 -1 3))
+    (take-when (curry prefix? "ap") (list "banana" "apple" "apricot" "cherry"))
     (drop-when char-whitespace? "  the quick   \tbrown\nfox")
   ]
 }
@@ -401,12 +461,12 @@ Extract a subsequence.
 
 @examples[
     #:eval eval-for-docs
-    (->list (take-while positive? (list 1 2 -4 -12 3)))
-    (->list (drop-while positive? (list 1 2 -4 -12 3)))
-    (->list (take-while positive? (list -1 3 2 4 -12)))
-    (->list (drop-while positive? (list -1 3 2 4 -12)))
-    (->list (take-while (curry prefix? "ap") (list "apple" "banana" "apricot" "cherry")))
-    (->list (drop-while (curry prefix? "ap") (list "apple" "banana" "apricot" "cherry")))
+    (take-while positive? (list 1 2 -4 -12 3))
+    (drop-while positive? (list 1 2 -4 -12 3))
+    (take-while positive? (list -1 3 2 4 -12))
+    (drop-while positive? (list -1 3 2 4 -12))
+    (take-while (curry prefix? "ap") (list "apple" "banana" "apricot" "cherry"))
+    (drop-while (curry prefix? "ap") (list "apple" "banana" "apricot" "cherry"))
   ]
 }
 
@@ -422,12 +482,12 @@ Extract a subsequence.
 
 @examples[
     #:eval eval-for-docs
-    (->list (take-until positive? (list -1 -2 3 2 -4)))
-    (->list (drop-until positive? (list -1 -2 3 2 -4)))
-    (->list (take-until positive? (list 1 3 2 -4)))
-    (->list (drop-until positive? (list 1 3 2 -4)))
-    (->list (take-until (curry prefix? "ap") (list "banana" "apple" "apricot" "cherry")))
-    (->list (drop-until (curry prefix? "ap") (list "banana" "apple" "apricot" "cherry")))
+    (take-until positive? (list -1 -2 3 2 -4))
+    (drop-until positive? (list -1 -2 3 2 -4))
+    (take-until positive? (list 1 3 2 -4))
+    (drop-until positive? (list 1 3 2 -4))
+    (take-until (curry prefix? "ap") (list "banana" "apple" "apricot" "cherry"))
+    (drop-until (curry prefix? "ap") (list "banana" "apple" "apricot" "cherry"))
   ]
 }
 
@@ -483,8 +543,8 @@ Extract a subsequence.
 
 @examples[
     #:eval eval-for-docs
-    (->list (trim-by 1 2 (list -1 0 1 2 3 -2 -1)))
-    (->string (trim-by 4 5 "the quick brown fox\n"))
+    (trim-by 1 2 (list -1 0 1 2 3 -2 -1))
+    (trim-by 4 5 "the quick brown fox\n")
   ]
 }
 
@@ -501,7 +561,7 @@ Refer to and reason in terms of contiguous subsequences, or "infixes."
 @examples[
     #:eval eval-for-docs
     (->list (cut-when (curry = #\space) "hello there old friend"))
-    (->list (map ->list (cut-when negative? (list -1 4 1 -3 2 -5 3 7))))
+	(->list (cut-when negative? (list -1 4 1 -3 2 -5 3 7)))
   ]
 }
 
@@ -516,7 +576,7 @@ Refer to and reason in terms of contiguous subsequences, or "infixes."
 @examples[
     #:eval eval-for-docs
     (->list (cut " " "hello there old friend"))
-    (->list (map ->list (cut 1 (list -1 4 1 -3 2 -5 1 3 7))))
+	(->list (cut 1 (list -1 4 1 -3 2 -5 1 3 7)))
   ]
 }
 
@@ -529,9 +589,9 @@ Refer to and reason in terms of contiguous subsequences, or "infixes."
 @examples[
     #:eval eval-for-docs
 	(define-values (before after) (cut-at 11 "hello there old friend"))
-    (->list (map ->string (list before after)))
+	(list before after)
 	(define-values (before after) (cut-at 3 (list -1 4 1 -3 2 -5 3 7)))
-    (->list (map ->list (list before after)))
+	(list before after)
   ]
 }
 
@@ -544,9 +604,9 @@ Refer to and reason in terms of contiguous subsequences, or "infixes."
 @examples[
     #:eval eval-for-docs
 	(define-values (before after) (cut-where char-whitespace? "hello there old friend"))
-    (->list (map ->string (list before after)))
+	(list before after)
 	(define-values (before after) (cut-where positive? (list -2 -1 0 1 2 3 4)))
-    (->list (map ->list (list before after)))
+	(list before after)
   ]
 }
 
@@ -558,7 +618,7 @@ Refer to and reason in terms of contiguous subsequences, or "infixes."
 
 @examples[
     #:eval eval-for-docs
-	(->list (map ->string (cut-by 5 "hello there old friend")))
+	(->list (cut-by 5 "hello there old friend"))
 	(->list (cut-by 3 (list -2 4 1 -3 2 -5 3 7)))
   ]
 }
@@ -574,11 +634,11 @@ Refer to and reason in terms of contiguous subsequences, or "infixes."
     (define-values (yes no)
                    (cut-with (curry prefix? "ap")
                              (list "banana" "apple" "apricot" "cherry")))
-    (->list (map ->list (list yes no)))
-	(define-values (yes no)
+    (list yes no)
+    (define-values (yes no)
                    (cut-with positive?
                              (list -2 4 1 -3 2 -5 3 7)))
-    (->list (map ->list (list yes no)))
+    (list yes no)
   ]
 }
 
@@ -625,7 +685,7 @@ Derive sequences from an existing sequence.
 @examples[
     #:eval eval-for-docs
     (->list (suffixes (list 1 2 3 4 5)))
-    (->list (map ->string (suffixes "echo")))
+	(->list (suffixes "echo"))
     (define (fibs)
       (stream-cons 1
         (stream-cons 1
@@ -641,7 +701,7 @@ Derive sequences from an existing sequence.
 
 @examples[
     #:eval eval-for-docs
-    (->list (map ->string (prefixes "wild west")))
+	(->list (prefixes "wild west"))
     (->list (take 5 (map ->list (prefixes (naturals)))))
   ]
 }
@@ -653,8 +713,8 @@ Derive sequences from an existing sequence.
 
 @examples[
     #:eval eval-for-docs
-    (->list (map ->string (infixes 4 "avocado")))
-    (->list (take 5 (map ->list (infixes 3 (naturals)))))
+	(->list (infixes 4 "avocado"))
+	(->list (take 5 (infixes 3 (naturals))))
   ]
 }
 
@@ -798,9 +858,9 @@ Construct new sequences from primitive elements and other sequences. Not to be c
 
 @examples[
     #:eval eval-for-docs
-    (->list (intersperse 'and '(x y z)))
-    (->list (intersperse 'and '(x)))
-    (->list (intersperse "," '("a" "b" "c" "d")))
+    (intersperse 'and '(x y z))
+    (intersperse 'and '(x))
+    (intersperse "," '("a" "b" "c" "d"))
   ]
 }
 
@@ -813,8 +873,8 @@ Construct new sequences from primitive elements and other sequences. Not to be c
 
 @examples[
     #:eval eval-for-docs
-    (->list (wrap-each '< '> '(x y z)))
-    (->list (wrap-each '< '> '(x)))
+    (wrap-each '< '> '(x y z))
+    (wrap-each '< '> '(x))
     (join-with " " (wrap-each "fresh" "and" '("apples" "bananas" "cherries")))
     ((join (wrap-each ->string ->number (list add1 sqr))) "3")
   ]
@@ -830,7 +890,7 @@ Construct new sequences from primitive elements and other sequences. Not to be c
     #:eval eval-for-docs
     (join-with " " (list "hello" "there" "old" "friend"))
     (display (join-with "\n" (list "Item 1" "Item 2" "Item 3")))
-    (->list (join-with '(0 0) (stream '(1 2 3) '(4 5 6) '(7 8 9))))
+    (join-with '(0 0) (stream '(1 2 3) '(4 5 6) '(7 8 9)))
     (join-with 1 (list 1 2 3 4))
     ((join-with (λ (n)
                    (displayln n)
@@ -857,6 +917,25 @@ Construct new sequences from primitive elements and other sequences. Not to be c
      "7")
     (weave "fresh " " and " '("apples" "bananas" "cherries"))
     ((weave ->string ->number (list add1 sqr)) "3")
+  ]
+}
+
+@defproc*[([(range [end number?]) stream?]
+           [(range [start number?]
+                   [end number?]
+                   [step number? 1]) stream?])]{
+ Identical to @racketlink[b:range]{@racket[range]}, except that it includes additional compile-time annotations to support isomorphic behavior.
+}
+
+@defproc[(map [proc procedure?] [seq sequence?] ...+)
+         sequence?]{
+
+ Identical to @racketlink[d:map]{@racket[map]} from @racket[data/collection], except that it includes additional compile-time annotations to support isomorphic behavior.
+
+@examples[
+    #:eval eval-for-docs
+    (map sqr (list 1 2 3))
+    (map sqr #(1 2 3))
   ]
 }
 
@@ -887,15 +966,15 @@ Compose new sequences from given sequences. Not to be confused with @seclink["De
 
 @examples[
     #:eval eval-for-docs
-    (->list (zip (list 'a 'b 'c) (list 1 2 3 4 5)))
-    (->list (zip-with + (list 1 2 3) (list 3 2 1)))
+    (zip (list 'a 'b 'c) (list 1 2 3 4 5))
+    (zip-with + (list 1 2 3) (list 3 2 1))
     (->list (zip-with expt (repeat 5) (range 10)))
     (->list (zip-with (lambda (x y)
                         (+ (* 2 x)
                            y))
                       (range 1 5)
                       (range 5 9)))
-    (->list (unzip (zip (list 'a 'b 'c) (list 1 2 3))))
+    (unzip (zip (list 'a 'b 'c) (list 1 2 3)))
   ]
 }
 
@@ -907,8 +986,8 @@ Compose new sequences from given sequences. Not to be confused with @seclink["De
 
 @examples[
     #:eval eval-for-docs
-    (->list (interleave (list 1 2 3) (list 4 5 6) (list 7 8 9)))
-    (->list (interleave (list 'a 'b 'c) (list 1 2)))
+    (interleave (list 1 2 3) (list 4 5 6) (list 7 8 9))
+    (interleave (list 'a 'b 'c) (list 1 2))
     (->list (take 10 (interleave (naturals 1) (cycle (list 'A 'B)))))
     (->list (interleave (naturals 1) (list 'P 'Q 'R 'S 'T) (cycle (list 'a 'b))))
   ]
@@ -923,9 +1002,9 @@ Compose new sequences from given sequences. Not to be confused with @seclink["De
 
 @examples[
     #:eval eval-for-docs
-    (->list (choose number? (list 10 "left shoe" 30) (list "right shoe" 15 15) (list "sock" -55 7)))
-    (->list (choose positive? (list -1 -2 1 2) (list -5 3 -2) (list 5 2 -1)))
-    (->list (choose (curry prefix? "ap") (list "banana" "apple" "apricot") (list "dog" "cat" "ape")))
+    (choose number? (list 10 "left shoe" 30) (list "right shoe" 15 15) (list "sock" -55 7))
+    (choose positive? (list -1 -2 1 2) (list -5 3 -2) (list 5 2 -1))
+    (choose (curry prefix? "ap") (list "banana" "apple" "apricot") (list "dog" "cat" "ape"))
   ]
 }
 
@@ -957,12 +1036,24 @@ Rearrange the elements of sequences.
     (->list (rotate-right 1 (range 1 8)))
     (->list (rotate-left 3 (range 1 8)))
     (->list (rotate-right 3 (range 1 8)))
-    (->string (rotate-left 2 "avocado"))
-    (->string (rotate-right 2 "avocado"))
-    (->string (rotate "avocado"))
-    (->string ((power rotate 3) "avocado"))
-	(->list (map ->list (rotations '(1 2 3))))
-	(->list (map ->string (rotations "cherry")))
-	(->list (map ->string (truncate (iterate rotate "cherry") "cherry")))
+    (rotate-left 2 "avocado")
+    (rotate-right 2 "avocado")
+    (rotate "avocado")
+    ((power rotate 3) "avocado")
+	(->list (rotations '(1 2 3)))
+	(->list (rotations "cherry"))
+	(->list (truncate (iterate rotate "cherry") "cherry"))
+  ]
+}
+
+@defproc[(reverse [seq sequence?])
+         sequence?]{
+
+ Identical to @racketlink[d:reverse]{@racket[reverse]} from @racket[data/collection], except that it includes additional compile-time annotations to support isomorphic behavior.
+
+@examples[
+    #:eval eval-for-docs
+    (reverse "apple")
+    (reverse #(1 2 3))
   ]
 }
