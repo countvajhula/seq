@@ -491,7 +491,7 @@ Extract a subsequence.
   ]
 }
 
-@defproc[(deduplicate [#:key key (-> comparable? comparable?) #f]
+@defproc[(deduplicate [#:key key (-> any/c any/c) #f]
                       [seq sequence?])
          list?]{
 
@@ -642,7 +642,7 @@ Refer to and reason in terms of contiguous subsequences, or "infixes."
   ]
 }
 
-@defproc[(find-infix [#:key key (-> comparable? comparable?) #f]
+@defproc[(find-infix [#:key key (-> any/c any/c) #f]
                      [nfx sequence?]
                      [seq sequence?])
          any/c]{
@@ -657,7 +657,7 @@ Refer to and reason in terms of contiguous subsequences, or "infixes."
   ]
 }
 
-@defproc[(replace-infix [#:key key (-> comparable? comparable?) #f]
+@defproc[(replace-infix [#:key key (-> any/c any/c) #f]
                         [#:how-many how-many exact-nonnegative-integer? #f]
                         [nfx sequence?]
                         [new-nfx sequence?]

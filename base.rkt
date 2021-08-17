@@ -70,7 +70,7 @@
                          (sequenceof sequence?))]
           [cut (->* (any/c
                      sequence?)
-                    (#:key (or/c (-> comparable? comparable?)
+                    (#:key (or/c (-> any/c any/c)
                                  #f)
                      #:trim? boolean?)
                     (sequenceof sequence?))]
@@ -100,7 +100,7 @@
           [rotations (-> sequence?
                          (sequenceof sequence?))]
           [deduplicate (->* (sequence?)
-                            (#:key (or/c (-> comparable? comparable?)
+                            (#:key (or/c (-> any/c any/c)
                                          #f))
                             list?)]
           [multiples (->* (number?)
@@ -121,38 +121,38 @@
                        sequence?
                        (sequenceof sequence?))]
           [prefix? (->* (sequence? sequence?)
-                        (#:key (or/c (-> comparable? comparable?)
+                        (#:key (or/c (-> any/c any/c)
                                      #f))
                         boolean?)]
           [starts-with? (->* (sequence? sequence?)
-                             (#:key (or/c (-> comparable? comparable?)
+                             (#:key (or/c (-> any/c any/c)
                                           #f))
                              boolean?)]
           [suffix? (->* (sequence? sequence?)
-                        (#:key (or/c (-> comparable? comparable?)
+                        (#:key (or/c (-> any/c any/c)
                                      #f))
                         boolean?)]
           [ends-with? (->* (sequence? sequence?)
-                           (#:key (or/c (-> comparable? comparable?)
+                           (#:key (or/c (-> any/c any/c)
                                         #f))
                            boolean?)]
           [find-infix (->* (sequence? sequence?)
                            (exact-nonnegative-integer?
-                            #:key (or/c (-> comparable? comparable?)
+                            #:key (or/c (-> any/c any/c)
                                         #f))
                            (or/c exact-nonnegative-integer?
                                  #f))]
           [replace-infix (->* (sequence? sequence? sequence?)
-                              (#:key (or/c (-> comparable? comparable?)
+                              (#:key (or/c (-> any/c any/c)
                                            #f)
                                #:how-many exact-nonnegative-integer?)
                               sequence?)]
           [infix? (->* (sequence? sequence?)
-                       (#:key (or/c (-> comparable? comparable?)
+                       (#:key (or/c (-> any/c any/c)
                                     #f))
                        boolean?)]
           [contains? (->* (sequence? sequence?)
-                          (#:key (or/c (-> comparable? comparable?)
+                          (#:key (or/c (-> any/c any/c)
                                        #f))
                           boolean?)]
           [trim-if (->* ((-> any/c boolean?)
@@ -165,7 +165,7 @@
                         sequence?)]
           [trim (->* (any/c
                       sequence?)
-                     (#:key (or/c (-> comparable? comparable?)
+                     (#:key (or/c (-> any/c any/c)
                                   #f)
                       #:side (one-of/c 'left
                                        'right
@@ -178,17 +178,17 @@
                        sequence?
                        sequence?)]
           [index-of (->* (any/c sequence?)
-                         (#:key (or/c (-> comparable? comparable?)
+                         (#:key (or/c (-> any/c any/c)
                                       #f))
                          (or/c exact-nonnegative-integer?
                                #f))]
           [index (->* (any/c sequence?)
-                      (#:key (or/c (-> comparable? comparable?)
+                      (#:key (or/c (-> any/c any/c)
                                    #f))
                       (or/c exact-nonnegative-integer?
                             #f))]
           [remove (->* (any/c sequence?)
-                       (#:key (or/c (-> comparable? comparable?)
+                       (#:key (or/c (-> any/c any/c)
                                     #f)
                         #:how-many (or/c exact-nonnegative-integer?
                                          #f))
