@@ -3,7 +3,8 @@
 (define deps '("base"
                "collections-lib"
                "arguments"
-               "relation"))
+               "relation"
+               "social-contract"))
 (define build-deps '("scribble-lib"
                      "scribble-abbrevs"
                      "racket-doc"

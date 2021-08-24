@@ -1,7 +1,8 @@
 #lang racket/base
 
 (require (prefix-in b: racket/base)
-         racket/contract
+         (except-in racket/contract
+                    predicate/c)
          racket/stream
          racket/match
          racket/generator
@@ -17,7 +18,8 @@
          (only-in data/collection
                   [index-of d:index-of]
                   [append d:append])
-         relation)
+         relation
+         contract/social)
 
 (provide take-when
          prefix
@@ -27,81 +29,59 @@
          exists
          for-all
          (contract-out
-          [by (-> exact-positive-integer? sequence? sequence?)]
-          [init (-> (and/c sequence? (not/c empty?)) sequence?)]
+          [by (map/c (head exact-positive-integer?))]
+          [init (function/c (nonempty/c sequence?) sequence?)]
           [zip-with (->* (procedure? sequence?)
                          #:rest (listof sequence?)
                          sequence?)]
-          [zip (-> sequence? sequence? ... sequence?)]
+          [zip (variadic-composition/c sequence? (head sequence?))]
           [unzip-with (->* (procedure? sequence?)
                            sequence?)]
-          [unzip (-> sequence? sequence?)]
-          [find (->i ([pred (seqs)
-                            (and/c (procedure-arity-includes/c (b:length seqs))
-                                   (unconstrained-domain-> boolean?))])
-                     #:rest [seqs (listof (sequenceof any/c))]
-                     [result any/c])]
-          [index-where (->i ([pred (seqs)
-                                   (and/c (procedure-arity-includes/c (b:length seqs))
-                                          (unconstrained-domain-> boolean?))])
-                            #:rest [seqs (listof (sequenceof any/c))]
-                            [result any/c])]
-          [choose (-> (-> any/c boolean?)
-                      sequence?
-                      ...
-                      sequence?)]
-          [suffix (-> exact-nonnegative-integer?
-                      sequence?
-                      sequence?)]
-          [take-while (-> (-> any/c boolean?)
-                          sequence?
-                          sequence?)]
-          [drop-while (-> (-> any/c boolean?)
-                          sequence?
-                          sequence?)]
-          [take-until (-> (-> any/c boolean?)
-                          sequence?
-                          sequence?)]
-          [drop-until (-> (-> any/c boolean?)
-                          sequence?
-                          sequence?)]
-          [cut-when (->* ((-> any/c boolean?) sequence?)
+          [unzip map/c]
+          [find (->i ((pred (seqs)
+                            (and/c
+                             (procedure-arity-includes/c (b:length seqs))
+                             (unconstrained-domain-> boolean?))))
+                     #:rest (seqs (listof (sequenceof any/c)))
+                     (result any/c))]
+          [index-where (->i ((pred (seqs)
+                                   (and/c
+                                    (procedure-arity-includes/c (b:length seqs))
+                                    (unconstrained-domain-> boolean?))))
+                            #:rest (seqs (listof (sequenceof any/c)))
+                            (result any/c))]
+          [choose (variadic-composition/c sequence? (head predicate/c))]
+          [suffix (map/c (head exact-nonnegative-integer?))]
+          [take-while filter/c]
+          [drop-while filter/c]
+          [take-until filter/c]
+          [drop-until filter/c]
+          [cut-when (->* (predicate/c sequence?)
                          (#:trim? boolean?)
                          (sequenceof sequence?))]
-          [cut (->* (any/c
-                     sequence?)
-                    (#:key (or/c (-> any/c any/c)
-                                 #f)
+          [cut (->* (any/c sequence?)
+                    (#:key (maybe/c function/c)
                      #:trim? boolean?)
                     (sequenceof sequence?))]
-          [cut-at (-> exact-positive-integer?
-                      sequence?
-                      (values sequence? sequence?))]
-          [cut-where (-> (-> any/c boolean?)
-                         sequence?
-                         (values sequence? sequence?))]
-          [cut-by (-> exact-positive-integer?
-                      sequence?
-                      (sequenceof sequence?))]
-          [cut-with (-> (-> any/c boolean?)
-                        sequence?
-                        (values sequence? sequence?))]
-          [truncate (-> sequence?
-                        sequence?
-                        sequence?)]
-          [rotate-left (-> exact-nonnegative-integer?
-                           sequence?
-                           sequence?)]
-          [rotate-right (-> exact-nonnegative-integer?
-                            sequence?
-                            sequence?)]
-          [rotate (-> sequence?
-                      sequence?)]
-          [rotations (-> sequence?
-                         (sequenceof sequence?))]
+          [cut-at (binary-function/c exact-positive-integer?
+                                     sequence?
+                                     (values sequence? sequence?))]
+          [cut-where (binary-function/c predicate/c
+                                        sequence?
+                                        (values sequence? sequence?))]
+          [cut-by (lift/c sequence?
+                          sequenceof
+                          (head exact-positive-integer?))]
+          [cut-with (binary-function/c predicate/c
+                                       sequence?
+                                       (values sequence? sequence?))]
+          [truncate (binary-composition/c sequence?)]
+          [rotate-left (map/c (head exact-nonnegative-integer?))]
+          [rotate-right (map/c (head exact-nonnegative-integer?))]
+          [rotate map/c]
+          [rotations (lift/c sequence? sequenceof)]
           [deduplicate (->* (sequence?)
-                            (#:key (or/c (-> any/c any/c)
-                                         #f))
+                            (#:key (maybe/c function/c))
                             list?)]
           [multiples (->* (number?)
                           (natural-number/c)
@@ -109,113 +89,76 @@
           [powers (->* (any/c)
                        (procedure?)
                        sequence?)]
-          [iterate (-> procedure?
-                       any/c
-                       sequence?)]
-          [suffixes (-> sequence?
-                        (sequenceof sequence?))]
+          [iterate (binary-function/c procedure?
+                                      any/c
+                                      sequence?)]
+          [suffixes (lift/c sequence? sequenceof)]
           [prefixes (->* (sequence?)
                          (exact-positive-integer?) ; the optional int is internal
                          (sequenceof sequence?))]
-          [infixes (-> exact-positive-integer?
-                       sequence?
-                       (sequenceof sequence?))]
+          [infixes (lift/c sequence?
+                           sequenceof
+                           (head exact-positive-integer?))]
           [prefix? (->* (sequence? sequence?)
-                        (#:key (or/c (-> any/c any/c)
-                                     #f))
+                        (#:key (maybe/c function/c))
                         boolean?)]
           [starts-with? (->* (sequence? sequence?)
-                             (#:key (or/c (-> any/c any/c)
-                                          #f))
+                             (#:key (maybe/c function/c))
                              boolean?)]
           [suffix? (->* (sequence? sequence?)
-                        (#:key (or/c (-> any/c any/c)
-                                     #f))
+                        (#:key (maybe/c function/c))
                         boolean?)]
           [ends-with? (->* (sequence? sequence?)
-                           (#:key (or/c (-> any/c any/c)
-                                        #f))
+                           (#:key (maybe/c function/c))
                            boolean?)]
           [find-infix (->* (sequence? sequence?)
                            (exact-nonnegative-integer?
-                            #:key (or/c (-> any/c any/c)
-                                        #f))
-                           (or/c exact-nonnegative-integer?
-                                 #f))]
+                            #:key (maybe/c function/c))
+                           (maybe/c exact-nonnegative-integer?))]
           [replace-infix (->* (sequence? sequence? sequence?)
-                              (#:key (or/c (-> any/c any/c)
-                                           #f)
+                              (#:key (maybe/c function/c)
                                #:how-many exact-nonnegative-integer?)
                               sequence?)]
           [infix? (->* (sequence? sequence?)
-                       (#:key (or/c (-> any/c any/c)
-                                    #f))
+                       (#:key (maybe/c function/c))
                        boolean?)]
           [contains? (->* (sequence? sequence?)
-                          (#:key (or/c (-> any/c any/c)
-                                       #f))
+                          (#:key (maybe/c function/c))
                           boolean?)]
-          [trim-if (->* ((-> any/c boolean?)
-                         sequence?)
-                        (#:side (one-of/c 'left
-                                          'right
-                                          'both)
-                         #:how-many (or/c exact-nonnegative-integer?
-                                          #f))
+          [trim-if (->* (predicate/c sequence?)
+                        (#:side (one-of/c 'left 'right 'both)
+                         #:how-many (maybe/c exact-nonnegative-integer?))
                         sequence?)]
-          [trim (->* (any/c
-                      sequence?)
-                     (#:key (or/c (-> any/c any/c)
-                                  #f)
-                      #:side (one-of/c 'left
-                                       'right
-                                       'both)
-                      #:how-many (or/c exact-nonnegative-integer?
-                                       #f))
+          [trim (->* (any/c sequence?)
+                     (#:key (maybe/c function/c)
+                      #:side (one-of/c 'left 'right 'both)
+                      #:how-many (maybe/c exact-nonnegative-integer?))
                      sequence?)]
-          [trim-by (-> exact-nonnegative-integer?
-                       exact-nonnegative-integer?
-                       sequence?
-                       sequence?)]
+          [trim-by (map/c (head exact-nonnegative-integer?
+                                exact-nonnegative-integer?))]
           [index-of (->* (any/c sequence?)
-                         (#:key (or/c (-> any/c any/c)
-                                      #f))
-                         (or/c exact-nonnegative-integer?
-                               #f))]
+                         (#:key (maybe/c function/c))
+                         (maybe/c exact-nonnegative-integer?))]
           [index (->* (any/c sequence?)
-                      (#:key (or/c (-> any/c any/c)
-                                   #f))
-                      (or/c exact-nonnegative-integer?
-                            #f))]
+                      (#:key (maybe/c function/c))
+                      (maybe/c exact-nonnegative-integer?))]
           [remove (->* (any/c sequence?)
-                       (#:key (or/c (-> any/c any/c)
-                                    #f)
-                        #:how-many (or/c exact-nonnegative-integer?
-                                         #f))
+                       (#:key (maybe/c function/c)
+                        #:how-many (maybe/c exact-nonnegative-integer?))
                        sequence?)]
-          [remove-at (-> natural-number/c sequence? sequence?)]
-          [drop-when (->* ((-> any/c boolean?)
-                           sequence?)
-                          (#:how-many (or/c exact-nonnegative-integer?
-                                            #f))
+          [remove-at (map/c (head natural-number/c))]
+          [drop-when (->* (predicate/c sequence?)
+                          (#:how-many (maybe/c exact-nonnegative-integer?))
                           sequence?)]
-          [intersperse (-> any/c
-                           sequence?
-                           sequence?)]
-          [add-between (-> any/c
-                           sequence?
-                           sequence?)]
-          [join-with (-> any/c
-                         sequence?
-                         any/c)] ; parametrize the type here?
-          [wrap-each (-> any/c
-                         any/c
-                         sequence?
-                         sequence?)]
-          [weave (-> any/c any/c sequence?
-                     (or/c sequence?
-                           procedure?))] ; procedure doesn't implement sequence
-          [interleave (-> sequence? sequence? ... sequence?)]))
+          [intersperse (map/c (head any/c))]
+          [add-between (map/c (head any/c))]
+          [join-with (binary-function/c any/c
+                                        sequence?
+                                        any/c)] ; parametrize the type here?
+          [wrap-each (map/c (head any/c any/c))]
+          [weave (binary-operation/c any/c
+                                     (tail sequence?))]
+          [interleave (variadic-composition/c sequence? (head sequence?))]))
 
 (define take-when filter)
 
