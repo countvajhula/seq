@@ -70,7 +70,6 @@
                                         sequence?
                                         (values sequence? sequence?))]
           [cut-by (lift/c sequence?
-                          sequenceof
                           (head exact-positive-integer?))]
           [cut-with (binary-function/c predicate/c
                                        sequence?
@@ -79,7 +78,7 @@
           [rotate-left (map/c (head exact-nonnegative-integer?))]
           [rotate-right (map/c (head exact-nonnegative-integer?))]
           [rotate map/c]
-          [rotations (lift/c sequence? sequenceof)]
+          [rotations (lift/c sequence?)]
           [deduplicate (->* (sequence?)
                             (#:key (maybe/c function/c))
                             list?)]
@@ -89,15 +88,12 @@
           [powers (->* (any/c)
                        (procedure?)
                        sequence?)]
-          [iterate (binary-function/c procedure?
-                                      any/c
-                                      sequence?)]
-          [suffixes (lift/c sequence? sequenceof)]
+          [iterate (lift/c (head procedure?))]
+          [suffixes (lift/c sequence?)]
           [prefixes (->* (sequence?)
                          (exact-positive-integer?) ; the optional int is internal
                          (sequenceof sequence?))]
           [infixes (lift/c sequence?
-                           sequenceof
                            (head exact-positive-integer?))]
           [prefix? (->* (sequence? sequence?)
                         (#:key (maybe/c function/c))
@@ -152,9 +148,7 @@
                           sequence?)]
           [intersperse (map/c (head any/c))]
           [add-between (map/c (head any/c))]
-          [join-with (binary-function/c any/c
-                                        sequence?
-                                        any/c)] ; parametrize the type here?
+          [join-with (reducer/c (head any/c))] ; parametrize the type here?
           [wrap-each (map/c (head any/c any/c))]
           [weave (binary-operation/c any/c
                                      (tail sequence?))]
