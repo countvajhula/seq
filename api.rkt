@@ -34,6 +34,7 @@
          reverse
          rest
          drop
+         set-nth
          by
          take-when
          prefix
@@ -271,6 +272,8 @@
 (define rest (annotate d:rest 0))
 
 (define drop (annotate d:drop 1))
+
+(define set-nth (annotate p:set-nth 2))
 
 ;;; seq
 (define by (annotate p:by 1))

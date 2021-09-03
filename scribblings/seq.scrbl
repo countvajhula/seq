@@ -66,6 +66,8 @@
                                                       index-of
                                                       index-where
                                                       range
+                                                      nth
+                                                      set-nth
                                                       map
                                                       filter
                                                       reverse

@@ -13,7 +13,8 @@
                     append
                     index-of
                     index-where
-                    nth)
+                    nth
+                    set-nth)
          relation
          seq/base)
 
@@ -34,6 +35,15 @@
        (check-exn exn:fail:contract? (thunk (nth 0 (list))))
        (check-exn exn:fail:contract? (thunk (nth 2 (list 1))))
        (check-exn exn:fail:contract? (thunk (nth -2 (list 1)))))
+     (test-case
+         "set-nth"
+       (check-equal? (->list (set-nth 3 0 (list 1 2 3 4 5 6 7 8))) (list 1 2 3 0 5 6 7 8))
+       (check-equal? (->list (set-nth 3 0 (list 1 2 3 4))) (list 1 2 3 0))
+       (check-equal? (->list (set-nth 0 0 (list 1 2 3 4))) (list 0 2 3 4))
+       (check-equal? (->list (set-nth -1 0 (list 1 2 3 4))) (list 1 2 3 0))
+       (check-exn exn:fail:contract? (thunk (set-nth 0 0 (list))))
+       (check-exn exn:fail:contract? (thunk (set-nth 2 0 (list 1))))
+       (check-exn exn:fail:contract? (thunk (set-nth -2 0 (list 1)))))
      (test-case
          "by"
        (check-equal? (->list (by 3 (list 1 2 3 4 5 6 7 8))) '(1 4 7))

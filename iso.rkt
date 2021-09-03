@@ -15,7 +15,7 @@
                   [take d:take]
                   known-finite?
                   nth
-                  set-nth
+                  [set-nth d:set-nth]
                   extend
                   collection?
                   gen:sequence
@@ -40,6 +40,7 @@
          rest
          take
          drop
+         set-nth
          by
          take-when
          prefix
@@ -113,10 +114,10 @@
               [kw-args (arguments-keyword args)]
               [elem (nth pos-args elem-position)]
               [seq (nth pos-args seq-position)]
-              [pos-args (set-nth pos-args elem-position
-                                 (if (string? seq)
-                                     (->char elem)
-                                     elem))]
+              [pos-args (d:set-nth pos-args elem-position
+                                   (if (string? seq)
+                                       (->char elem)
+                                       elem))]
               [args (make-arguments pos-args kw-args)])
          (apply/arguments intf args)))])
 
@@ -402,6 +403,8 @@
 (define take (iso d:take 1))
 
 (define drop (iso p:drop 1))
+
+(define set-nth (iso p:set-nth 2))
 
 ;;; seq
 (define by (iso p:by 1))

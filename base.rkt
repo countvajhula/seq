@@ -15,11 +15,13 @@
                     append
                     index-of
                     index-where
-                    nth)
+                    nth
+                    set-nth)
          (only-in data/collection
                   [index-of d:index-of]
                   [append d:append]
-                  [nth d:nth])
+                  [nth d:nth]
+                  [set-nth d:set-nth])
          relation
          contract/social)
 
@@ -32,6 +34,7 @@
          for-all
          (contract-out
           [nth (reducer/c (head integer?))]
+          [set-nth (map/c (head integer? any/c))]
           [by (map/c (head exact-positive-integer?))]
           [init (function/c (nonempty/c sequence?) sequence?)]
           [zip-with (->* (procedure? sequence?)
@@ -169,6 +172,14 @@
              index
              (- (length sequence)
                 (- index)))))
+
+(define (set-nth index new-elt sequence)
+  (d:set-nth sequence
+             (if (>= index 0)
+                 index
+                 (- (length sequence)
+                    (- index)))
+             new-elt))
 
 (define (init seq)
   (match seq
