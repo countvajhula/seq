@@ -14,10 +14,12 @@
                     foldl/steps
                     append
                     index-of
-                    index-where)
+                    index-where
+                    nth)
          (only-in data/collection
                   [index-of d:index-of]
-                  [append d:append])
+                  [append d:append]
+                  [nth d:nth])
          relation
          contract/social)
 
@@ -29,6 +31,7 @@
          exists
          for-all
          (contract-out
+          [nth (reducer/c (head integer?))]
           [by (map/c (head exact-positive-integer?))]
           [init (function/c (nonempty/c sequence?) sequence?)]
           [zip-with (->* (procedure? sequence?)
@@ -159,6 +162,13 @@
 (define prefix take)
 
 (define suffix-at drop)
+
+(define (nth index sequence)
+  (d:nth sequence
+         (if (>= index 0)
+             index
+             (- (length sequence)
+                (- index)))))
 
 (define (init seq)
   (match seq

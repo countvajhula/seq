@@ -12,7 +12,8 @@
                     foldl/steps
                     append
                     index-of
-                    index-where)
+                    index-where
+                    nth)
          relation
          seq/base)
 
@@ -24,6 +25,15 @@
     (test-suite
      "base tests"
 
+     (test-case
+         "nth"
+       (check-equal? (nth 3 (list 1 2 3 4 5 6 7 8)) 4)
+       (check-equal? (nth 3 (list 1 2 3 4)) 4)
+       (check-equal? (nth 0 (list 1 2 3 4)) 1)
+       (check-equal? (nth -1 (list 1 2 3 4)) 4)
+       (check-exn exn:fail:contract? (thunk (nth 0 (list))))
+       (check-exn exn:fail:contract? (thunk (nth 2 (list 1))))
+       (check-exn exn:fail:contract? (thunk (nth -2 (list 1)))))
      (test-case
          "by"
        (check-equal? (->list (by 3 (list 1 2 3 4 5 6 7 8))) '(1 4 7))

@@ -77,6 +77,7 @@
          wrap-each
          interleave
          (rename-out [d:take take] ; so scribble can find it in `(for-label seq)`
+                     [p:nth nth]
                      [p:exists exists]
                      [p:for-all for-all]
                      [p:find find]

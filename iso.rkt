@@ -85,6 +85,7 @@
          index-of
          deduplicate
          (rename-out [p:range range]
+                     [p:nth nth]
                      [p:exists exists]
                      [p:for-all for-all]
                      [p:find find]

@@ -11,6 +11,7 @@
                     foldl
                     foldl/steps
                     append
+                    nth
                     index-of
                     index-where
                     range
