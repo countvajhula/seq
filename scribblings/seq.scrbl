@@ -356,6 +356,35 @@ Reason in terms of gestalt properties of sequences, such as index and length, as
   ]
 }
 
+@defproc[(nth [pos natural-number/c]
+              [seq sequence?])
+         sequence?]{
+
+ Similar to @racketlink[d:nth]{@racket[nth]} but also supports negative indexing to count backwards from the end of the sequence.
+
+@examples[
+    #:eval eval-for-docs
+    (nth 3 (list 1 2 3 4 5))
+    (nth 4 "The quick brown fox")
+    (nth -1 (list "apple" "cherry" "banana"))
+  ]
+}
+
+@defproc[(set-nth [pos natural-number/c]
+                  [new-elt any/c]
+                  [seq sequence?])
+         sequence?]{
+
+ Similar to @racketlink[d:set-nth]{@racket[set-nth]} but also supports negative indexing to count backwards from the end of the sequence.
+
+@examples[
+    #:eval eval-for-docs
+    (set-nth 3 0 (list 1 2 3 4 5))
+    (set-nth 4 "Q" "The quick brown fox")
+    (set-nth -1 "durian" (list "apple" "cherry" "banana"))
+  ]
+}
+
 @defproc[(remove-at [pos natural-number/c]
                     [seq sequence?])
          sequence?]{
