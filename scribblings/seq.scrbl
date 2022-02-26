@@ -598,11 +598,12 @@ Refer to and reason in terms of contiguous subsequences, or "infixes."
 
 @defproc[(cut [elem any/c]
               [seq sequence?]
-			  [#:key key procedure? #f]
-			  [#:trim? trim? boolean? #f])
+			  [#:key key procedure? #f])
          sequence?]{
 
- Similar to @racket[string-split] but generalized to work on any sequence, this cuts a subsequence from @racket[seq] at each point where @racket[elem] is encountered, excluding @racket[elem]. In the special case where the input sequence is a string, @racket[elem] may be either a @tech/reference{character} or a string representing a character. In some contexts this operation is called "tokenization." The @racket[key] argument, if provided, is passed through to the underlying generic equality relation, @racketlink[r:=]{@racket[=]}.
+ Similar to @racket[string-split] but generalized to work on any sequence, this cuts a subsequence from @racket[seq] at each point where @racket[elem] is encountered, excluding @racket[elem]. In some contexts this operation is called "tokenization."
+
+ In the special case where the input sequence is a string, @racket[elem] may be either a @tech/reference{character} or a string representing a character. If the "trim" behavior of @racket[string-split] is desired, just @racket[trim] or @racket[trim-if] (e.g. using @racket[char-whitespace?]) the sequence prior to calling @racket[cut]. The @racket[key] argument, if provided, is passed through to the underlying generic equality relation, @racketlink[r:=]{@racket[=]}.
 
 @examples[
     #:eval eval-for-docs

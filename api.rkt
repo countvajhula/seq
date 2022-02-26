@@ -321,23 +321,15 @@
 
 (define-by-annotating drop-until p:drop-until 2 1)
 
-;; TODO: eliminate trim?
-(define (cut-when #:trim? [trim? #t]
-                  pred
-                  seq)
+(define (cut-when pred seq)
   (d:map (curry annotate-result seq)
-         (p:cut-when #:trim? trim?
-                     pred
-                     seq)))
+         (p:cut-when pred seq)))
 
-;; TODO: eliminate trim?
 (define (cut #:key [key #f]
-             #:trim? [trim? #t]
              elem
              seq)
   (d:map (curry annotate-result seq)
          (p:cut #:key key
-                #:trim? trim?
                 elem
                 seq)))
 

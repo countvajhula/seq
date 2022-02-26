@@ -62,12 +62,9 @@
           [drop-while filter/c]
           [take-until filter/c]
           [drop-until filter/c]
-          [cut-when (->* (predicate/c sequence?)
-                         (#:trim? boolean?)
-                         (sequenceof sequence?))]
+          [cut-when (lift/c sequence? (head predicate/c))]
           [cut (->* (any/c sequence?)
-                    (#:key (maybe/c function/c)
-                     #:trim? boolean?)
+                    (#:key (maybe/c function/c))
                     (sequenceof sequence?))]
           [cut-at (binary-function/c exact-positive-integer?
                                      sequence?
@@ -276,7 +273,7 @@
 (define (drop-until pred seq)
   (drop-while (!! pred) seq))
 
-(define (~cut-when pred seq)
+(define (cut-when pred seq)
   (if (empty? seq)
       (stream ID)
       (let-values ([(chunk remaining) (cut-where pred seq)])
@@ -284,23 +281,13 @@
           [(sequence) (stream-cons chunk empty-stream)]
           [(sequence _ vs ...)
            (stream-cons chunk
-                        (~cut-when pred
-                                   vs))]))))
-
-(define (cut-when #:trim? [trim? #t]
-                  pred
-                  seq)
-  (~cut-when pred
-             (if trim?
-                 (trim-if pred seq)
-                 seq)))
+                        (cut-when pred
+                                  vs))]))))
 
 (define (cut #:key [key #f]
-             #:trim? [trim? #t]
              elem
              seq)
-  (cut-when #:trim? trim?
-            (curry = #:key key elem)
+  (cut-when (curry = #:key key elem)
             seq))
 
 (define (cut-at pos seq)

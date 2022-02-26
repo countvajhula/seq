@@ -326,21 +326,13 @@
 
 (define-isomorphic drop-until p:drop-until 2 1)
 
-(define (cut-when #:trim? [trim? #t]
-                  pred
-                  seq)
+(define (cut-when pred seq)
   (d:map (curry return seq)
-         (p:cut-when #:trim? trim?
-                     pred
-                     seq)))
+         (p:cut-when pred seq)))
 
-(define (cut #:key [key #f]
-             #:trim? [trim? #t]
-             elem
-             seq)
+(define (cut #:key [key #f] elem seq)
   (d:map (curry return seq)
          (p:cut #:key key
-                #:trim? trim?
                 (string-helper seq elem)
                 seq)))
 
