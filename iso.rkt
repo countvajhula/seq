@@ -83,7 +83,6 @@
          add-between
          wrap-each
          interleave
-         index-of
          deduplicate
          (rename-out [p:range range]
                      [p:nth nth]
@@ -102,24 +101,14 @@
                      [p:infix? infix?]
                      [p:contains? contains?]
                      [p:index index]
+                     [p:index-of index-of]
                      [p:join-with join-with]
                      [p:weave weave]))
 
-(define-syntax-parser string-helper
-  [(_ intf)
-   #'(string-helper intf 1 0)] ; default to most common sequence and element positions
-  [(_ intf seq-position:number elem-position:number)
-   #'(lambda/arguments args
-       (let* ([pos-args (arguments-positional args)]
-              [kw-args (arguments-keyword args)]
-              [elem (nth pos-args elem-position)]
-              [seq (nth pos-args seq-position)]
-              [pos-args (d:set-nth pos-args elem-position
-                                   (if (string? seq)
-                                       (->char elem)
-                                       elem))]
-              [args (make-arguments pos-args kw-args)])
-         (apply/arguments intf args)))])
+(define (string-helper source arg)
+  (if (string? source)
+      (->char arg)
+      arg))
 
 (define (return source result)
   (cond [(and source (list? source) (known-finite? result)) (->list result)]
@@ -134,40 +123,11 @@
            (extend null-cons result))]
         [else result]))
 
-(define-syntax-parser iso
-  [(_ intf (~optional position:number #:defaults ([position #'0])))
-   #'(lambda/arguments args
-       (let ([seq (nth (arguments-positional args) position)]
-             [result (apply/arguments intf args)])
-         (return seq result)))]
-  [(_ intf position:number (~datum VARIADIC-INPUT))
-   #'(lambda/arguments args
-       (let ([seq (with-handlers ([exn:fail? false.])
-                    (nth (arguments-positional args) position))]
-             [result (apply/arguments intf args)])
-         (return seq result)))]
-  [(_ intf position:number (~datum LIST-INPUT))
-   #'(lambda/arguments args
-       (let ([seq (first (nth (arguments-positional args) position))]
-             [result (apply/arguments intf args)])
-         (return seq result)))]
-  [(_ intf position:number (~datum TWO-VALUE-RESULT))
-   #'(lambda/arguments args
-       (let ([seq (nth (arguments-positional args) position)])
-         (let-values ([(a b) (apply/arguments intf args)])
-           (values (return seq a)
-                   (return seq b)))))]
-  [(_ intf position:number (~datum SEQUENCE-RESULT))
-   #'(lambda/arguments args
-       (let ([seq (nth (arguments-positional args) position)]
-             [result (apply/arguments intf args)])
-         (d:map (curry return seq) result)))])
-
 (module+ test
 
   ;; the main test module for this is tests/iso.rkt
   ;; but we use a test submodule here to avoid providing
-  ;; the `iso` and `string-helper` macros outside this module
+  ;; the `return` and `string-helper` functions outside this module
   ;; since they're an internal implementation detail
 
   (struct opaque-sequence (contents)
@@ -213,288 +173,252 @@
      "isomorphic interfaces"
 
      (test-suite
-      "iso"
-      (test-suite
-       "basic"
-       (test-case
-           "known finite result"
-         (define (g seq)
-           (known-finite-sequence (list 1 2 3)))
-         (check-true (list? ((iso g) (list 1))))
-         (check-true (vector? ((iso g) #(1))))
-         (check-true (known-finite-sequence?
-                      ((iso g) (known-finite-sequence (list 1 2 3)))) "custom type")
-         (check-true (known-finite-sequence?
-                      ((iso g) (opaque-sequence (list 1 2 3))))
-                     "output type is unchanged if input is opaque"))
-       (test-case
-           "opaque result"
-         (define (g seq)
-           (opaque-sequence (list 1 2 3)))
-         (check-false (list? ((iso g) (list 1))))
-         (check-false (vector? ((iso g) #(1))))
-         (check-false (known-finite-sequence?
-                       ((iso g) (known-finite-sequence (list 1 2 3))))
-                      "custom type")))
-      (test-suite
-       "position indicated"
-       (test-case
-           "known finite result"
-         (define (g elem seq)
-           (known-finite-sequence (list 1 2 3)))
-         (check-true (list? ((iso g 1) 1 (list 1))))
-         (check-true (vector? ((iso g 1) 1 #(1))))
-         (check-true (known-finite-sequence?
-                      ((iso g) 1 (known-finite-sequence (list 1 2 3))))
-                     "custom type")
-         (check-true (known-finite-sequence?
-                      ((iso g) 1 (opaque-sequence (list 1 2 3))))
-                     "output type is unchanged if input is opaque"))
-       (test-case
-           "opaque result"
-         (define (g elem seq)
-           (opaque-sequence (list 1 2 3)))
-         (check-false (list? ((iso g 1) 1 (list 1))))
-         (check-false (vector? ((iso g 1) 1 #(1))))
-         (check-false (known-finite-sequence?
-                       ((iso g) 1 (known-finite-sequence (list 1 2 3))))
-                      "custom type")))
-      (test-suite
-       "variadic input"
-       (test-case
-           "known finite result"
-         (define (g elem . seqs)
-           (known-finite-sequence (list 1 2 3)))
-         (check-true (list? ((iso g 1 VARIADIC-INPUT) 1 (list 1) (list 1))))
-         (check-true (vector? ((iso g 1 VARIADIC-INPUT) 1 #(1) #(1))))
-         (check-true (known-finite-sequence?
-                      ((iso g 1 VARIADIC-INPUT) 1
-                                                (known-finite-sequence (list 1 2 3))
-                                                (known-finite-sequence (list 1 2 3))))
-                     "custom type")
-         (check-true (known-finite-sequence?
-                      ((iso g 1 VARIADIC-INPUT) 1
-                                                (opaque-sequence (list 1 2 3))
-                                                (opaque-sequence (list 1 2 3))))
-                     "output type is unchanged if input is opaque"))
-       (test-case
-           "opaque result"
-         (define (g elem . seqs)
-           (opaque-sequence (list 1 2 3)))
-         (check-false (list? ((iso g 1 VARIADIC-INPUT) 1 (list 1))))
-         (check-false (vector? ((iso g 1 VARIADIC-INPUT) 1 #(1))))
-         (check-false (known-finite-sequence?
-                       ((iso g 1 VARIADIC-INPUT) 1
-                                                 (known-finite-sequence (list 1 2 3))
-                                                 (known-finite-sequence (list 1 2 3))))
-                      "custom type")))
-      (test-suite
-       "list input"
-       (test-case
-           "known finite result"
-         (define (g elem seqs)
-           (known-finite-sequence (list 1 2 3)))
-         (check-true (list? ((iso g 1 LIST-INPUT) 1 (list (list 1)))))
-         (check-true (vector? ((iso g 1 LIST-INPUT) 1 (list #(1) #(1)))))
-         (check-true (known-finite-sequence?
-                      ((iso g 1 LIST-INPUT) 1 (list (known-finite-sequence (list 1 2 3))
-                                                    (known-finite-sequence (list 1 2 3)))))
-                     "custom type")
-         (check-true (known-finite-sequence?
-                      ((iso g 1 LIST-INPUT) 1 (list (opaque-sequence (list 1 2 3))
-                                                    (opaque-sequence (list 1 2 3)))))
-                     "output type is unchanged if input is opaque"))
-       (test-case
-           "opaque result"
-         (define (g elem seqs)
-           (opaque-sequence (list 1 2 3)))
-         (check-false (list? ((iso g 1 LIST-INPUT) 1 (list (list 1)))))
-         (check-false (vector? ((iso g 1 LIST-INPUT) 1 (list #(1)))))
-         (check-false (known-finite-sequence?
-                       ((iso g 1 LIST-INPUT) 1
-                                             (list (known-finite-sequence (list 1 2 3))
-                                                   (known-finite-sequence (list 1 2 3)))))
-                      "custom type")))
-      (test-suite
-       "two value result"
-       (test-case
-           "known finite result"
-         (define (g elem seq)
-           (values (known-finite-sequence (list 1 2 3))
-                   (known-finite-sequence (list 1 2 3))))
-         (let-values ([(a b) ((iso g 1 TWO-VALUE-RESULT) 1 (list 1))])
-           (check-true (list? a))
-           (check-true (list? b)))
-         (let-values ([(a b) ((iso g 1 TWO-VALUE-RESULT) 1 #(1))])
-           (check-true (vector? a))
-           (check-true (vector? b)))
-         (let-values ([(a b) ((iso g 1 TWO-VALUE-RESULT) 1 (known-finite-sequence (list 1 2 3)))])
-           (check-true (known-finite-sequence? a) "custom type")
-           (check-true (known-finite-sequence? b) "custom type"))
-         (let-values ([(a b) ((iso g 1 TWO-VALUE-RESULT) 1 (opaque-sequence (list 1 2 3)))])
-           (check-true (known-finite-sequence? a) "output type is unchanged if input is opaque")
-           (check-true (known-finite-sequence? b) "output type is unchanged if input is opaque")))
-       (test-case
-           "opaque result"
-         (define (g elem seq)
-           (values (opaque-sequence (list 1 2 3))
-                   (opaque-sequence (list 1 2 3))))
-         (let-values ([(a b) ((iso g 1 TWO-VALUE-RESULT) 1 (list 1 2 3))])
-           (check-false (list? a))
-           (check-false (list? b)))
-         (let-values ([(a b) ((iso g 1 TWO-VALUE-RESULT) 1 #(1))])
-           (check-false (vector? a))
-           (check-false (vector? b)))
-         (let-values ([(a b) ((iso g 1 TWO-VALUE-RESULT) 1 (known-finite-sequence (list 1 2 3)))])
-           (check-false (known-finite-sequence? a))
-           (check-false (known-finite-sequence? b)))))
-      (test-suite
-       "sequence result"
-       (test-case
-           "known finite result"
-         (define (g elem seq)
-           (list (known-finite-sequence (list 1 2 3))
-                 (known-finite-sequence (list 1 2 3))))
-         (check-true (andmap list? ((iso g 1 SEQUENCE-RESULT) 1 (list 1))))
-         (check-true (andmap vector? ((iso g 1 SEQUENCE-RESULT) 1 #(1))))
-         (check-true (andmap known-finite-sequence?
-                             ((iso g 1 SEQUENCE-RESULT) 1 (known-finite-sequence (list 1 2 3))))
-                     "custom type")
-         (check-true (andmap known-finite-sequence?
-                             ((iso g 1 SEQUENCE-RESULT) 1 (opaque-sequence (list 1 2 3))))
-                     "output type is unchanged if input is opaque"))
-       (test-case
-           "opaque result"
-         (define (g elem seq)
-           (list (opaque-sequence (list 1 2 3))
-                 (opaque-sequence (list 1 2 3))))
-         (check-false (andmap list? ((iso g 1 SEQUENCE-RESULT) 1 (list 1))))
-         (check-false (andmap vector? ((iso g 1 SEQUENCE-RESULT) 1 #(1))))
-         (check-false (andmap known-finite-sequence?
-                       ((iso g 1 SEQUENCE-RESULT) 1 (known-finite-sequence (list 1 2 3))))
-                      "custom type"))))
+      "isomorphic result"
+      (check-true (opaque-sequence? (return (list 1 2 3) (opaque-sequence null))))
+      (check-true (opaque-sequence? (return "hello" (opaque-sequence null))))
+      (check-true (opaque-sequence? (return #(1 2 3) (opaque-sequence null))))
+      (check-true (opaque-sequence? (return #"hello" (opaque-sequence null))))
+      (check-true (opaque-sequence? (return (set 1 2 3) (opaque-sequence null))))
+      (check-true (opaque-sequence? (return (hash 'a 1 'b 2 'c 3) (opaque-sequence null))))
+      (check-true (opaque-sequence? (return (stream 1 2 3) (opaque-sequence null))))
+      (check-true (list? (return (list 1 2 3) (known-finite-sequence null))))
+      (check-true (string? (return "hello" (known-finite-sequence null))))
+      (check-true (vector? (return #(1 2 3) (known-finite-sequence null))))
+      (check-true (bytes? (return #"hello" (known-finite-sequence null))))
+      (check-true (set? (return (set 1 2 3) (known-finite-sequence null))))
+      ;; (check-true (hash? (return (hash 'a 1 'b 2 'c 3) (known-finite-sequence null))))
+      (check-true (stream? (return (stream 1 2 3) (known-finite-sequence null)))))
 
      ;; if the sequence is a string then elem is converted to a char
      ;; and is otherwise left alone
      (test-suite
       "string-helper"
-      (test-case
-          "no position indicated"
-        (define (g elem seq)
-          (char? elem))
-        (check-true ((string-helper g) "a" "abc"))
-        (check-false ((string-helper g) "a" (list 1))))
-      (test-case
-          "position indicated"
-        (define (g elem seq)
-          (char? elem))
-        (check-true ((string-helper g 1 0) "a" "abc"))
-        (check-false ((string-helper g 1 0) "a" (list 1))))))))
+      (check-false (char? (string-helper (list 1 2 3) "a")))
+      (check-false (char? (string-helper #(1 2 3) "a")))
+      (check-true (char? (string-helper "hello" "a")))))))
+
+(define-syntax-parser define-isomorphic
+  [(_ fname f 1)
+   ;; function taking exactly one argument
+   ;; which is the sequence itself
+   #'(define (fname seq)
+       (let ([result (f seq)])
+         (return seq result)))]
+  [(_ fname f 2 1)
+   ;; function taking two arguments, with the sequence
+   ;; at position 1 (0-indexed)
+   #'(define (fname arg seq)
+       (let ([result (f arg seq)])
+         (return seq result)))]
+  [(_ fname f 2 1 (~datum STRING-HELPER))
+   ;; function taking two arguments, with the sequence
+   ;; at position 1 (0-indexed)
+   #'(define (fname arg seq)
+       (let ([arg (string-helper seq arg)])
+         (let ([result (f arg seq)])
+           (return seq result))))]
+  [(_ fname f 2 0)
+   ;; function taking two arguments, with the sequence
+   ;; at position 0 (0-indexed)
+   #'(define (fname seq arg)
+       (let ([result (f seq arg)])
+         (return seq result)))]
+  [(_ fname f 3 2)
+   ;; function taking three arguments, with the sequence
+   ;; at position 2 (0-indexed)
+   #'(define (fname arg1 arg2 seq)
+       (let ([result (f arg1 arg2 seq)])
+         (return seq result)))]
+  [(_ fname f (~datum VARIADIC-INPUT))
+   ;; function taking any number of sequence arguments
+   #'(define (fname . seqs)
+       (let ([result (apply f seqs)]
+             [seq (first seqs)])
+         (return seq result)))]
+  [(_ fname f 1 (~datum VARIADIC-INPUT))
+   ;; function taking an arbitrary argument, followed by
+   ;; any number of sequence arguments
+   #'(define (fname arg . seqs)
+       (let ([result (apply f arg seqs)]
+             [seq (first seqs)])
+         (return seq result)))]
+  [(_ fname f (~datum LIST-INPUT))
+   ;; function taking a list of sequences as its sole argument
+   #'(define (fname seqs)
+       (let ([result (f seqs)]
+             [seq (first seqs)])
+         (return seq result)))]
+  [(_ fname f 1 (~datum LIST-INPUT))
+   ;; function taking an arbitrary argument, followed by
+   ;; a list of sequences as its second argument
+   #'(define (fname arg seqs)
+       (let ([result (f arg seqs)]
+             [seq (first seqs)])
+         (return seq result)))]
+  [(_ fname f 2 1 (~datum TWO-VALUE-RESULT))
+   ;; function taking an arbitrary argument followed by
+   ;; a sequence, returning two values, each a sequence
+   ;; TODO: what about the wrapping sequence in a sequence of sequences?
+   #'(define (fname arg seq)
+       (let-values ([(a b) (f arg seq)])
+         (values (return seq a)
+                 (return seq b))))]
+  [(_ fname f 1 (~datum SEQUENCE-RESULT))
+   ;; function taking a single sequence argument
+   ;; that returns a sequence of sequences
+   #'(define (fname seq)
+       (let ([result (f seq)])
+         (d:map (curry return seq) result)))]
+  [(_ fname f 2 1 (~datum SEQUENCE-RESULT))
+   ;; function taking a single sequence argument
+   ;; that returns a sequence of sequences
+   #'(define (fname arg seq)
+       (let ([result (f arg seq)])
+         (d:map (curry return seq) result)))])
 
 ;;; built-in or data/collection sequences
-(define map (iso p:map 1))
+(define-isomorphic map p:map 1 VARIADIC-INPUT)
 
-(define filter (iso p:filter 1))
+(define-isomorphic filter p:filter 2 1)
 
-(define reverse (iso p:reverse 0))
+(define-isomorphic reverse p:reverse 1)
 
-(define rest (iso p:rest 0))
+(define-isomorphic rest p:rest 1)
 
-(define take (iso d:take 1))
+(define-isomorphic take d:take 2 1)
 
-(define drop (iso p:drop 1))
+(define-isomorphic drop p:drop 2 1)
 
-(define set-nth (iso p:set-nth 2))
+(define-isomorphic set-nth p:set-nth 3 2)
 
 ;;; seq
-(define by (iso p:by 1))
+(define-isomorphic by p:by 2 1)
 
-(define take-when (iso p:take-when 1))
+(define-isomorphic take-when p:take-when 2 1)
 
-(define prefix (iso p:prefix 1))
+(define-isomorphic prefix p:prefix 2 1)
 
-(define suffix-at (iso p:suffix-at 1))
+(define-isomorphic suffix-at p:suffix-at 2 1)
 
-(define infix-at (iso p:infix-at 2))
+(define-isomorphic infix-at p:infix-at 3 2)
 
-(define infix (iso p:infix 2))
+(define-isomorphic infix p:infix 3 2)
 
-(define init (iso p:init))
+(define-isomorphic init p:init 1)
 
-(define zip-with (iso p:zip-with 1))
+(define-isomorphic zip-with p:zip-with 1 VARIADIC-INPUT)
 
-(define zip (iso p:zip 0))
+(define-isomorphic zip p:zip VARIADIC-INPUT)
 
-(define unzip-with (iso p:unzip-with 1 LIST-INPUT))
+(define-isomorphic unzip-with p:unzip-with 1 LIST-INPUT)
 
-(define unzip (iso p:unzip 0 LIST-INPUT))
+(define-isomorphic unzip p:unzip LIST-INPUT)
 
-(define choose (iso p:choose 1 VARIADIC-INPUT))
+(define-isomorphic choose p:choose 1 VARIADIC-INPUT)
 
-(define suffix (iso p:suffix 1))
+(define-isomorphic suffix p:suffix 2 1)
 
-(define take-while (iso p:take-while 1))
+(define-isomorphic take-while p:take-while 2 1)
 
-(define drop-while (iso p:drop-while 1))
+(define-isomorphic drop-while p:drop-while 2 1)
 
-(define take-until (iso p:take-until 1))
+(define-isomorphic take-until p:take-until 2 1)
 
-(define drop-until (iso p:drop-until 1))
+(define-isomorphic drop-until p:drop-until 2 1)
 
-(define cut-when (iso p:cut-when 1 SEQUENCE-RESULT))
+(define (cut-when #:trim? [trim? #t]
+                  pred
+                  seq)
+  (d:map (curry return seq)
+         (p:cut-when #:trim? trim?
+                     pred
+                     seq)))
 
-(define cut (string-helper (iso p:cut 1 SEQUENCE-RESULT)))
+(define (cut #:key [key #f]
+             #:trim? [trim? #t]
+             elem
+             seq)
+  (d:map (curry return seq)
+         (p:cut #:key key
+                #:trim? trim?
+                (string-helper seq elem)
+                seq)))
 
-(define cut-at (iso p:cut-at 1 TWO-VALUE-RESULT))
+(define-isomorphic cut-at p:cut-at 2 1 TWO-VALUE-RESULT)
 
-(define cut-where (iso p:cut-where 1 TWO-VALUE-RESULT))
+(define-isomorphic cut-where p:cut-where 2 1 TWO-VALUE-RESULT)
 
-(define cut-by (iso p:cut-by 1 SEQUENCE-RESULT))
+(define-isomorphic cut-by p:cut-by 2 1 SEQUENCE-RESULT)
 
-(define cut-with (iso p:cut-with 1 TWO-VALUE-RESULT))
+(define-isomorphic cut-with p:cut-with 2 1 TWO-VALUE-RESULT)
 
-(define truncate (iso p:truncate 0))
+(define-isomorphic truncate p:truncate 2 0)
 
-(define rotate-left (iso p:rotate-left 1))
+(define-isomorphic rotate-left p:rotate-left 2 1)
 
-(define rotate-right (iso p:rotate-right 1))
+(define-isomorphic rotate-right p:rotate-right 2 1)
 
-(define rotate (iso p:rotate))
+(define-isomorphic rotate p:rotate 1)
 
-(define rotations (iso p:rotations 0 SEQUENCE-RESULT))
+(define-isomorphic rotations p:rotations 1 SEQUENCE-RESULT)
 
-(define prefixes (iso p:prefixes 0 SEQUENCE-RESULT))
+(define-isomorphic prefixes p:prefixes 1 SEQUENCE-RESULT)
 
-(define suffixes (iso p:suffixes 0 SEQUENCE-RESULT))
+(define-isomorphic suffixes p:suffixes 1 SEQUENCE-RESULT)
 
-(define infixes (iso p:infixes 1 SEQUENCE-RESULT))
+(define-isomorphic infixes p:infixes 2 1 SEQUENCE-RESULT)
 
 ;; not sure about this one
-(define replace-infix (iso p:replace-infix 2))
+(define (replace-infix #:key [key #f]
+                       #:how-many [how-many #f]
+                       orig-subseq
+                       new-subseq
+                       seq)
+  (return seq
+          (p:replace-infix #:key key
+                           #:how-many how-many
+                           orig-subseq
+                           new-subseq
+                           seq)))
 
-(define trim-if (iso p:trim-if 1))
+(define-isomorphic trim-if p:trim-if 2 1)
 
-(define trim (string-helper (iso p:trim 1)))
+(define-isomorphic trim p:trim 2 1 STRING-HELPER)
 
-(define trim-by (iso p:trim-by 2))
+(define-isomorphic trim-by p:trim-by 3 2)
 
-(define remove (string-helper (iso p:remove 1)))
+(define (remove #:key [key #f]
+                #:how-many [how-many #f]
+                elem
+                seq)
+  (return seq
+          (p:remove #:key key
+                    #:how-many how-many
+                    elem
+                    seq)))
 
-(define remove-at (iso p:remove-at 1))
+(define-isomorphic remove-at p:remove-at 2 1)
 
-(define drop-when (iso p:drop-when 1))
+(define (drop-when #:how-many [how-many #f]
+                   pred
+                   seq)
+  (return seq
+          (p:drop-when #:how-many how-many
+                       pred
+                       seq)))
 
-(define intersperse (iso p:intersperse 1))
+(define-isomorphic intersperse p:intersperse 2 1)
 
-(define add-between (iso p:add-between 1))
+(define-isomorphic add-between p:add-between 2 1)
 
-(define wrap-each (iso p:wrap-each 2))
+(define-isomorphic wrap-each p:wrap-each 3 2)
 
-(define interleave (iso p:interleave 0))
+(define-isomorphic interleave p:interleave VARIADIC-INPUT)
 
-(define index-of (string-helper p:index-of))
-
-(define deduplicate (iso p:deduplicate 0))
+(define (deduplicate seq #:key [key #f])
+  (return seq
+          (p:deduplicate #:key key
+                         seq)))
 
 (module+ test
   (just-do

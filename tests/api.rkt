@@ -205,7 +205,12 @@
         (check-equal? (->list (remove-at 1 (list 1 2 3))) (list 1 3)))
       (test-case
           "drop-when"
-        (check-equal? (->list (drop-when even? (list 1 2 2 1))) (list 1 1)))))))
+        (check-equal? (->list (drop-when even? (list 1 2 2 1))) (list 1 1))))
+     (test-suite
+      "metadata tests"
+      ;; ensure that the wrapping API layers do not muddle reporting of
+      ;; procedure metadata like arity
+      (check-equal? (procedure-arity by) 2)))))
 
 (module+ test
   (just-do

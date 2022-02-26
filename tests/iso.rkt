@@ -33,36 +33,17 @@
     (test-suite
      "iso tests"
      (test-suite
-      "iso macro tests")
-     (test-suite
       "smoke integration tests"
 
-      ;; The tests for map, filter, and reverse pass normally, but result
-      ;; in errors when run using errortrace, resembling:
-      ;; sequence54: unbound identifier;
-      ;; also, no #%top syntax transformer is bound
-      ;; in: sequence54
-      ;; context...:
-      ;;  #(10989630 macro) #(10990242 module) #(10990245 module random-access)
-      ;;  #(10990269 local) #(10990270 intdef) #(10990271 local)
-      ;;  #(10990272 intdef) [common scopes]
-      ;; other binding...:
-      ;;  #(sequence54.1 #<module-path-index='collection[84220]> 0)
-      ;;  #(-81800 module collection) [common scopes]
-      ;; common scopes...:
-      ;;  #(-81819 macro) #(-81818 macro)
-      ;;
-      ;; so leaving them commented out, for now.
-
-      ;; (test-case
-      ;;     "map"
-      ;;   (check-equal? (map add1 #(1 2 3)) #(2 3 4)))
-      ;; (test-case
-      ;;     "filter"
-      ;;   (check-equal? (filter positive? #(1 -2 3)) #(1 3)))
-      ;; (test-case
-      ;;     "reverse"
-      ;;   (check-equal? (reverse #(1 2 3)) #(3 2 1)))
+      (test-case
+          "map"
+        (check-equal? (map add1 #(1 2 3)) #(2 3 4)))
+      (test-case
+          "filter"
+        (check-equal? (filter positive? #(1 -2 3)) #(1 3)))
+      (test-case
+          "reverse"
+        (check-equal? (reverse #(1 2 3)) #(3 2 1)))
       (test-case
           "take"
         (check-equal? (take 3 "hello") "hel")
@@ -248,7 +229,12 @@
         (check-equal? (remove-at 1 (list 1 2 3)) (list 1 3)))
       (test-case
           "drop-when"
-        (check-equal? (drop-when even? (list 1 2 2 1)) (list 1 1)))))))
+        (check-equal? (drop-when even? (list 1 2 2 1)) (list 1 1))))
+     (test-suite
+      "metadata tests"
+      ;; ensure that the wrapping API layers do not muddle reporting of
+      ;; procedure metadata like arity
+      (check-equal? (procedure-arity by) 2)))))
 
 (module+ test
   (just-do

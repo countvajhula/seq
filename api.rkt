@@ -19,9 +19,15 @@
          syntax/parse/define
          (for-syntax racket/base)
          arguments
+         version-case
+         mischief/shorthand
          (only-in relation false.)
          (prefix-in p: "base.rkt")
          "types.rkt")
+
+(version-case
+ [(version< (version) "7.9.0.22")
+  (define-alias define-syntax-parse-rule define-simple-macro)])
 
 (module+ test
   (require rackunit
@@ -108,52 +114,11 @@
       (finite-sequence result)
       result))
 
-;; annotate the result with whether it is known to be finite,
-;; conditioned on the finiteness of the input
-;; use this in interfaces where the finiteness of the result
-;; is implied by the finiteness of the input(s)
-(define-syntax-parser annotate
-  [(_ intf (~optional position:number #:defaults ([position #'0])))
-   #'(lambda/arguments args
-       (let ([seq (nth (arguments-positional args) position)]
-             [result (apply/arguments intf args)])
-         (annotate-result seq result)))]
-  [(_ intf position:number (~datum VARIADIC-INPUT))
-   #'(lambda/arguments args
-       (let ([seq (with-handlers ([exn:fail? false.])
-                    (nth (arguments-positional args) position))]
-             [result (apply/arguments intf args)])
-         (annotate-result seq result)))]
-  [(_ intf position:number (~datum LIST-INPUT))
-   #'(lambda/arguments args
-       (let ([seq (first (nth (arguments-positional args) position))]
-             [result (apply/arguments intf args)])
-         (annotate-result seq result)))]
-  [(_ intf position:number (~datum TWO-VALUE-RESULT))
-   #'(lambda/arguments args
-       (let ([seq (nth (arguments-positional args) position)])
-         (let-values ([(a b) (apply/arguments intf args)])
-           (values (annotate-result seq a)
-                   (annotate-result seq b)))))]
-  [(_ intf position:number (~datum SEQUENCE-RESULT))
-   #'(lambda/arguments args
-       (let ([seq (nth (arguments-positional args) position)]
-             [result (apply/arguments intf args)])
-         (d:map (curry annotate-result seq) result)))])
-
-;; always annotate result, indepdently of input.
-;; use this for interfaces where the result is always going
-;; to be finite, irrespective of the input.
-;; this could support additional patterns like `annotate`,
-;; if needed, but this is only used in `choose` at the moment
-(define-syntax-parser annotate-naively
-  [(_ intf)
-   #'(lambda/arguments args
-       (let ([result (apply/arguments intf args)])
-         (if (and (countable? result)
-                  (known-finite? result))
-             result
-             (finite-sequence result))))])
+(define (annotate-result-naively result)
+  (if (and (countable? result)
+           (known-finite? result))
+      result
+      (finite-sequence result)))
 
 (module+ test
 
@@ -198,170 +163,257 @@
 
      (test-suite
       "annotate conditionally"
-      (test-case
-          "no position indicated"
-        (define (g seq)
-          (opaque-sequence))
-        (check-true (known-finite? ((annotate g) (known-finite-sequence))))
-        (check-false (known-finite? ((annotate g) (opaque-sequence)))))
-      (test-case
-          "position indicated"
-        (define (g elem seq)
-          (opaque-sequence))
-        (check-true (known-finite? ((annotate g 1) 3 (known-finite-sequence))))
-        (check-false (known-finite? ((annotate g 1) 3 (opaque-sequence)))))
-      (test-case
-          "variadic input"
-        (define (g elem . seqs)
-          (opaque-sequence))
-        (check-true (known-finite? ((annotate g 1 VARIADIC-INPUT) 3
-                                                                  (known-finite-sequence)
-                                                                  (known-finite-sequence))))
-        (check-false (known-finite? ((annotate g 1 VARIADIC-INPUT) 3
-                                                                   (opaque-sequence)
-                                                                   (opaque-sequence)))))
-      (test-case
-          "list input"
-        (define (g elem seqs)
-          (opaque-sequence))
-        (check-true
-         (known-finite? ((annotate g 1 LIST-INPUT) 3
-                                                   (list (known-finite-sequence)
-                                                         (known-finite-sequence)))))
-        (check-false
-         (known-finite? ((annotate g 1 LIST-INPUT) 3
-                                                   (list (opaque-sequence)
-                                                         (opaque-sequence))))))
-      (test-case
-          "two value result"
-        (define (g elem seq)
-          (values (opaque-sequence) (opaque-sequence)))
-        (let-values ([(a b) ((annotate g 1 TWO-VALUE-RESULT) 3 (known-finite-sequence))])
-          (check-true (known-finite? a))
-          (check-true (known-finite? b)))
-        (let-values ([(a b) ((annotate g 1 TWO-VALUE-RESULT) 3 (opaque-sequence))])
-          (check-false (known-finite? a))
-          (check-false (known-finite? b))))
-      (test-case
-          "sequence result"
-        (define (g elem seq)
-          (list (opaque-sequence) (opaque-sequence)))
-        (check-true (andmap known-finite? ((annotate g 1 SEQUENCE-RESULT) 3 (known-finite-sequence))))
-        (check-false (andmap known-finite? ((annotate g 1 SEQUENCE-RESULT) 3 (opaque-sequence))))))
+      (check-false (known-finite?
+                    (annotate-result (opaque-sequence)
+                                     (opaque-sequence))))
+      (check-true (known-finite?
+                   (annotate-result (opaque-sequence)
+                                    (known-finite-sequence))))
+      (check-true (known-finite?
+                   (annotate-result (known-finite-sequence)
+                                    (known-finite-sequence))))
+      (check-true (known-finite?
+                   (annotate-result (known-finite-sequence)
+                                    (opaque-sequence)))))
 
      (test-suite
-      "annotate-naively"
-      (test-case
-          "no position indicated"
-        (define (g seq)
-          (opaque-sequence))
-        (check-true (known-finite? ((annotate-naively g) (known-finite-sequence))))
-        (check-true (known-finite? ((annotate-naively g) (opaque-sequence)))))))))
+      "annotate always"
+      (check-true (known-finite?
+                   (annotate-result-naively
+                    (opaque-sequence))))
+      (check-true (known-finite?
+                   (annotate-result-naively
+                    (known-finite-sequence))))))))
 
 ;;; built-in or data/collection sequences
 (define (range . args)
   (finite-sequence (apply in-range args)))
 
+;; `define-by-annotating` is used to annotate interfaces where the
+;; finiteness of the result is implied by the finiteness of the input(s)
+;; In writing these annotated functions, if we accepted an arbitrary
+;; number of arguments, it would obscure the arity of the underlying
+;; function, confusing currying attempts and possibly having other
+;; unintended consequences. Therefore, we need to write the annotated
+;; functions here so that they have identical signatures to the
+;; underyling functions being annotated.
+(define-syntax-parser define-by-annotating
+  [(_ fname f 1)
+   ;; function taking exactly one argument
+   ;; which is the sequence itself
+   #'(define (fname seq)
+       (let ([result (f seq)])
+         (annotate-result seq result)))]
+  [(_ fname f 2 1)
+   ;; function taking two arguments, with the sequence
+   ;; at position 1 (0-indexed)
+   #'(define (fname arg seq)
+       (let ([result (f arg seq)])
+         (annotate-result seq result)))]
+  [(_ fname f 2 0)
+   ;; function taking two arguments, with the sequence
+   ;; at position 0 (0-indexed)
+   #'(define (fname seq arg)
+       (let ([result (f seq arg)])
+         (annotate-result seq result)))]
+  [(_ fname f 3 2)
+   ;; function taking three arguments, with the sequence
+   ;; at position 2 (0-indexed)
+   #'(define (fname arg1 arg2 seq)
+       (let ([result (f arg1 arg2 seq)])
+         (annotate-result seq result)))]
+  [(_ fname f (~datum VARIADIC-INPUT))
+   ;; function taking any number of sequence arguments
+   #'(define (fname . seqs)
+       (let ([result (apply f seqs)]
+             [seq (first seqs)])
+         (annotate-result seq result)))]
+  [(_ fname f 1 (~datum VARIADIC-INPUT))
+   ;; function taking an arbitrary argument, followed by
+   ;; any number of sequence arguments
+   #'(define (fname arg . seqs)
+       (let ([result (apply f arg seqs)]
+             [seq (first seqs)])
+         (annotate-result seq result)))]
+  [(_ fname f (~datum LIST-INPUT))
+   ;; function taking a list of sequences as its sole argument
+   #'(define (fname seqs)
+       (let ([result (f seqs)]
+             [seq (first seqs)])
+         (annotate-result seq result)))]
+  [(_ fname f 1 (~datum LIST-INPUT))
+   ;; function taking an arbitrary argument, followed by
+   ;; a list of sequences as its second argument
+   #'(define (fname arg seqs)
+       (let ([result (f arg seqs)]
+             [seq (first seqs)])
+         (annotate-result seq result)))]
+  [(_ fname f 2 1 (~datum TWO-VALUE-RESULT))
+   ;; function taking an arbitrary argument followed by
+   ;; a sequence, returning two values, each a sequence
+   ;; TODO: what about the wrapping sequence in a sequence of sequences?
+   #'(define (fname arg seq)
+       (let-values ([(a b) (f arg seq)])
+         (values (annotate-result seq a)
+                 (annotate-result seq b))))]
+  [(_ fname f 1 (~datum SEQUENCE-RESULT))
+   ;; function taking a single sequence argument
+   ;; that returns a sequence of sequences
+   #'(define (fname seq)
+       (let ([result (f seq)])
+         (d:map (curry annotate-result seq) result)))]
+  [(_ fname f 2 1 (~datum SEQUENCE-RESULT))
+   ;; function taking a single sequence argument
+   ;; that returns a sequence of sequences
+   #'(define (fname arg seq)
+       (let ([result (f arg seq)])
+         (d:map (curry annotate-result seq) result)))])
+
+;; `define-by-annotating-naively` is for interfaces where the result is
+;; always going to be finite, irrespective of the input.  this could
+;; support additional patterns like `annotate`, if needed, but this is
+;; only used in `choose` at the moment
+(define-syntax-parser define-by-annotating-naively
+  [(_ fname f 1 (~datum VARIADIC-INPUT))
+   #'(define (fname arg . seqs)
+       (let ([result (apply f arg seqs)])
+         (annotate-result-naively result)))])
+
 ;; really it's if _any_ of the input sequences are finite
-(define map (annotate d:map 1))
-
-(define filter (annotate d:filter 1))
-
-(define reverse (annotate d:reverse 0))
-
-(define rest (annotate d:rest 0))
-
-(define drop (annotate d:drop 1))
-
-(define set-nth (annotate p:set-nth 2))
+(define-by-annotating map d:map 1 VARIADIC-INPUT)
+(define-by-annotating filter d:filter 2 1)
+(define-by-annotating reverse d:reverse 1)
+(define-by-annotating rest d:rest 1)
+(define-by-annotating drop d:drop 2 1)
+(define-by-annotating set-nth p:set-nth 3 2)
 
 ;;; seq
-(define by (annotate p:by 1))
+(define-by-annotating by p:by 2 1)
+(define-by-annotating take-when p:take-when 2 1)
+(define-by-annotating prefix p:prefix 2 1)
 
-(define take-when (annotate p:take-when 1))
+(define-by-annotating suffix-at p:suffix-at 2 1)
 
-(define prefix (annotate p:prefix 1))
+(define-by-annotating infix-at p:infix-at 3 2)
 
-(define suffix-at (annotate p:suffix-at 1))
+(define-by-annotating infix p:infix 3 2)
 
-(define infix-at (annotate p:infix-at 2))
-
-(define infix (annotate p:infix 2))
-
-(define init (annotate p:init))
+(define-by-annotating init p:init 1)
 
 ;; really it's if _any_ of the input sequences are finite
-(define zip-with (annotate p:zip-with 1))
+(define-by-annotating zip-with p:zip-with 1 VARIADIC-INPUT)
 
-(define zip (annotate p:zip 0))
+(define-by-annotating zip p:zip VARIADIC-INPUT)
 
-(define unzip-with (annotate p:unzip-with 1 LIST-INPUT))
+(define-by-annotating unzip-with p:unzip-with 1 LIST-INPUT)
 
-(define unzip (annotate p:unzip 0 LIST-INPUT))
+(define-by-annotating unzip p:unzip LIST-INPUT)
 
-(define choose (annotate-naively p:choose))
+(define-by-annotating-naively choose p:choose 1 VARIADIC-INPUT)
 
-(define suffix (annotate p:suffix 1))
+(define-by-annotating suffix p:suffix 2 1)
 
-(define take-while (annotate p:take-while 1))
+(define-by-annotating take-while p:take-while 2 1)
 
-(define drop-while (annotate p:drop-while 1))
+(define-by-annotating drop-while p:drop-while 2 1)
 
-(define take-until (annotate p:take-until 1))
+(define-by-annotating take-until p:take-until 2 1)
 
-(define drop-until (annotate p:drop-until 1))
+(define-by-annotating drop-until p:drop-until 2 1)
 
-(define cut-when (annotate p:cut-when 1 SEQUENCE-RESULT))
+;; TODO: eliminate trim?
+(define (cut-when #:trim? [trim? #t]
+                  pred
+                  seq)
+  (d:map (curry annotate-result seq)
+         (p:cut-when #:trim? trim?
+                     pred
+                     seq)))
 
-(define cut (annotate p:cut 1 SEQUENCE-RESULT))
+;; TODO: eliminate trim?
+(define (cut #:key [key #f]
+             #:trim? [trim? #t]
+             elem
+             seq)
+  (d:map (curry annotate-result seq)
+         (p:cut #:key key
+                #:trim? trim?
+                elem
+                seq)))
 
-(define cut-at (annotate p:cut-at 1 TWO-VALUE-RESULT))
+(define-by-annotating cut-at p:cut-at 2 1 TWO-VALUE-RESULT)
 
-(define cut-where (annotate p:cut-where 1 TWO-VALUE-RESULT))
+(define-by-annotating cut-where p:cut-where 2 1 TWO-VALUE-RESULT)
 
-(define cut-by (annotate p:cut-by 1 SEQUENCE-RESULT))
+;; cut-by appears to always return a stream of lists, so it can probably
+;; just be passed through here as it's guaranteed to be known finite
+;; (as a list)
+(define-by-annotating cut-by p:cut-by 2 1 SEQUENCE-RESULT)
 
-(define cut-with (annotate p:cut-with 1 TWO-VALUE-RESULT))
+(define-by-annotating cut-with p:cut-with 2 1 TWO-VALUE-RESULT)
 
-(define truncate (annotate p:truncate 1))
+(define-by-annotating truncate p:truncate 2 0)
 
-(define rotate-left (annotate p:rotate-left 1))
+(define-by-annotating rotate-left p:rotate-left 2 1)
 
-(define rotate-right (annotate p:rotate-right 1))
+(define-by-annotating rotate-right p:rotate-right 2 1)
 
-(define rotate (annotate p:rotate))
+(define-by-annotating rotate p:rotate 1)
 
-(define rotations (annotate p:rotations 0 SEQUENCE-RESULT))
+(define-by-annotating rotations p:rotations 1 SEQUENCE-RESULT)
 
-(define prefixes (annotate p:prefixes 0 SEQUENCE-RESULT))
+(define-by-annotating prefixes p:prefixes 1 SEQUENCE-RESULT)
 
-(define suffixes (annotate p:suffixes 0 SEQUENCE-RESULT))
+(define-by-annotating suffixes p:suffixes 1 SEQUENCE-RESULT)
 
-(define infixes (annotate p:infixes 1 SEQUENCE-RESULT))
+(define-by-annotating infixes p:infixes 2 1 SEQUENCE-RESULT)
 
-;; not sure about this one
-(define replace-infix (annotate p:replace-infix 2))
+(define (replace-infix #:key [key #f]
+                       #:how-many [how-many #f]
+                       orig-subseq
+                       new-subseq
+                       seq)
+  (annotate-result seq
+                   (p:replace-infix #:key key
+                                    #:how-many how-many
+                                    orig-subseq
+                                    new-subseq
+                                    seq)))
 
-(define trim-if (annotate p:trim-if 1))
+(define-by-annotating trim-if p:trim-if 2 1)
 
-(define trim (annotate p:trim 1))
+(define-by-annotating trim p:trim 2 1)
 
-(define trim-by (annotate p:trim-by 2))
+(define-by-annotating trim-by p:trim-by 3 2)
 
-(define remove (annotate p:remove 1))
+(define (remove #:key [key #f]
+                #:how-many [how-many #f]
+                elem
+                seq)
+  (annotate-result seq
+                   (p:remove #:key key
+                             #:how-many how-many
+                             elem
+                             seq)))
 
-(define remove-at (annotate p:remove-at 1))
+(define-by-annotating remove-at p:remove-at 2 1)
 
-(define drop-when (annotate p:drop-when 1))
+(define (drop-when #:how-many [how-many #f]
+                   pred
+                   seq)
+  (annotate-result seq
+                   (p:drop-when #:how-many how-many
+                                pred
+                                seq)))
 
-(define intersperse (annotate p:intersperse 1))
+(define-by-annotating intersperse p:intersperse 2 1)
 
-(define add-between (annotate p:add-between 1))
+(define-by-annotating add-between p:add-between 2 1)
 
-(define wrap-each (annotate p:wrap-each 2))
+(define-by-annotating wrap-each p:wrap-each 3 2)
 
 ;; really it's if _any_ of the input sequences are finite
-(define interleave (annotate p:interleave 0))
+(define-by-annotating interleave p:interleave VARIADIC-INPUT)
 
 (module+ test
   (just-do
