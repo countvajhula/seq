@@ -3,6 +3,8 @@
 (define deps '("base"
                "collections-lib"
                "arguments"
+               "mischief"
+               "version-case"
                "relation"
                "social-contract"))
 (define build-deps '("scribble-lib"
