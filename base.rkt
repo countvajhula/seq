@@ -119,7 +119,7 @@
                            (maybe/c exact-nonnegative-integer?))]
           [replace-infix (->* (sequence? sequence? sequence?)
                               (#:key (maybe/c function/c)
-                               #:how-many exact-nonnegative-integer?)
+                               #:how-many (maybe/c exact-nonnegative-integer?))
                               sequence?)]
           [infix? (->* (sequence? sequence?)
                        (#:key (maybe/c function/c))
