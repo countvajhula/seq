@@ -289,7 +289,10 @@
 
 (define-isomorphic drop p:drop 2 1)
 
-(define-isomorphic set-nth p:set-nth 3 2)
+(define (set-nth n v seq)
+  (let* ([v (string-helper seq v)]
+         [result (p:set-nth n v seq)])
+    (return seq result)))
 
 ;;; seq
 (define-isomorphic by p:by 2 1)

@@ -55,6 +55,9 @@
           "rest"
         (check-equal? (rest "hello") "ello"))
       (test-case
+          "set-nth"
+        (check-equal? (set-nth 4 "Q" "The quick Brown Fox") "The Quick Brown Fox"))
+      (test-case
           "by"
         (check-equal? (by 3 (list 1 2 3 4 5 6 7 8)) '(1 4 7))
         (check-true (stream? (by 3 (stream 1 2 3 4 5))) "streams are passed through"))
