@@ -245,7 +245,7 @@ Reason in terms of gestalt properties of sequences, such as index and length, as
 @defproc[(rest [seq sequence?])
          sequence?]{
 
- Identical to @racketlink[d:rest]{@racket[rest]} from @racket[data/collection], except that it includes additional compile-time annotations to support isomorphic behavior.
+ Identical to @racketlink[d:rest]{@racket[rest]} from @racket[data/collection], except that it includes additional runtime annotations to support isomorphic behavior.
 
 @examples[
     #:eval eval-for-docs
@@ -285,7 +285,7 @@ Reason in terms of gestalt properties of sequences, such as index and length, as
                     [seq sequence?])
          sequence?]
 )]{
-  @racket[prefix] returns the first @racket[n] elements of @racket[seq], i.e. a prefix of length @racket[n]; it is an alias for @racket[take]. @racket[suffix] analogously returns the last @racket[n] elements of @racket[seq], i.e. a suffix of length @racket[n]. @racket[suffix-at] is an alias for @racket[drop], returning the suffix at the @emph{index} @racket[n]. @racket[take] and @racket[drop] are identical to @racketlink[d:take]{@racket[take]} and @racketlink[d:drop]{@racket[drop]} from @racket[data/collection] except that they include additional compile-time annotations to support isomorphic behavior.
+  @racket[prefix] returns the first @racket[n] elements of @racket[seq], i.e. a prefix of length @racket[n]; it is an alias for @racket[take]. @racket[suffix] analogously returns the last @racket[n] elements of @racket[seq], i.e. a suffix of length @racket[n]. @racket[suffix-at] is an alias for @racket[drop], returning the suffix at the @emph{index} @racket[n]. @racket[take] and @racket[drop] are identical to @racketlink[d:take]{@racket[take]} and @racketlink[d:drop]{@racket[drop]} from @racket[data/collection] except that they include additional runtime annotations to support isomorphic behavior.
 
 @examples[
     #:eval eval-for-docs
@@ -467,7 +467,7 @@ Extract a subsequence.
          sequence?]
 )]{
 
- An alias for @racketlink[d:filter]{@racket[filter]}, @racket[take-when] selects all elements from @racket[seq] that satisfy @racket[pred], while @racket[drop-when] selects those elements that do not satisfy @racket[pred]. @racket[filter] and @racket[take-when] are identical to @racketlink[d:filter]{@racket[filter]} from @racket[data/collection], except that they include additional compile-time annotations to support isomorphic behavior.
+ An alias for @racketlink[d:filter]{@racket[filter]}, @racket[take-when] selects all elements from @racket[seq] that satisfy @racket[pred], while @racket[drop-when] selects those elements that do not satisfy @racket[pred]. @racket[filter] and @racket[take-when] are identical to @racketlink[d:filter]{@racket[filter]} from @racket[data/collection], except that they include additional runtime annotations to support isomorphic behavior.
 
 @examples[
     #:eval eval-for-docs
@@ -956,13 +956,13 @@ Construct new sequences from primitive elements and other sequences. Not to be c
            [(range [start number?]
                    [end number?]
                    [step number? 1]) stream?])]{
- Identical to @racketlink[b:range]{@racket[range]}, except that it includes additional compile-time annotations to support isomorphic behavior.
+ Identical to @racketlink[b:range]{@racket[range]}, except that it includes additional runtime annotations to support isomorphic behavior.
 }
 
 @defproc[(map [proc procedure?] [seq sequence?] ...+)
          sequence?]{
 
- Identical to @racketlink[d:map]{@racket[map]} from @racket[data/collection], except that it includes additional compile-time annotations to support isomorphic behavior.
+ Identical to @racketlink[d:map]{@racket[map]} from @racket[data/collection], except that it includes additional runtime annotations to support isomorphic behavior.
 
 @examples[
     #:eval eval-for-docs
@@ -1081,7 +1081,7 @@ Rearrange the elements of sequences.
 @defproc[(reverse [seq sequence?])
          sequence?]{
 
- Identical to @racketlink[d:reverse]{@racket[reverse]} from @racket[data/collection], except that it includes additional compile-time annotations to support isomorphic behavior.
+ Identical to @racketlink[d:reverse]{@racket[reverse]} from @racket[data/collection], except that it includes additional runtime annotations to support isomorphic behavior.
 
 @examples[
     #:eval eval-for-docs
