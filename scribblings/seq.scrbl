@@ -88,7 +88,7 @@
 
 Standard and general-purpose sequence utilities.
 
-This library builds on top of the @other-doc['(lib "scribblings/data/collection/collections.scrbl")] foundation to provide a broad range of general-purpose utilities that work on all sequences. It also includes an optional "isomorphic" layer that ensures symmetry of input and output types while using these interfaces.
+This library builds on top of the @other-doc['(lib "scribblings/data/collection/collections.scrbl")] foundation to provide a broad range of general-purpose utilities that work on all sequences. It also leverages @other-doc['(lib "relation/scribblings/relation.scrbl")] to provide an optional "isomorphic" layer that ensures symmetry of input and output types while using these interfaces.
 
 Some of these interfaces are either implementations of or are inspired by the Scheme @hyperlink["https://docs.racket-lang.org/r6rs/r6rs-lib-std/r6rs-lib-Z-H-4.html"]{specifications} for @hyperlink["https://docs.racket-lang.org/srfi/srfi-std/srfi-1.html"]{list utilities}, while others are similar in spirit. An attempt has been made to adhere to intuitive naming conventions and categories to minimize the need to lookup documentation and support the ability to guess the name of an unknown function rather than learn these (numerous) names purely through familiarity.
 
