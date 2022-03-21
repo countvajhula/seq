@@ -226,7 +226,8 @@
         (check-equal? (index-where positive? (list -1 0 1 2)) 2))
       (test-case
           "remove"
-        (check-equal? (remove 2 (list 1 2 2 1)) (list 1 1)))
+        (check-equal? (remove 2 (list 1 2 2 1)) (list 1 1))
+        (check-equal? (remove "p" "hepllo") "hello"))
       (test-case
           "remove-at"
         (check-equal? (remove-at 1 (list 1 2 3)) (list 1 3)))

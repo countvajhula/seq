@@ -389,7 +389,7 @@
   (return seq
           (p:remove #:key key
                     #:how-many how-many
-                    elem
+                    (string-helper seq elem)
                     seq)))
 
 (define-isomorphic remove-at p:remove-at 2 1)
