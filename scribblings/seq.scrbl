@@ -102,7 +102,7 @@ The core set of APIs, exhibiting functional, generic, and lazy semantics (like t
 
 @defmodule*/no-declare[(seq/api)]
 
-The default module that is imported via @racket[(require seq)]. It simply annotates the interfaces in @racket[seq/base], as well as a few from @racket[data/collection], with known finiteness information, which may be leveraged by applications for whatever purpose. In particular, this information is used in the @racket[seq/iso] layer to determine whether preserving type symmetry is possible.
+The default module that is imported via @racket[(require seq)]. It simply annotates the interfaces in @racket[seq/base], as well as a few from @racket[data/collection], with known finiteness information, which may be leveraged by applications for whatever purpose. In particular, this information is used in the @racket[seq/iso] layer to determine whether preserving type symmetry is possible. Once again, this is an internal module and should not be used directly -- just implicitly via @racket[(require seq)].
 
 @defmodule*/no-declare[(seq/iso)]
 

@@ -1,7 +1,6 @@
 #lang racket/base
 
 (require racket/set
-         racket/list
          arguments
          (only-in racket/function curry)
          (only-in racket/stream stream?)
@@ -14,6 +13,7 @@
                   [map d:map]
                   [take d:take]
                   known-finite?
+                  first
                   nth
                   [set-nth d:set-nth]
                   extend
@@ -48,7 +48,6 @@
          infix
          infix-at
          init
-         zip-with
          zip
          unzip-with
          unzip
@@ -90,6 +89,7 @@
                      [p:for-all for-all]
                      [p:find find]
                      [p:index-where index-where]
+                     [p:zip-with zip-with]
                      [p:multiples multiples]
                      [p:powers powers]
                      [p:iterate iterate]
@@ -229,6 +229,14 @@
    #'(define (fname arg1 arg2 seq)
        (let ([result (f arg1 arg2 seq)])
          (return seq result)))]
+  [(_ fname f 3 2 (~datum STRING-HELPER))
+   ;; function taking three arguments, with the sequence
+   ;; at position 2 (0-indexed)
+   #'(define (fname arg1 arg2 seq)
+       (let* ([arg1 (string-helper seq arg1)]
+              [arg2 (string-helper seq arg2)]
+              [result (f arg1 arg2 seq)])
+         (return seq result)))]
   [(_ fname f (~datum VARIADIC-INPUT))
    ;; function taking any number of sequence arguments
    #'(define (fname . seqs)
@@ -309,9 +317,9 @@
 
 (define-isomorphic init p:init 1)
 
-(define-isomorphic zip-with p:zip-with 1 VARIADIC-INPUT)
-
-(define-isomorphic zip p:zip VARIADIC-INPUT)
+(define (zip . seqs)
+  (let ([result (apply p:zip seqs)])
+    (p:map (curry return (first seqs)) result)))
 
 (define-isomorphic unzip-with p:unzip-with 1 LIST-INPUT)
 
@@ -402,11 +410,11 @@
                        pred
                        seq)))
 
-(define-isomorphic intersperse p:intersperse 2 1)
+(define-isomorphic intersperse p:intersperse 2 1 STRING-HELPER)
 
-(define-isomorphic add-between p:add-between 2 1)
+(define-isomorphic add-between p:add-between 2 1 STRING-HELPER)
 
-(define-isomorphic wrap-each p:wrap-each 3 2)
+(define-isomorphic wrap-each p:wrap-each 3 2 STRING-HELPER)
 
 (define-isomorphic interleave p:interleave VARIADIC-INPUT)
 

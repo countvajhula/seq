@@ -183,10 +183,12 @@
           (check-equal? no '(-1 -3 -4 -7))))
       (test-case
           "intersperse"
-        (check-equal? (intersperse 'and (list 'a 'b 'c)) '(a and b and c)))
+        (check-equal? (intersperse 'and (list 'a 'b 'c)) '(a and b and c))
+        (check-equal? (intersperse "." "abc") "a.b.c"))
       (test-case
           "wrap-each"
-        (check-equal? (wrap-each '< '> (list 'a 'b 'c)) '(< a > < b > < c >)))
+        (check-equal? (wrap-each '< '> (list 'a 'b 'c)) '(< a > < b > < c >))
+        (check-equal? (wrap-each "<" ">" "abc") "<a><b><c>"))
       (test-case
           "join-with"
         (check-equal? (join-with "\n" (stream "hi" "there")) "hi\nthere"))
@@ -204,10 +206,9 @@
         (check-equal? (->list (take 4 (iterate add1 3))) '(3 4 5 6)))
       (test-case
           "zip"
-        (check-equal? (zip (list 'a 'b 'c) (list 1 2 3)) (list (list 'a 1) (list 'b 2) (list 'c 3))))
-      (test-case
-          "zip-with"
-        (check-equal? (zip-with list (list 1 2 3) (list 1 2 3)) '((1 1) (2 2) (3 3))))
+        (check-equal? (->list (zip (list 'a 'b 'c) (list 1 2 3))) (list (list 'a 1) (list 'b 2) (list 'c 3)))
+        (check-equal? (->list (zip "abc" "123")) (list "a1" "b2" "c3"))
+        (check-equal? (->list (zip #('a 'b 'c) #(1 2 3))) (list #('a 1) #('b 2) #('c 3))))
       (test-case
           "zip-unzip sanity"
         (let ([seqs (list
