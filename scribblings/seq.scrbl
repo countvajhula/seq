@@ -31,7 +31,7 @@
                              gen:appendable
                              join
                              onto
-                             ..
+                             ~
                              ^
                              arg
                              flip
@@ -292,7 +292,7 @@ Reason in terms of gestalt properties of sequences, such as index and length, as
     (prefix 2 "apricot")
     (suffix 2 "apricot")
     (suffix-at 2 "apricot")
-    (.. (prefix 2 "apricot") (suffix-at 2 "apricot"))
+    (~ (prefix 2 "apricot") (suffix-at 2 "apricot"))
     (prefix 2 (list "banana" "apple" "apricot" "cherry" "avocado"))
     (suffix 3 (list 1 2 3 4 5 6 7 8 9))
   ]
@@ -843,7 +843,7 @@ Construct new sequences from primitive elements and other sequences. Not to be c
   ]
 }
 
-@defproc[(powers [elem any/c] [op (one-of/c .. + *) ..])
+@defproc[(powers [elem any/c] [op (one-of/c ~ + *) ~])
          sequence?]{
 
  A sequence of all @racketlink[r:power]{powers} of @racket[elem] under the operation @racket[op].
