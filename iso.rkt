@@ -77,6 +77,7 @@
          trim-by
          remove
          remove-at
+         index-of
          drop-when
          intersperse
          add-between
@@ -101,7 +102,6 @@
                      [p:infix? infix?]
                      [p:contains? contains?]
                      [p:index index]
-                     [p:index-of index-of]
                      [p:join-with join-with]
                      [p:weave weave]))
 
@@ -304,6 +304,13 @@
 
 ;;; seq
 (define-isomorphic by p:by 2 1)
+
+(define (index-of #:key [key #f]
+                  elem
+                  seq)
+  (let* ([elem (string-helper seq elem)]
+         [result (p:index-of #:key key elem seq)])
+    result))
 
 (define-isomorphic take-when p:take-when 2 1)
 

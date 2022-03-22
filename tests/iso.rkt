@@ -221,7 +221,8 @@
                     seqs)))
       (test-case
           "index-of"
-        (check-equal? (index-of 2 (list 1 2 2 1)) 1))
+        (check-equal? (index-of 2 (list 1 2 2 1)) 1)
+        (check-equal? (index-of "e" "hello") 1))
       (test-case
           "index-where"
         (check-equal? (index-where positive? (list -1 0 1 2)) 2))
