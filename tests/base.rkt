@@ -505,7 +505,7 @@
        (check-equal? (->list (drop-when even? (list 1 2 4 3 6))) (list 1 3))
        (check-equal? (->list (drop-when even? #:how-many 2 (list 1 2 4 3 6))) (list 1 3 6))
        (check-exn exn:fail:contract?
-                  (thunk (drop-when (curry = "banana") (set "apple" "banana" "cherry"))) (set "apple" "cherry"))
+                  (thunk (drop-when (curry = "banana") (set "apple" "banana" "cherry"))))
        (check-exn exn:fail:contract?
                   (thunk (drop-when (curry = "BANANA") (generic-set #:key string-upcase "apple" "banana" "cherry"))))))))
 
