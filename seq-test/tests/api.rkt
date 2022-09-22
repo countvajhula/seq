@@ -3,10 +3,6 @@
 (require rackunit
          rackunit/text-ui
          racket/stream
-         racket/set
-         racket/math
-         (only-in racket/function
-                  thunk)
          (except-in data/collection
                     foldl
                     foldl/steps

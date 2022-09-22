@@ -20,7 +20,6 @@
                   gen:countable)
          relation/type
          (only-in relation
-                  false.
                   appendable-identity)
          (prefix-in p: "api.rkt")
          syntax/parse/define)
