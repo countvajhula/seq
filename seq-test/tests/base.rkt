@@ -18,8 +18,6 @@
          relation
          seq/base)
 
-(require "private/util.rkt")
-
 (module+ test
 
   (define tests
@@ -510,5 +508,5 @@
                   (thunk (drop-when (curry = "BANANA") (generic-set #:key string-upcase "apple" "banana" "cherry"))))))))
 
 (module+ test
-  (just-do
+  (void
    (run-tests tests)))

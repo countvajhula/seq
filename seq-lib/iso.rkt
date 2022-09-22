@@ -1,11 +1,9 @@
 #lang racket/base
 
 (require racket/set
-         arguments
          (only-in racket/function curry)
          (only-in racket/stream stream?)
-         (for-syntax racket/base
-                     arguments)
+         (for-syntax racket/base)
          (only-in data/collection
                   sequence->list
                   apply
@@ -22,17 +20,9 @@
                   gen:countable)
          relation/type
          (only-in relation
-                  false.
                   appendable-identity)
          (prefix-in p: "api.rkt")
          syntax/parse/define)
-
-(module+ test
-  (require rackunit
-           rackunit/text-ui
-           racket/generic
-           racket/stream
-           "private/util.rkt"))
 
 (provide map
          filter
@@ -103,7 +93,12 @@
                      [p:contains? contains?]
                      [p:index index]
                      [p:join-with join-with]
-                     [p:weave weave]))
+                     [p:weave weave])
+         ;; return and string-helper are considered internal implementation
+         ;; details and are not intended to be used outside this module
+         ;; except for testing
+         (rename-out [return seq-test:return]
+                     [string-helper seq-test:string-helper]))
 
 (define (string-helper source arg)
   (if (string? source)
@@ -122,80 +117,6 @@
          (let ([null-cons (appendable-identity source)])
            (extend null-cons result))]
         [else result]))
-
-(module+ test
-
-  ;; the main test module for this is tests/iso.rkt
-  ;; but we use a test submodule here to avoid providing
-  ;; the `return` and `string-helper` functions outside this module
-  ;; since they're an internal implementation detail
-
-  (struct opaque-sequence (contents)
-    #:transparent
-    #:methods gen:sequence
-    [(define/generic -empty? empty?)
-     (define/generic -first first)
-     (define/generic -rest rest)
-     (define (first this)
-       (-first (opaque-sequence-contents this)))
-     (define (rest this)
-       (-rest (opaque-sequence-contents this)))
-     (define (empty? this)
-       (-empty? (opaque-sequence-contents this)))]
-    #:methods gen:countable
-    [(define/generic -length length)
-     (define (known-finite? this)
-       #f)
-     (define (length this)
-       (-length (opaque-sequence-contents this)))])
-
-  (struct known-finite-sequence (contents)
-    #:transparent
-    #:methods gen:sequence
-    [(define/generic -empty? empty?)
-     (define/generic -first first)
-     (define/generic -rest rest)
-     (define (first this)
-       (-first (known-finite-sequence-contents this)))
-     (define (rest this)
-       (-rest (known-finite-sequence-contents this)))
-     (define (empty? this)
-       (-empty? (known-finite-sequence-contents this)))]
-    #:methods gen:countable
-    [(define/generic -length length)
-     (define (known-finite? this)
-       #t)
-     (define (length this)
-       (-length (known-finite-sequence-contents this)))])
-
-  (define tests
-    (test-suite
-     "isomorphic interfaces"
-
-     (test-suite
-      "isomorphic result"
-      (check-true (opaque-sequence? (return (list 1 2 3) (opaque-sequence null))))
-      (check-true (opaque-sequence? (return "hello" (opaque-sequence null))))
-      (check-true (opaque-sequence? (return #(1 2 3) (opaque-sequence null))))
-      (check-true (opaque-sequence? (return #"hello" (opaque-sequence null))))
-      (check-true (opaque-sequence? (return (set 1 2 3) (opaque-sequence null))))
-      (check-true (opaque-sequence? (return (hash 'a 1 'b 2 'c 3) (opaque-sequence null))))
-      (check-true (opaque-sequence? (return (stream 1 2 3) (opaque-sequence null))))
-      (check-true (list? (return (list 1 2 3) (known-finite-sequence null))))
-      (check-true (string? (return "hello" (known-finite-sequence null))))
-      (check-true (vector? (return #(1 2 3) (known-finite-sequence null))))
-      (check-true (bytes? (return #"hello" (known-finite-sequence null))))
-      (check-true (set? (return (set 1 2 3) (known-finite-sequence null))))
-      ;; (check-true (hash? (return (hash 'a 1 'b 2 'c 3) (known-finite-sequence null))))
-      (check-true (stream? (return (stream 1 2 3) (known-finite-sequence null)))))
-
-     ;; if the sequence is a string then elem is converted to a char
-     ;; and is otherwise left alone
-     (test-suite
-      "string-helper"
-      (check-false (char? (string-helper (list 1 2 3) "a")))
-      (check-false (char? (string-helper #(1 2 3) "a")))
-      (check-true (char? (string-helper "hello" "a")))))))
 
 (define-syntax-parser define-isomorphic
   [(_ fname f 1)
@@ -429,7 +350,3 @@
   (return seq
           (p:deduplicate #:key key
                          seq)))
-
-(module+ test
-  (just-do
-   (run-tests tests)))

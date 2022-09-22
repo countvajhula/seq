@@ -1,4 +1,6 @@
 # Adapted from: http://www.greghendershott.com/2017/04/racket-makefiles.html
+SHELL=/bin/bash
+
 PACKAGE-NAME=seq
 
 DEPS-FLAGS=--check-pkg-deps --unused-pkg-deps
@@ -23,32 +25,32 @@ help:
 # Primarily for use by CI.
 # Installs dependencies as well as linking this as a package.
 install:
-	raco pkg install --deps search-auto
+	raco pkg install --deps search-auto --link $(PWD)/$(PACKAGE-NAME)-{lib,test,doc} $(PWD)/$(PACKAGE-NAME)
 
 remove:
-	raco pkg remove $(PACKAGE-NAME)
+	raco pkg remove $(PACKAGE-NAME)-{lib,test,doc} $(PACKAGE-NAME)
 
 # Primarily for day-to-day dev.
 # Build libraries from source.
 build:
-	raco setup --no-docs --tidy --pkgs $(PACKAGE-NAME)
+	raco setup --no-docs --pkgs $(PACKAGE-NAME)-lib
 
 # Primarily for day-to-day dev.
 # Build docs (if any).
 build-docs:
 	raco setup --no-launcher --no-foreign-libs --no-info-domain --no-pkg-deps \
-	--no-install --no-post-install --tidy --pkgs $(PACKAGE-NAME)
+	--no-install --no-post-install --pkgs $(PACKAGE-NAME)-doc
 
 # Primarily for day-to-day dev.
 # Build libraries from source, build docs (if any), and check dependencies.
 build-all:
-	raco setup --tidy $(DEPS-FLAGS) --pkgs $(PACKAGE-NAME)
+	raco setup $(DEPS-FLAGS) --pkgs $(PACKAGE-NAME)-{lib,test,doc} $(PACKAGE-NAME)
 
 # Note: Each collection's info.rkt can say what to clean, for example
 # (define clean '("compiled" "doc" "doc/<collect>")) to clean
 # generated docs, too.
 clean:
-	raco setup --fast-clean --pkgs $(PACKAGE-NAME)
+	raco setup --fast-clean --pkgs $(PACKAGE-NAME)-{lib,test,doc}
 
 # Primarily for use by CI, after make install -- since that already
 # does the equivalent of make setup, this tries to do as little as
@@ -58,27 +60,27 @@ check-deps:
 
 # Suitable for both day-to-day dev and CI
 test:
-	raco test -x -p $(PACKAGE-NAME)
+	raco test -exp $(PACKAGE-NAME)-{lib,test,doc}
 
 test-base:
-	raco test -x tests/base.rkt
+	raco test -x $(PACKAGE-NAME)-test/tests/base.rkt
 
 test-api:
-	raco test -x tests/api.rkt
+	raco test -x $(PACKAGE-NAME)-test/tests/api.rkt
 
 test-iso:
-	raco test -x tests/iso.rkt
+	raco test -x $(PACKAGE-NAME)-test/tests/iso.rkt
 
 build+test: build test
 
 errortrace-base:
-	racket -l errortrace -l racket -e '(require (submod "tests/base.rkt" test))'
+	racket -l errortrace -l racket -e '(require (submod "$(PACKAGE-NAME)-test/tests/base.rkt" test))'
 
 errortrace-api:
-	racket -l errortrace -l racket -e '(require (submod "tests/api.rkt" test))'
+	racket -l errortrace -l racket -e '(require (submod "$(PACKAGE-NAME)-test/tests/api.rkt" test))'
 
 errortrace-iso:
-	racket -l errortrace -l racket -e '(require (submod "tests/iso.rkt" test))'
+	racket -l errortrace -l racket -e '(require (submod "$(PACKAGE-NAME)-test/tests/iso.rkt" test))'
 
 test-with-errortrace: errortrace-base errortrace-api errortrace-iso
 
@@ -88,7 +90,7 @@ docs:
 	raco docs $(PACKAGE-NAME)
 
 coverage-check:
-	raco cover -b -n dev -n test.rkt -p $(PACKAGE-NAME)
+	raco cover -b -d ./coverage -p $(PACKAGE-NAME)-{lib,test}
 
 coverage-report:
 	open coverage/index.html
@@ -96,6 +98,6 @@ coverage-report:
 cover: coverage-check coverage-report
 
 cover-coveralls:
-	raco cover -b -n dev -n test.rkt -f coveralls -p $(PACKAGE-NAME)
+	raco cover -b -f coveralls -p $(PACKAGE-NAME)-{lib,test}
 
 .PHONY:	help install remove build build-docs build-all test clean check-deps test test-base test-api test-iso build+test errortrace-base errortrace-api errortrace-iso test-with-errortrace errortrace docs coverage-check coverage-report cover cover-coveralls

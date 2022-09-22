@@ -2,11 +2,9 @@
 
 (require rackunit
          rackunit/text-ui
-         racket/stream
+         racket/generic
          racket/set
-         racket/math
-         (only-in racket/function
-                  thunk)
+         racket/stream
          (except-in data/collection
                     foldl
                     foldl/steps
@@ -23,15 +21,16 @@
                     drop
                     rest)
          relation
-         seq/iso)
-
-(require "private/util.rkt")
+         (rename-in seq/iso
+                    [seq-test:return return]
+                    [seq-test:string-helper string-helper]))
 
 (module+ test
 
   (define tests
     (test-suite
      "iso tests"
+
      (test-suite
       "smoke integration tests"
 
@@ -236,12 +235,84 @@
       (test-case
           "drop-when"
         (check-equal? (drop-when even? (list 1 2 2 1)) (list 1 1))))
+
      (test-suite
       "metadata tests"
       ;; ensure that the wrapping API layers do not muddle reporting of
       ;; procedure metadata like arity
-      (check-equal? (procedure-arity by) 2)))))
+      (check-equal? (procedure-arity by) 2))
+
+     (let ()
+       ;; these utilities are considered an internal implementation
+       ;; detail, but they are tested here to avoid
+       ;; introducing testing dependencies into the lib package
+
+       (struct opaque-sequence (contents)
+         #:transparent
+         #:methods gen:sequence
+         [(define/generic -empty? empty?)
+          (define/generic -first first)
+          (define/generic -rest rest)
+          (define (first this)
+            (-first (opaque-sequence-contents this)))
+          (define (rest this)
+            (-rest (opaque-sequence-contents this)))
+          (define (empty? this)
+            (-empty? (opaque-sequence-contents this)))]
+         #:methods gen:countable
+         [(define/generic -length length)
+          (define (known-finite? this)
+            #f)
+          (define (length this)
+            (-length (opaque-sequence-contents this)))])
+
+       (struct known-finite-sequence (contents)
+         #:transparent
+         #:methods gen:sequence
+         [(define/generic -empty? empty?)
+          (define/generic -first first)
+          (define/generic -rest rest)
+          (define (first this)
+            (-first (known-finite-sequence-contents this)))
+          (define (rest this)
+            (-rest (known-finite-sequence-contents this)))
+          (define (empty? this)
+            (-empty? (known-finite-sequence-contents this)))]
+         #:methods gen:countable
+         [(define/generic -length length)
+          (define (known-finite? this)
+            #t)
+          (define (length this)
+            (-length (known-finite-sequence-contents this)))])
+
+       (test-suite
+        "isomorphic interfaces"
+
+        (test-suite
+         "return isomorphic result"
+         (check-true (opaque-sequence? (return (list 1 2 3) (opaque-sequence null))))
+         (check-true (opaque-sequence? (return "hello" (opaque-sequence null))))
+         (check-true (opaque-sequence? (return #(1 2 3) (opaque-sequence null))))
+         (check-true (opaque-sequence? (return #"hello" (opaque-sequence null))))
+         (check-true (opaque-sequence? (return (set 1 2 3) (opaque-sequence null))))
+         (check-true (opaque-sequence? (return (hash 'a 1 'b 2 'c 3) (opaque-sequence null))))
+         (check-true (opaque-sequence? (return (stream 1 2 3) (opaque-sequence null))))
+         (check-true (list? (return (list 1 2 3) (known-finite-sequence null))))
+         (check-true (string? (return "hello" (known-finite-sequence null))))
+         (check-true (vector? (return #(1 2 3) (known-finite-sequence null))))
+         (check-true (bytes? (return #"hello" (known-finite-sequence null))))
+         (check-true (set? (return (set 1 2 3) (known-finite-sequence null))))
+         ;; (check-true (hash? (return (hash 'a 1 'b 2 'c 3) (known-finite-sequence null))))
+         (check-true (stream? (return (stream 1 2 3) (known-finite-sequence null)))))
+
+        ;; if the sequence is a string then elem is converted to a char
+        ;; and is otherwise left alone
+        (test-suite
+         "string-helper"
+         (check-false (char? (string-helper (list 1 2 3) "a")))
+         (check-false (char? (string-helper #(1 2 3) "a")))
+         (check-true (char? (string-helper "hello" "a")))))))))
 
 (module+ test
-  (just-do
+  (void
    (run-tests tests)))

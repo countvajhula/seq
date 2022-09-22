@@ -18,21 +18,14 @@
                   [drop d:drop])
          syntax/parse/define
          (for-syntax racket/base)
-         arguments
          version-case
-         mischief/shorthand
-         (only-in relation false.)
+         "private/util.rkt"
          (prefix-in p: "base.rkt")
          "types.rkt")
 
 (version-case
  [(version< (version) "7.9.0.22")
   (define-alias define-syntax-parse-rule define-simple-macro)])
-
-(module+ test
-  (require rackunit
-           rackunit/text-ui
-           "private/util.rkt"))
 
 (provide range
          map
@@ -103,7 +96,12 @@
                      [p:index-of index-of]
                      [p:index index]
                      [p:join-with join-with]
-                     [p:weave weave]))
+                     [p:weave weave])
+         ;; these "annotate" utilities are considered internal implementation
+         ;; details and are not intended to be used outside this module
+         ;; except for testing
+         (rename-out [annotate-result seq-test:annotate-result]
+                     [annotate-result-naively seq-test:annotate-result-naively]))
 
 (define (annotate-result source result)
   (if (and source
@@ -119,71 +117,6 @@
            (known-finite? result))
       result
       (finite-sequence result)))
-
-(module+ test
-
-  ;; the main test module for this is tests/api.rkt
-  ;; but we use a test submodule here to avoid providing
-  ;; the `annotate` macro outside this module since it's an
-  ;; internal implementation detail
-
-  (struct opaque-sequence ()
-    #:transparent
-    #:methods gen:sequence
-    [(define (first this)
-       (void))
-     (define (rest this)
-       (opaque-sequence))
-     (define (empty? this)
-       #f)]
-    #:methods gen:countable
-    [(define (known-finite? this)
-       #f)
-     (define (length this)
-       1)])
-
-  (struct known-finite-sequence ()
-    #:transparent
-    #:methods gen:sequence
-    [(define (first this)
-       (void))
-     (define (rest this)
-       (known-finite-sequence))
-     (define (empty? this)
-       #f)]
-    #:methods gen:countable
-    [(define (known-finite? this)
-       #t)
-     (define (length this)
-       1)])
-
-  (define tests
-    (test-suite
-     "finiteness annotation"
-
-     (test-suite
-      "annotate conditionally"
-      (check-false (known-finite?
-                    (annotate-result (opaque-sequence)
-                                     (opaque-sequence))))
-      (check-true (known-finite?
-                   (annotate-result (opaque-sequence)
-                                    (known-finite-sequence))))
-      (check-true (known-finite?
-                   (annotate-result (known-finite-sequence)
-                                    (known-finite-sequence))))
-      (check-true (known-finite?
-                   (annotate-result (known-finite-sequence)
-                                    (opaque-sequence)))))
-
-     (test-suite
-      "annotate always"
-      (check-true (known-finite?
-                   (annotate-result-naively
-                    (opaque-sequence))))
-      (check-true (known-finite?
-                   (annotate-result-naively
-                    (known-finite-sequence))))))))
 
 ;;; built-in or data/collection sequences
 (define (range . args)
@@ -406,7 +339,3 @@
 
 ;; really it's if _any_ of the input sequences are finite
 (define-by-annotating interleave p:interleave VARIADIC-INPUT)
-
-(module+ test
-  (just-do
-   (run-tests tests)))

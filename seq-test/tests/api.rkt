@@ -3,10 +3,6 @@
 (require rackunit
          rackunit/text-ui
          racket/stream
-         racket/set
-         racket/math
-         (only-in racket/function
-                  thunk)
          (except-in data/collection
                     foldl
                     foldl/steps
@@ -23,15 +19,16 @@
                     drop
                     rest)
          relation
-         seq/api)
-
-(require "private/util.rkt")
+         (rename-in seq/api
+                    [seq-test:annotate-result annotate-result]
+                    [seq-test:annotate-result-naively annotate-result-naively]))
 
 (module+ test
 
   (define tests
     (test-suite
      "annotated api tests"
+
      (test-suite
       "smoke tests"
 
@@ -206,12 +203,75 @@
       (test-case
           "drop-when"
         (check-equal? (->list (drop-when even? (list 1 2 2 1))) (list 1 1))))
+
      (test-suite
       "metadata tests"
       ;; ensure that the wrapping API layers do not muddle reporting of
       ;; procedure metadata like arity
-      (check-equal? (procedure-arity by) 2)))))
+      (check-equal? (procedure-arity by) 2))
+
+     (let ()
+       ;; the `annotate*` utilities are considered an internal
+       ;; implementation detail, but they are tested here to avoid
+       ;; introducing testing dependencies into the lib package
+
+       (struct opaque-sequence ()
+         #:transparent
+         #:methods gen:sequence
+         [(define (first this)
+            (void))
+          (define (rest this)
+            (opaque-sequence))
+          (define (empty? this)
+            #f)]
+         #:methods gen:countable
+         [(define (known-finite? this)
+            #f)
+          (define (length this)
+            1)])
+
+       (struct known-finite-sequence ()
+         #:transparent
+         #:methods gen:sequence
+         [(define (first this)
+            (void))
+          (define (rest this)
+            (known-finite-sequence))
+          (define (empty? this)
+            #f)]
+         #:methods gen:countable
+         [(define (known-finite? this)
+            #t)
+          (define (length this)
+            1)])
+
+       (test-suite
+        "finiteness annotation"
+
+        (test-suite
+         "annotate conditionally"
+         (check-false (known-finite?
+                       (annotate-result (opaque-sequence)
+                                        (opaque-sequence))))
+         (check-true (known-finite?
+                      (annotate-result (opaque-sequence)
+                                       (known-finite-sequence))))
+         (check-true (known-finite?
+                      (annotate-result (known-finite-sequence)
+                                       (known-finite-sequence))))
+         (check-true (known-finite?
+                      (annotate-result (known-finite-sequence)
+                                       (opaque-sequence)))))
+
+        (test-suite
+         "annotate always"
+         (check-true (known-finite?
+                      (annotate-result-naively
+                       (opaque-sequence))))
+         (check-true (known-finite?
+                      (annotate-result-naively
+                       (known-finite-sequence))))))))))
 
 (module+ test
-  (just-do
+  (void
    (run-tests tests)))
