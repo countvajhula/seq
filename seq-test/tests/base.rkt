@@ -18,8 +18,6 @@
          relation
          seq/base)
 
-(require "private/util.rkt")
-
 (module+ test
 
   (define tests

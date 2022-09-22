@@ -5,9 +5,6 @@
                     predicate/c)
          racket/stream
          racket/match
-         racket/generator
-         racket/generic
-         racket/undefined
          racket/set
          (except-in data/collection
                     foldl

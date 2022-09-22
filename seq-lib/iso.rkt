@@ -29,8 +29,7 @@
   (require rackunit
            rackunit/text-ui
            racket/generic
-           racket/stream
-           "private/util.rkt"))
+           racket/stream))
 
 (provide map
          filter

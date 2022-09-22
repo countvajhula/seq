@@ -29,8 +29,7 @@
 
 (module+ test
   (require rackunit
-           rackunit/text-ui
-           "private/util.rkt"))
+           rackunit/text-ui))
 
 (provide range
          map

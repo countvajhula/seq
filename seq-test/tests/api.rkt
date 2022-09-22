@@ -25,8 +25,6 @@
          relation
          seq/api)
 
-(require "private/util.rkt")
-
 (module+ test
 
   (define tests
