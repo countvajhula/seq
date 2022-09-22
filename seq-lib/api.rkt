@@ -406,5 +406,5 @@
 (define-by-annotating interleave p:interleave VARIADIC-INPUT)
 
 (module+ test
-  (just-do
+  (void
    (run-tests tests)))

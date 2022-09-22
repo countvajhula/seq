@@ -429,5 +429,5 @@
                          seq)))
 
 (module+ test
-  (just-do
+  (void
    (run-tests tests)))

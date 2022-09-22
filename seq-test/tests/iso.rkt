@@ -243,5 +243,5 @@
       (check-equal? (procedure-arity by) 2)))))
 
 (module+ test
-  (just-do
+  (void
    (run-tests tests)))
