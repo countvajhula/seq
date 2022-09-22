@@ -2,7 +2,6 @@
 (define collection "seq")
 (define deps '("base"
                "collections-lib"
-               "mischief"
                "version-case"
                "relation-lib"
                "social-contract"))

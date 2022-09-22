@@ -19,7 +19,7 @@
          syntax/parse/define
          (for-syntax racket/base)
          version-case
-         mischief/shorthand
+         "private/util.rkt"
          (prefix-in p: "base.rkt")
          "types.rkt")
 
