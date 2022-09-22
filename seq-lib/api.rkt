@@ -18,10 +18,8 @@
                   [drop d:drop])
          syntax/parse/define
          (for-syntax racket/base)
-         arguments
          version-case
          mischief/shorthand
-         (only-in relation false.)
          (prefix-in p: "base.rkt")
          "types.rkt")
 

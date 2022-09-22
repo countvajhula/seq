@@ -1,11 +1,9 @@
 #lang racket/base
 
 (require racket/set
-         arguments
          (only-in racket/function curry)
          (only-in racket/stream stream?)
-         (for-syntax racket/base
-                     arguments)
+         (for-syntax racket/base)
          (only-in data/collection
                   sequence->list
                   apply
