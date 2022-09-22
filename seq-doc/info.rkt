@@ -2,12 +2,15 @@
 
 (define collection "seq")
 (define deps '("base"))
-(define build-deps '("scribble-lib"
+(define build-deps '("seq-lib"
+                     "scribble-lib"
                      "scribble-abbrevs"
                      "racket-doc"
+                     "collections-lib"
                      "collections-doc"
                      "functional-doc"
-                     "relation"
+                     "relation-lib"
+                     "relation-doc"
                      "sandbox-lib"))
 (define scribblings '(("scribblings/seq.scrbl" ())))
 (define clean '("compiled" "doc" "doc/seq"))
