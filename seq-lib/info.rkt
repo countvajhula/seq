@@ -1,4 +1,5 @@
 #lang info
+
 (define collection "seq")
 (define deps '("base"
                "collections-lib"
