@@ -2,6 +2,7 @@
 
 (define collection 'multi)
 (define deps '("base"
+               "collections-lib"
                "seq-lib"
                "seq-doc"
                "seq-test"))
