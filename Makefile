@@ -6,6 +6,7 @@ PACKAGE-NAME=seq
 DEPS-FLAGS=--check-pkg-deps --unused-pkg-deps
 
 help:
+	@echo "install-req - install the req dependency manager for Racket (used to simplify installation)"
 	@echo "install - install package along with dependencies"
 	@echo "remove - remove package"
 	@echo "build - Compile libraries"
@@ -22,13 +23,16 @@ help:
 	@echo "coverage-report - View test coverage report"
 	@echo "docs - view docs in a browser"
 
+install-req:
+	raco pkg install --auto --skip-installed req
+
 # Primarily for use by CI.
 # Installs dependencies as well as linking this as a package.
-install:
-	raco pkg install --deps search-auto --link $(PWD)/$(PACKAGE-NAME)-{lib,test,doc} $(PWD)/$(PACKAGE-NAME)
+install: install-req
+	raco req -A
 
 remove:
-	raco pkg remove $(PACKAGE-NAME)-{lib,test,doc} $(PACKAGE-NAME)
+	raco req -R
 
 # Primarily for day-to-day dev.
 # Build libraries from source.
