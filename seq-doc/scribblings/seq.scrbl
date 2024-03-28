@@ -55,31 +55,37 @@
                              subsequence*
                              naturals)]]
 
-@(define eval-for-docs
-  (parameterize ([sandbox-output 'string]
-                 [sandbox-error-output 'string]
-                 [sandbox-memory-limit #f])
-                 (make-evaluator 'racket/base
-                                 '(require relation
-                                           (except-in data/collection
-                                                      append
-                                                      index-of
-                                                      index-where
-                                                      range
-                                                      nth
-                                                      set-nth
-                                                      map
-                                                      filter
-                                                      reverse
-                                                      rest
-                                                      take
-                                                      drop
-                                                      foldl
-                                                      foldl/steps)
-                                           seq/iso
-                                           racket/set
-                                           racket/math
-                                           racket/stream))))
+@(define (make-eval-for-docs . exprs)
+   (parameterize ([sandbox-output 'string]
+                  [sandbox-error-output 'string]
+                  [sandbox-memory-limit #f])
+     (apply make-base-eval
+            '(require relation
+                      (except-in data/collection
+                                 append
+                                 index-of
+                                 index-where
+                                 range
+                                 nth
+                                 set-nth
+                                 map
+                                 filter
+                                 reverse
+                                 rest
+                                 take
+                                 drop
+                                 foldl
+                                 foldl/steps)
+                      seq/iso
+                      racket/set
+                      racket/math
+                      racket/stream)
+            exprs)))
+
+@; adding a lambda indirection in creating the evaluator
+@; fixes "dynamic-require: name is protected [...] name: 'syntax-local-expand-observer
+@; reason unknown.
+@(define eval-for-docs (make-eval-for-docs))
 
 @title{Seq: A Sequence Library}
 @author{Siddhartha Kasivajhula}
