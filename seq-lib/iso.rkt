@@ -4,20 +4,10 @@
          (only-in racket/function curry)
          (only-in racket/stream stream?)
          (for-syntax racket/base)
-         (only-in data/collection
-                  sequence->list
-                  apply
-                  andmap
-                  [map d:map]
-                  [take d:take]
-                  known-finite?
-                  first
-                  nth
-                  [set-nth d:set-nth]
-                  extend
-                  collection?
-                  gen:sequence
-                  gen:countable)
+         (rename-in data/collection
+                    [map d:map]
+                    [take d:take]
+                    [set-nth d:set-nth])
          relation/type
          (only-in relation
                   appendable-identity
@@ -75,6 +65,12 @@
          wrap-each
          interleave
          deduplicate
+         (except-out
+          (all-from-out data/collection)
+          append
+          range
+          nth
+          index-where)
          (rename-out [~ append]
                      [p:range range]
                      [p:nth nth]

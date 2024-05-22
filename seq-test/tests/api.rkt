@@ -3,22 +3,10 @@
 (require rackunit
          rackunit/text-ui
          racket/stream
-         (except-in data/collection
-                    foldl
+         (except-in relation
                     foldl/steps
                     append
-                    nth
-                    set-nth
-                    index-of
-                    index-where
-                    range
-                    map
-                    filter
-                    reverse
-                    take
-                    drop
-                    rest)
-         relation
+                    foldl)
          (rename-in seq/api
                     [seq-test:annotate-result annotate-result]
                     [seq-test:annotate-result-naively annotate-result-naively]))

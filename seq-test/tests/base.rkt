@@ -7,15 +7,10 @@
          racket/math
          (only-in racket/function
                   thunk)
-         (except-in data/collection
-                    foldl
+         (except-in relation
                     foldl/steps
                     append
-                    index-of
-                    index-where
-                    nth
-                    set-nth)
-         relation
+                    foldl)
          seq/base)
 
 (module+ test

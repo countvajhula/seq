@@ -7,9 +7,6 @@
          racket/match
          racket/set
          (except-in data/collection
-                    foldl
-                    foldl/steps
-                    append
                     index-of
                     index-where
                     nth
@@ -19,7 +16,10 @@
                   [append d:append]
                   [nth d:nth]
                   [set-nth d:set-nth])
-         relation
+         (except-in relation
+                    foldl
+                    foldl/steps
+                    append)
          contract/social)
 
 (provide take-when
@@ -29,6 +29,7 @@
          infix-at
          exists
          for-all
+         (all-from-out data/collection)
          (contract-out
           [nth (reducer/c (head integer?))]
           [set-nth (map/c (head integer? any/c))]

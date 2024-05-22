@@ -7,6 +7,9 @@
                     filter
                     reverse
                     rest
+                    nth
+                    index-where
+                    index-of
                     take
                     drop)
          (only-in data/collection
@@ -76,6 +79,7 @@
          add-between
          wrap-each
          interleave
+         (all-from-out data/collection)
          (rename-out [d:take take] ; so scribble can find it in `(for-label seq)`
                      [p:nth nth]
                      [p:exists exists]

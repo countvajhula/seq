@@ -5,23 +5,10 @@
          racket/generic
          racket/set
          racket/stream
-         (except-in data/collection
-                    foldl
-                    foldl/steps
-                    append
-                    nth
-                    set-nth
-                    index-of
-                    index-where
-                    range
-                    map
-                    filter
-                    reverse
-                    take
-                    drop
-                    rest)
          (except-in relation
-                    append)
+                    append
+                    foldl/steps
+                    foldl)
          (rename-in seq/iso
                     [seq-test:return return]
                     [seq-test:string-helper string-helper]))
