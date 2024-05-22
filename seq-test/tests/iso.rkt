@@ -20,7 +20,8 @@
                     take
                     drop
                     rest)
-         relation
+         (except-in relation
+                    append)
          (rename-in seq/iso
                     [seq-test:return return]
                     [seq-test:string-helper string-helper]))

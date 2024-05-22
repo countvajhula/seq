@@ -20,7 +20,8 @@
                   gen:countable)
          relation/type
          (only-in relation
-                  appendable-identity)
+                  appendable-identity
+                  ~)
          (prefix-in p: "api.rkt")
          syntax/parse/define)
 
@@ -74,7 +75,8 @@
          wrap-each
          interleave
          deduplicate
-         (rename-out [p:range range]
+         (rename-out [~ append]
+                     [p:range range]
                      [p:nth nth]
                      [p:exists exists]
                      [p:for-all for-all]
