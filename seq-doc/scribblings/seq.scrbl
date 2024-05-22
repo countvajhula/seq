@@ -113,6 +113,8 @@ Some of these interfaces are either implementations of or are inspired by the Sc
 
 @section{Modules}
 
+Each of the modules below overrides or re-provides all of the interfaces in @racket[data/collection]. Thus, it should generally suffice to @racket[require] just one of the modules below, without also requiring @racket[data/collection].
+
 @defmodule*/no-declare[(seq/base)]
 
 The core set of APIs, exhibiting functional, generic, and lazy semantics (like the interfaces in @racket[data/collection]). This is an internal module and generally should not be used directly.
