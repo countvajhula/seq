@@ -994,6 +994,18 @@ Construct new sequences from primitive elements and other sequences. Not to be c
 
 Compose new sequences from given sequences. Not to be confused with @seclink["Defining" #:doc '(lib "seq/scribblings/seq.scrbl")]{defining} sequences.
 
+@defproc[(append [seq sequence?] ...)
+         sequence?]{
+
+ Either reprovided @racketlink[r:~]{@racket[~]} from @other-doc['(lib "relation/scribblings/relation.scrbl")] or @racketlink[d:append]{@racket[append]} from @other-doc['(lib "scribblings/data/collection/collections.scrbl")], depending on whether you're using @seclink["Modules"]{@racket[seq/iso] or @racket[seq]}.
+
+@examples[
+    #:eval eval-for-docs
+    (append (list 1 2 3) (list 4 5))
+    (append "abc" "def")
+  ]
+}
+
 @deftogether[(
 @defproc[(zip [seq sequence?]
               ...)
