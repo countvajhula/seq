@@ -3,7 +3,6 @@
 (define collection "seq")
 (define deps '("base"))
 (define build-deps '("seq-lib"
-                     "collections-lib"
                      "rackunit-lib"
                      "relation-lib"))
 (define clean '("compiled" "tests/compiled" "tests/private/compiled"))
