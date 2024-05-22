@@ -4,3 +4,10 @@
 compiled
 doc
 coverage
+
+# docs output
+*.html
+*.css
+*.js
+MathJax
+katex

@@ -15,10 +15,35 @@
                                rest
                                take
                                drop
+                               apply
+                               ormap
+                               andmap
                                sequence?
+                               sequence/c
+                               sequence->list
+                               for-each
+                               first
+                               second
+                               third
+                               fourth
+                               fifth
+                               sixth
+                               seventh
+                               eighth
+                               ninth
+                               tenth
+                               last
+                               cartesian-product
+                               empty?
+                               length
+                               append
+                               append-map
+                               append*
+                               foldl
                                truncate
                                init
                                prefix
+                               flatten
                                remove)
                     (only-in racket
                              (add-between b:add-between)
@@ -39,21 +64,7 @@
                              power
                              comparable?)
                     seq
-                    (prefix-in d: data/collection)
-                    (only-in data/collection
-                             conj
-                             conj*
-                             extend
-                             gen:collection
-                             gen:sequence
-                             sequence?
-                             collection?
-                             sequenceof
-                             repeat
-                             cycle
-                             subsequence
-                             subsequence*
-                             naturals)]]
+                    (prefix-in d: data/collection)]]
 
 @(define (make-eval-for-docs . exprs)
    (parameterize ([sandbox-output 'string]
@@ -765,7 +776,7 @@ Assert or deny properties of sequences.
                  ...)
          boolean?]{
 
- Similar to @hyperlink["https://docs.racket-lang.org/r6rs/r6rs-lib-std/r6rs-lib-Z-H-4.html#node_idx_206"]{exists} but generalized to all sequences rather than only lists, this checks if @emph{any} of the sequence values fulfill a provided predicate. @racket[pred] must accept a number of arguments equal to the number of provided sequences @racket[seq]. This is an alias for @racketlink[d:ormap]{ormap}.
+ Similar to @hyperlink["https://docs.racket-lang.org/r6rs/r6rs-lib-std/r6rs-lib-Z-H-4.html#node_idx_206"]{exists} but generalized to all sequences rather than only lists, this checks if @emph{any} of the sequence values fulfill a provided predicate. @racket[pred] must accept a number of arguments equal to the number of provided sequences @racket[seq]. This is an alias for @racket[ormap].
 
 @examples[
     #:eval eval-for-docs
