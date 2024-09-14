@@ -309,9 +309,27 @@
                                     new-subseq
                                     seq)))
 
-(define-by-annotating trim-if p:trim-if 2 1)
+(define (trim-if pred
+                 seq
+                 #:side [side 'both]
+                 #:how-many [how-many #f])
+  (annotate-result seq
+                   (p:trim-if #:side side
+                              #:how-many how-many
+                              pred
+                              seq)))
 
-(define-by-annotating trim p:trim 2 1)
+(define (trim elem
+              seq
+              #:key [key #f]
+              #:side [side 'both]
+              #:how-many [how-many #f])
+  (annotate-result seq
+                   (p:trim #:key key
+                           #:side side
+                           #:how-many how-many
+                           elem
+                           seq)))
 
 (define-by-annotating trim-by p:trim-by 3 2)
 

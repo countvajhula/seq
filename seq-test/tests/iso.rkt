@@ -132,12 +132,14 @@
         (check-equal? (contains? "ello" "hello there") #t))
       (test-case
           "trim-if"
-        (check-equal? (trim-if negative? (list -1 -2 1 2 3 -3)) (list 1 2 3)))
+        (check-equal? (trim-if negative? (list -1 -2 1 2 3 -3)) (list 1 2 3))
+        (check-equal? (trim-if negative? #:side 'left (list -1 -2 1 2 3 -3)) (list 1 2 3 -3)))
       (test-case
           "trim"
         (check-equal? (trim 0 (list 0 1 2 3 0 0)) (list 1 2 3))
         (check-equal? (trim " " "   \thello\n  ") "\thello\n")
-        (check-equal? (trim "h" "hellohhh") "ello"))
+        (check-equal? (trim "h" "hellohhh") "ello")
+        (check-equal? (trim 0 #:side 'left (list 0 1 2 3 0 0)) (list 1 2 3 0 0)))
       (test-case
           "trim-by"
         (check-equal? (trim-by 1 1 '(1 2 3)) '(2)))

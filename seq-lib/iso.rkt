@@ -310,9 +310,27 @@
                            new-subseq
                            seq)))
 
-(define-isomorphic trim-if p:trim-if 2 1)
+(define (trim-if pred
+                 seq
+                 #:side [side 'both]
+                 #:how-many [how-many #f])
+  (return seq
+          (p:trim-if #:side side
+                     #:how-many how-many
+                     pred
+                     seq)))
 
-(define-isomorphic trim p:trim 2 1 STRING-HELPER)
+(define (trim elem
+              seq
+              #:key [key #f]
+              #:side [side 'both]
+              #:how-many [how-many #f])
+  (return seq
+          (p:trim #:key key
+                  #:side side
+                  #:how-many how-many
+                  (string-helper seq elem)
+                  seq)))
 
 (define-isomorphic trim-by p:trim-by 3 2)
 
